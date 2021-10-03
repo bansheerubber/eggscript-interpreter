@@ -1,12 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #include <cstring>
-
-#include "../io.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #define DYNAMIC_ARRAY_MAX_SIZE 5000000
 
-template <typename T, typename S>
+template <typename T, typename S = void>
 class DynamicArray {
 	public:
 		size_t head;
@@ -17,6 +18,17 @@ class DynamicArray {
 			this->dontDelete = true;
 		}
 
+		DynamicArray(size_t size) {
+			this->parent = nullptr;
+			this->init = nullptr;
+			this->onRealloc = nullptr;
+
+			this->head = 0;
+			this->size = size;
+
+			this->constructArray();
+		}
+
 		DynamicArray(
 			S* parent,
 			size_t size,
@@ -24,21 +36,13 @@ class DynamicArray {
 			void (*onRealloc) (S* parent)
 		) {
 			this->parent = parent;
-			this->size = size;
-			this->head = 0;
 			this->init = init;
 			this->onRealloc = onRealloc;
 
-			T* array = (T*)malloc(sizeof(T) * this->size);
-			if(array == NULL) {
-				printError("invalid dynamic array malloc\n");
-				exit(1);
-			}
-			this->array = array;
+			this->head = 0;
+			this->size = size;
 
-			for(size_t i = 0; i < this->size; i++) {
-				(*this->init)(this->parent, &(this->array[i]));
-			}
+			this->constructArray();
 		}
 
 		~DynamicArray() {
@@ -57,26 +61,7 @@ class DynamicArray {
 			this->head++;
 
 			if(this->head == this->size) {
-				if(this->size * 2 > DYNAMIC_ARRAY_MAX_SIZE) {
-					printError("stack overflow\n");
-					exit(1);
-				}
-				
-				T* array = (T*)realloc(this->array, sizeof(T) * this->size * 2);
-				if(array == NULL) {
-					printError("invalid dynamic array realloc\n");
-					exit(1);
-				}
-				this->array = array;
-
-				for(size_t i = this->size; i < this->size * 2; i++) {
-					(*this->init)(this->parent, &this->array[i]);
-				}
-				this->size *= 2;
-				
-				if(this->onRealloc != nullptr) {
-					(*this->onRealloc)(this->parent);
-				}
+				this->allocate(this->size * 2);
 			}
 		}
 
@@ -84,11 +69,51 @@ class DynamicArray {
 			this->head--;
 		}
 
+		void allocate(size_t amount) {
+			if(amount * 2 > DYNAMIC_ARRAY_MAX_SIZE) {
+				printf("stack overflow\n");
+				exit(1);
+			}
+			
+			T* array = (T*)realloc(this->array, sizeof(T) * amount);
+			if(array == NULL) {
+				printf("invalid dynamic array realloc\n");
+				exit(1);
+			}
+			this->array = array;
+
+			if(this->init != nullptr) {
+				for(size_t i = this->size; i < amount; i++) {
+					(*this->init)(this->parent, &this->array[i]);
+				}
+			}
+			this->size = amount;
+			
+			if(this->onRealloc != nullptr) {
+				(*this->onRealloc)(this->parent);
+			}
+		}
+
 		T& operator[](size_t index) {
 			return this->array[index];
 		}
 	
 	private:
+		void constructArray() {
+			T* array = (T*)malloc(sizeof(T) * this->size);
+			if(array == NULL) {
+				printf("invalid dynamic array malloc\n");
+				exit(1);
+			}
+			this->array = array;
+
+			if(this->init != nullptr) {
+				for(size_t i = 0; i < this->size; i++) {
+					(*this->init)(this->parent, &(this->array[i]));
+				}
+			}
+		}
+
 		bool dontDelete = false;
 		T* array;
 		S* parent;

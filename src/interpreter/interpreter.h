@@ -10,6 +10,7 @@
 #include "../util/dynamicArray.h"
 #include "entry.h"
 #include "function.h"
+#include "../util/garbageCollectionHeap.h"
 #include "../io.h"
 #include "instruction.h"
 #include "instructionContainer.h"
@@ -56,6 +57,7 @@ namespace ts {
 		friend string VariableContext::computeVariableString(Instruction &instruction, string &variable);
 		friend VariableContext;
 		friend Object;
+		friend ObjectWrapper;
 		friend void convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type);
 		friend ObjectWrapper* CreateObject(
 			class ts::Interpreter* interpreter,
@@ -83,6 +85,7 @@ namespace ts {
 
 			bool tick();
 			void setTickRate(long tickRate);
+			void garbageCollect(unsigned int amount);
 
 			void setObjectName(string &name, ObjectWrapper* object);
 			void deleteObjectName(string &name);
@@ -101,6 +104,8 @@ namespace ts {
 			bool isParallel = false;
 		
 		private:
+			GarbageCollectionHeap<ObjectWrapper*> garbageHeap;
+			
 			void interpret(); // interprets the next instruction
 
 			void actuallyExecFile(string filename);

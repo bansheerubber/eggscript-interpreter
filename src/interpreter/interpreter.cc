@@ -323,6 +323,13 @@ void Interpreter::setTickRate(long tickRate) {
 	this->tickRate = tickRate;
 }
 
+void Interpreter::garbageCollect(unsigned int amount) {
+	for(size_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {		
+		delete this->garbageHeap.array[0];
+		this->garbageHeap.pop();
+	}
+}
+
 void Interpreter::interpret() {
 	start:
 	Instruction &instruction = this->topContainer->array[*this->instructionPointer];
@@ -337,7 +344,6 @@ void Interpreter::interpret() {
 			if(this->showTime && this->frames.head == 0) {
 				(*this->engine->printFunction)("exec time: %lld\n", getMicrosecondsNow() - this->startTime);
 			}
-			// this->stack.head = 0;
 
 			return;	
 		}

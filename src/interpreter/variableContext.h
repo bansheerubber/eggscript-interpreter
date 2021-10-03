@@ -15,6 +15,7 @@ namespace ts {
 	class VariableContext {
 		friend class Interpreter;
 		friend class Object;
+		friend class ObjectWrapper;
 		friend void initFunctionFrame(Interpreter* interpreter, class FunctionFrame* frame);
 		
 		public:

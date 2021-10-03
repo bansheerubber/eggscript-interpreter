@@ -9,7 +9,26 @@ using namespace std;
 using namespace ts;
 
 namespace ts {
+	#define TS_OBJECT_CONSTRUCTOR(name)		void (*name)(ObjectWrapper* wrapper)
+	struct ObjectWrapper* CreateObject(
+		class ts::Interpreter* interpreter,
+		string nameSpace,
+		string inheritedName,
+		class MethodTree* methodTree,
+		class MethodTree* typeMethodTree,
+		void* data = nullptr
+	);
+	
 	class Object {
+		friend ObjectWrapper* CreateObject(
+			Interpreter* interpreter,
+			string nameSpace,
+			string inheritedName,
+			MethodTree* methodTree,
+			MethodTree* typeMethodTree,
+			void* data
+		);
+		
 		public:
 			Object(class ts::Interpreter* interpreter, string nameSpace, string inheritedName, class MethodTree* methodTree, class MethodTree* typeMethodTree);
 			~Object();
@@ -22,6 +41,7 @@ namespace ts {
 
 			void setName(string &name);
 
+			size_t referenceCount = 0;
 			string nameSpace;
 			class MethodTree* methodTree;
 			class MethodTree* typeMethodTree;
@@ -37,6 +57,8 @@ namespace ts {
 	struct ObjectWrapper {
 		Object* object;
 		void* data; // programmer-defined data for lib
+		int referenceCount = 0;
+		size_t heapIndex = 0;
 
 		friend class Object;
 
@@ -46,19 +68,10 @@ namespace ts {
 			this->data = data;
 		}
 
-		~ObjectWrapper() {
-			delete this->object;
-			delete this->data;
+		~ObjectWrapper();
+
+		int operator<(const ObjectWrapper &other) {
+			return this->referenceCount < other.referenceCount;
 		}
 	};
-
-	#define TS_OBJECT_CONSTRUCTOR(name)		void (*name)(ObjectWrapper* wrapper)
-	ObjectWrapper* CreateObject(
-		class ts::Interpreter* interpreter,
-		string nameSpace,
-		string inheritedName,
-		class MethodTree* methodTree,
-		class MethodTree* typeMethodTree,
-		void* data = nullptr
-	);
 }

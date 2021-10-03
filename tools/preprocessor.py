@@ -56,12 +56,12 @@ if __name__ == "__main__":
 
 	# generate the map file
 	global_symbols = ";".join(functions)
-	map_contents = """torquescript {
+	map_contents = """eggscript {
 		global: %%;
 		local: *;
 	};""".replace("%%", global_symbols)
 
-	map_file = open("libtorquescript.map", "w")
+	map_file = open("libeggscript.map", "w")
 	map_file.write(map_contents)
 	map_file.close()
 
