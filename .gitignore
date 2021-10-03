@@ -9,5 +9,5 @@ tests/results/Server_MiniDungeons
 tests/errors
 *.pyc
 __pycache__
-libtorquescript.map
+libeggscript.map
 library todo

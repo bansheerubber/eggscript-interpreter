@@ -66,7 +66,7 @@ namespace ts {
 			void* data
 		);
 		friend Entry* ts::sl::PARENT(Engine* engine, const char* methodName, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes);
-		friend bool tsTick(tsEnginePtr engine);
+		friend bool esTick(esEnginePtr engine);
 		
 		public:
 			Interpreter();

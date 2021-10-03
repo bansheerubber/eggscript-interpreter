@@ -67,11 +67,11 @@ if __name__ == "__main__":
 
 	# generate the include files
 	os.makedirs("./dist/include.cpp", exist_ok=True)
-	copyfile("./src/lib/libSymbols.h", "./dist/include.cpp/ts.h")
+	copyfile("./src/lib/libSymbols.h", "./dist/include.cpp/egg.h")
 
 	os.makedirs("./dist/include.c", exist_ok=True)
 	include_c_source = open("./src/lib/libSymbols.h")
-	include_c_destination = open("./dist/include.c/ts.h", "w")
+	include_c_destination = open("./dist/include.c/egg.h", "w")
 	include_c_lines = []
 	for line in include_c_source:
 		if 'extern "C"' not in line and line.strip() != "}":
