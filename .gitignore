@@ -2,10 +2,6 @@
 dist
 tmp
 *.o
-tests/results/bl-decompiled
-tests/results/Brick_LuaLogic
-tests/results/parser
-tests/results/Server_MiniDungeons
 tests/errors
 *.pyc
 __pycache__

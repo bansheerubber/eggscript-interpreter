@@ -188,13 +188,13 @@ int runTests(bool overwriteResults) {
 	}
 
 	// regression test bl source code
-	parseDirectoryTest("../tests/sources/bl-decompiled", overwriteResults, &totalTests, &passedTests);
+	// parseDirectoryTest("../tests/sources/bl-decompiled", overwriteResults, &totalTests, &passedTests);
 
 	// regression test Server_MiniDungeons
-	parseDirectoryTest("../tests/sources/Server_MiniDungeons", overwriteResults, &totalTests, &passedTests);
+	// parseDirectoryTest("../tests/sources/Server_MiniDungeons", overwriteResults, &totalTests, &passedTests);
 
 	// regression test Brick_LuaLogic
-	parseDirectoryTest("../tests/sources/Brick_LuaLogic", overwriteResults, &totalTests, &passedTests);
+	// parseDirectoryTest("../tests/sources/Brick_LuaLogic", overwriteResults, &totalTests, &passedTests);
 
 	// regression test the interpreter
 	interpretDirectoryTest("../tests/sources/interpreter", &totalTests, &passedTests);
