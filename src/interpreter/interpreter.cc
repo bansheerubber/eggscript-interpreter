@@ -447,10 +447,6 @@ void Interpreter::interpret() {
 					instruction.localAccess.hash
 				);
 
-				for(int i = 0; i < instruction.localAccess.dimensions; i++) {
-					this->pop(); // pop the dimensions if we have any
-				}
-
 				this->push(entry, instruction.pushType);
 			}
 			else {
@@ -467,17 +463,13 @@ void Interpreter::interpret() {
 				instruction.globalAccess.hash
 			);
 
-			for(int i = 0; i < instruction.globalAccess.dimensions; i++) {
-				this->pop(); // pop the dimensions if we have any
-			}
-
 			this->push(entry, instruction.pushType);
 
 			break;
 		}
 
 		case instruction::OBJECT_ACCESS: { // push object property to stack
-			Entry &objectEntry = this->stack[this->stack.head - 1 - instruction.localAssign.dimensions];
+			Entry &objectEntry = this->stack[this->stack.head - 1];
 			ObjectWrapper* objectWrapper = nullptr;
 
 			## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
@@ -494,10 +486,6 @@ void Interpreter::interpret() {
 				instruction.localAccess.source,
 				instruction.localAssign.hash
 			);
-
-			for(int i = 0; i < instruction.localAccess.dimensions; i++) {
-				this->pop(); // pop the dimensions if we have any
-			}
 
 			this->pop(); // pop the object
 
@@ -772,11 +760,6 @@ void Interpreter::interpret() {
 			break;
 		}
 
-		case instruction::LINK_VARIABLE: {
-			this->topContext->linkVariable(instruction.linkVariable.source, instruction.linkVariable.hash, instruction.linkVariable.stackIndex);
-			break;
-		}
-
 		case instruction::CALL_PARENT: {
 			FunctionFrame &frame = this->frames[this->frames.head - 1];
 			MethodTreeEntry* methodTreeEntry = frame.methodTreeEntry;
@@ -821,6 +804,76 @@ void Interpreter::interpret() {
 				break;
 			}
 
+			break;
+		}
+		
+		case instruction::ARRAY_ACCESS: {
+			Entry &objectEntry = this->stack[this->stack.head - 2];
+			Entry &indexEntry = this->stack[this->stack.head - 1];
+			this->push(2, instruction::STACK);
+
+			if(objectEntry.type == entry::OBJECT) {
+				Entry &numberOfArguments = this->stack[this->stack.head - 1];
+				int argumentCount = (int)numberOfArguments.numberData;
+				
+				MethodTreeEntry* methodTreeEntry = nullptr;
+				
+				// pull the object from the stack
+				ObjectWrapper* objectWrapper = objectEntry.objectData->objectWrapper;
+				Object* object = nullptr;
+
+				if(objectWrapper == nullptr) {
+					// pop arguments that we didn't use
+					Entry &numberOfArguments = this->stack[this->stack.head - 1];
+					int number = (int)numberOfArguments.numberData;
+					for(int i = 0; i < number + 1; i++) {
+						this->pop();
+					}
+
+					this->push(this->emptyEntry, instruction.pushType);
+					break;
+				}
+
+				object = objectWrapper->object;
+
+				// cache the method entry pointer in the instruction
+				bool found = false;
+				auto methodNameIndex = this->engine->methodNameToIndex.find("getelement");
+				if(methodNameIndex != this->engine->methodNameToIndex.end()) {
+					auto methodEntry = object->methodTree->methodIndexToEntry.find(methodNameIndex->second);
+					if(methodEntry != object->methodTree->methodIndexToEntry.end()) {
+						methodTreeEntry = methodEntry->second;
+						found = true;
+					}
+				}
+				
+				if(!found) {
+					this->warning("could not find function with name '%s::getElement'\n", object->nameSpace.c_str());
+
+					// pop arguments that we didn't use
+					Entry &numberOfArguments = this->stack[this->stack.head - 1];
+					int number = (int)numberOfArguments.numberData;
+					for(int i = 0; i < number + 1; i++) {
+						this->pop();
+					}
+
+					this->push(this->emptyEntry, instruction.pushType);
+					break;
+				}
+
+				// look up the method in the method tree
+				int methodTreeEntryIndex = methodTreeEntry->hasInitialMethod ? 0 : 1;
+				PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
+				size_t packagedFunctionListIndex = list->topValidIndex;
+				Function* foundFunction = (*list)[packagedFunctionListIndex];
+				## call_generator.py
+			}
+			else {
+				this->pop();
+				this->pop();
+				this->push(getEmptyString(), instruction.pushType);
+			}
+			
 			break;
 		}
 

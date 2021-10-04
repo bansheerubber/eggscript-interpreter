@@ -5,8 +5,7 @@
 
 bool PostfixStatement::ShouldParse(ts::Engine* engine) {
 	Token token = engine->tokenizer->peekToken();
-	return token.type == INCREMENT
-		|| token.type == DECREMENT;
+	return token.type == INCREMENT|| token.type == DECREMENT;
 }
 
 PostfixStatement* PostfixStatement::Parse(AccessStatement* lvalue, Component* parent, ts::Engine* engine) {
@@ -61,15 +60,8 @@ ts::InstructionReturn PostfixStatement::compile(ts::Engine* engine, ts::Compilat
 	instruction->localAssign.entry = ts::Entry(); // initialize memory to avoid crash
 
 	// copy access instruction to assign instruction
-	instruction->localAssign.dimensions = instruction->localAccess.dimensions;
 	instruction->localAssign.fromStack = false;
 	instruction->localAssign.pushResult = this->parent->shouldPushToStack(this);
-
-	if(instruction->localAccess.dimensions > 0) {
-		instruction->localAssign.stackIndex = -1;
-	}
-	else {
-		instruction->localAssign.stackIndex = context.scope->allocateVariable(instruction->localAssign.destination).stackIndex;
-	}
+	instruction->localAssign.stackIndex = context.scope->allocateVariable(instruction->localAssign.destination).stackIndex;
 	return compiled.output;
 }

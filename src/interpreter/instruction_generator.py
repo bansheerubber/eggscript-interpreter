@@ -22,7 +22,6 @@ structs = {
 	"objectAssign": get_assignment_instructions("OBJECT_ASSIGN"),
 	"objectAccess": ["OBJECT_ACCESS"],
 	"popArguments": ["POP_ARGUMENTS"],
-	"linkVariable": ["LINK_VARIABLE"],
 	"symbolAccess": ["SYMBOL_ACCESS"],
 	"functionReturn": ["RETURN"]
 }

@@ -48,28 +48,28 @@ AccessStatement* AccessStatement::Parse(
 		});
 	}
 	
-	bool expectingArrayOrCall = true;
+	int expectingArrayOrCall = 1;
 	while(!engine->tokenizer->eof()) {
 		token = engine->tokenizer->peekToken();
-		if(token.type == LEFT_BRACE) {
-			if(expectingArrayOrCall) {
+		if(ArrayStatement::ShouldParse(engine)) {
+			if(expectingArrayOrCall > 0) {
 				output->elements.push_back((AccessElement){
 					isArray: true,
 					component: ArrayStatement::Parse(output, engine),
 				});
-				expectingArrayOrCall = false;
+				expectingArrayOrCall = 2;
 			}
 			else {
 				engine->parser->error("was not expecting array access");
 			}
 		}
-		else if(token.type == LEFT_PARENTHESIS) {
-			if(expectingArrayOrCall) {
+		else if(CallStatement::ShouldParse(engine)) {
+			if(expectingArrayOrCall == 1) {
 				output->elements.push_back((AccessElement){
 					isCall: true,
 					component: CallStatement::Parse(output, engine),
 				});
-				expectingArrayOrCall = false;
+				expectingArrayOrCall = 0;
 			}
 			else {
 				engine->parser->error("was not expecting call");
@@ -80,7 +80,7 @@ AccessStatement* AccessStatement::Parse(
 			output->elements.push_back((AccessElement){
 				token: token,
 			});
-			expectingArrayOrCall = true;
+			expectingArrayOrCall = 1;
 		}
 		else {
 			break;
@@ -274,7 +274,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		if(element.token.type == LOCAL_VARIABLE) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::LOCAL_ACCESS;
-			instruction->localAccess.dimensions = 0;
 			instruction->localAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->localAccess.source);
 			instruction->localAccess.stackIndex = -1;
@@ -286,7 +285,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == GLOBAL_VARIABLE) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::GLOBAL_ACCESS;
-			instruction->globalAccess.dimensions = 0;
 			instruction->globalAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->globalAccess.source);
 
@@ -297,7 +295,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == SYMBOL) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::SYMBOL_ACCESS;
-			instruction->symbolAccess.dimensions = 0;
 			instruction->symbolAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->symbolAccess.source);
 
@@ -306,12 +303,19 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			lastInstruction = instruction;
 		}
 		else if(element.isArray) {
-			lastInstruction->localAccess.dimensions = ((ArrayStatement*)element.component)->getDimensions();
+			if(lastInstruction != nullptr) {
+				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
+					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
+				}
+				c.output.add(lastInstruction);
+			}
+			
 			c.output.add(element.component->compile(engine, context));
+			lastInstruction = nullptr;
 		}
 		else if(element.token.type == MEMBER_CHAIN) {
 			if(lastInstruction != nullptr) {
-				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS && lastInstruction->localAccess.dimensions == 0) {
+				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
 				}
 				c.output.add(lastInstruction);
@@ -319,7 +323,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::OBJECT_ACCESS;
-			instruction->objectAccess.dimensions = 0;
 			instruction->objectAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->objectAccess.source);
 
@@ -374,7 +377,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	}
 
 	if(lastInstruction != nullptr) {
-		if(lastInstruction->type == ts::instruction::LOCAL_ACCESS && lastInstruction->localAccess.dimensions == 0) {
+		if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 			lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
 		}
 		c.output.add(lastInstruction);

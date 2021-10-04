@@ -90,8 +90,8 @@ namespace ts {
 			OBJECT_ASSIGN_BITWISE_XOR,
 			OBJECT_ASSIGN_BITWISE_OR,
 			OBJECT_ACCESS,
-			LINK_VARIABLE,
 			SYMBOL_ACCESS,
+			ARRAY_ACCESS,
 		};
 
 		enum AssignOperations {
@@ -167,7 +167,6 @@ namespace ts {
 			} unaryMathematics;
 
 			struct {
-				int dimensions;
 				string destination;
 				size_t hash;
 				bool fromStack;
@@ -177,7 +176,6 @@ namespace ts {
 			} localAssign;
 
 			struct {
-				int dimensions;
 				string destination;
 				size_t hash;
 				bool fromStack;
@@ -186,7 +184,6 @@ namespace ts {
 			} globalAssign;
 
 			struct {
-				int dimensions;
 				string destination;
 				size_t hash;
 				bool fromStack;
@@ -196,26 +193,22 @@ namespace ts {
 			} objectAssign;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 				int stackIndex;
 			} localAccess;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 			} globalAccess;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 			} objectAccess;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 			} symbolAccess;
@@ -253,12 +246,6 @@ namespace ts {
 			struct {
 				size_t argumentCount;
 			} popArguments;
-
-			struct {
-				int stackIndex;
-				string source;
-				size_t hash;
-			} linkVariable;
 
 			struct {
 				string name;

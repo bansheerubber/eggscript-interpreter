@@ -31,102 +31,37 @@ void VariableContext::inherit(VariableContext &parent) {
 	this->variableMap = parent.variableMap;
 }
 
-string VariableContext::computeVariableString(Instruction &instruction, string &variable) {
-	string newVariable(variable);
-
-	bool firstDimensionSet = false;
-	for(int i = instruction.localAssign.dimensions - 1; i >= 0; i--) {
-		if(firstDimensionSet) {
-			newVariable += '_';
-		}
-		
-		Entry &entry = this->interpreter->stack[this->interpreter->stack.head - 1 - i]; // start from top of stack
-		if(entry.type == entry::NUMBER) {
-			newVariable = newVariable + numberToStdString(entry.numberData);
-		}
-		else if(entry.type == entry::STRING) {
-			char* lowered = toLower(entry.stringData);
-			newVariable = newVariable + lowered;
-			delete[] lowered;
-		}
-		else if(entry.type == entry::OBJECT) {
-			newVariable = newVariable + numberToStdString(entry.objectData->id);
-		}
-
-		firstDimensionSet = true;
-	}
-	return newVariable;
-}
-
 Entry& VariableContext::getVariableEntry(Instruction &instruction, string &name, size_t hash) {
-	if(instruction.localAssign.dimensions > 0) {		
-		string computedString = computeVariableString(instruction, name);
-		auto value = this->variableMap.find(computedString);
-		if(value == this->variableMap.end()) { // initialize empty string
-			this->interpreter->warning("trying to access unassigned variable/property '%s'\n", computedString.c_str());
-			
-			VariableContextEntry &entry = this->variableMap[computedString];
-			copyEntry(this->interpreter->emptyEntry, entry.entry);
-			entry.stackIndex = -1;
-			return entry.entry;
-		}
-		else {
-			VariableContextEntry &entry = value.value();
-			if(entry.stackIndex < 0) {
-				return entry.entry;
-			}
-			else {
-				return this->interpreter->stack[entry.stackIndex + this->interpreter->stackFramePointer];
-			}
-		}
+	auto value = this->variableMap.find(name, hash);
+	if(value == this->variableMap.end()) { // initialize empty string
+		this->interpreter->warning("trying to access unassigned variable/property '%s'\n", name.c_str());
+		
+		VariableContextEntry &entry = this->variableMap[name];
+		copyEntry(this->interpreter->emptyEntry, entry.entry);
+		entry.stackIndex = -1;
+		return entry.entry;
 	}
 	else {
-		auto value = this->variableMap.find(name, hash);
-		if(value == this->variableMap.end()) { // initialize empty string
-			this->interpreter->warning("trying to access unassigned variable/property '%s'\n", name.c_str());
-			
-			VariableContextEntry &entry = this->variableMap[name];
-			copyEntry(this->interpreter->emptyEntry, entry.entry);
-			entry.stackIndex = -1;
-			return entry.entry;
-		}
-		else {
-			return value.value().entry;
-		}
+		return value.value().entry;
 	}
 }
 
 void VariableContext::setVariableEntry(Instruction &instruction, string &name, size_t hash, Entry &entry, bool greedy) {
-	if(instruction.localAssign.dimensions > 0) {
-		string computedString = computeVariableString(instruction, name);
-		auto value = this->variableMap.find(computedString);
-		if(value == this->variableMap.end()) { // uninitialized
-			VariableContextEntry &variableEntry = this->variableMap[computedString];
-			greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
-			variableEntry.stackIndex = -1;
-		}
-		else {
-			VariableContextEntry &variableEntry = value.value();
-			greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
-		}
+	auto value = this->variableMap.find(name, hash);
+	if(value == this->variableMap.end()) { // uninitialized
+		VariableContextEntry &variableEntry = this->variableMap[name];
+		greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
+		variableEntry.stackIndex = -1;
 	}
 	else {
-		auto value = this->variableMap.find(name, hash);
-		if(value == this->variableMap.end()) { // uninitialized
-			VariableContextEntry &variableEntry = this->variableMap[name];
+		VariableContextEntry &variableEntry = value.value();
+		if(variableEntry.stackIndex < 0) {
 			greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
-			variableEntry.stackIndex = -1;
 		}
 		else {
-			VariableContextEntry &variableEntry = value.value();
-			if(variableEntry.stackIndex < 0) {
-				greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
-			}
-			else {
-				greedy
-					? greedyCopyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer])
-					: copyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer]);
-			}
+			greedy
+				? greedyCopyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer])
+				: copyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer]);
 		}
 	}
 }
@@ -168,10 +103,6 @@ Entry& VariableContext::getVariableEntry(string &name) {
 			return this->interpreter->stack[entry.stackIndex + this->interpreter->stackFramePointer];
 		}
 	}
-}
-
-void VariableContext::linkVariable(string &name, size_t hash, int stackIndex) {
-	this->variableMap[name].stackIndex = stackIndex;
 }
 
 void VariableContext::print() {

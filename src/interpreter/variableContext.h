@@ -27,7 +27,6 @@ namespace ts {
 			void setVariableEntry(class Instruction &instruction, string &name, size_t hash, Entry &entry, bool greedy);
 			void setVariableEntry(string &name, Entry &entry);
 			string computeVariableString(class Instruction &instruction, string &variable);
-			void linkVariable(string &name, size_t hash, int stackIndex);
 			void print();
 			void printWithTab(int tabs);
 			void clear();
