@@ -2,6 +2,7 @@
 
 #include <math.h>
 
+#include "array.h"
 #include "echo.h"
 #include "../engine/engine.h"
 #include "eval.h"
@@ -81,6 +82,11 @@ void ts::sl::define(Engine* engine) {
 	methodTrees.push_back(FileObject);
 	FileObject->addParent(SimObject);
 	FileObject->tsslConstructor = &FileObject__constructor;
+
+	MethodTree* Array = engine->createMethodTreeFromNamespace("Array");
+	Array->isTSSL = true;
+	methodTrees.push_back(Array);
+	Array->tsslConstructor = &Array__constructor;
 
 	for(MethodTree* tree: methodTrees) {
 		engine->defineTSSLMethodTree(tree);
@@ -188,6 +194,10 @@ void ts::sl::define(Engine* engine) {
 
 	functions.push_back(FUNC_DEF(entry::INVALID, &eval, "eval", 1, s));
 	functions.push_back(FUNC_DEF(entry::INVALID, &exec, "exec", 1, s));
+
+	// arrays
+	functions.push_back(FUNC_DEF(entry::INVALID, &Array__push, "Array", "push", 1, o));
+	functions.push_back(FUNC_DEF(entry::NUMBER, &Array__size, "Array", "size", 1, o));
 
 	for(ts::sl::Function* function: functions) {
 		engine->defineTSSLFunction(function);

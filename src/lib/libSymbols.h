@@ -13,10 +13,14 @@ extern "C" {
 		ES_ENTRY_STRING,
 		ES_ENTRY_OBJECT,
 	};
+
+	typedef void* esObjectPtr;
 	
 	typedef struct esObjectWrapper {
-		void* object;
+		esObjectPtr object;
 		void* data;
+		int referenceCount;
+		long heapIndex;
 	} esObjectWrapper;
 	typedef esObjectWrapper* esObjectWrapperPtr;
 

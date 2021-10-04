@@ -1,5 +1,6 @@
 #include "interpreter.h"
 
+#include "../tssl/array.h"
 #include "../util/cloneString.h"
 #include "../compiler/compiler.h"
 #include "debug.h"
@@ -835,6 +836,28 @@ void Interpreter::interpret() {
 				}
 
 				object = objectWrapper->object;
+
+				switch(object->dataStructure) {
+					case ARRAY: {
+						unsigned int index = 0;
+						## type_conversion.py indexEntry index NUMBER_STRING_OBJECT NUMBER
+
+						DynamicArray<Entry, sl::Array> &array = ((ts::sl::Array*)objectWrapper->data)->array;
+
+						if(index >= array.head) {
+							this->pop();
+							this->pop();
+							this->push(getEmptyString(), instruction.pushType);
+						}
+						else {
+							this->pop();
+							this->pop();
+							this->push(array[index], instruction.pushType);
+						}
+
+						goto start; // break out of the data structure switch statement and also the instruction switch statement
+					}
+				}
 
 				// cache the method entry pointer in the instruction
 				bool found = false;
