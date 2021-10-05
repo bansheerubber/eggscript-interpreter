@@ -441,19 +441,7 @@ void Interpreter::interpret() {
 		}
 		
 		case instruction::LOCAL_ACCESS: { // push local variable to stack
-			if(instruction.localAccess.stackIndex < 0) {
-				Entry &entry = this->topContext->getVariableEntry(
-					instruction,
-					instruction.localAccess.source,
-					instruction.localAccess.hash
-				);
-
-				this->push(entry, instruction.pushType);
-			}
-			else {
-				this->push(this->stack[instruction.localAccess.stackIndex + this->stackFramePointer], instruction.pushType);
-			}
-
+			this->push(this->stack[instruction.localAccess.stackIndex + this->stackFramePointer], instruction.pushType);
 			break;
 		}
 
