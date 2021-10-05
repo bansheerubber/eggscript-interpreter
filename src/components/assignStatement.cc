@@ -148,6 +148,35 @@ ts::instruction::InstructionType AssignStatement::TypeToObjectOperator(TokenType
 	}
 }
 
+ts::instruction::InstructionType AssignStatement::TypeToArrayOperator(TokenType type) {
+	switch(type) {
+		case PLUS_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_PLUS;
+		case MINUS_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_MINUS;
+		case SLASH_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_SLASH;
+		case ASTERISK_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_ASTERISK;
+		case MODULUS_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_MODULUS;
+		case OR_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_BITWISE_OR;
+		case AND_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_BITWISE_AND;
+		case XOR_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_BITWISE_XOR;
+		case SHIFT_LEFT_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_SHIFT_LEFT;
+		case SHIFT_RIGHT_ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_SHIFT_RIGHT;
+		case ASSIGN:
+			return ts::instruction::ARRAY_ASSIGN_EQUAL;
+		default:
+			return ts::instruction::INVALID_INSTRUCTION;
+	}
+}
+
 ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::CompilationContext context) {
 	ts::InstructionReturn output;
 
@@ -177,6 +206,14 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 		instruction->localAssign.stackIndex = instruction->localAccess.stackIndex;
 		instruction->localAssign.fromStack = false;
 		instruction->localAssign.pushResult = this->parent->shouldPushToStack(this);
+	}
+	else if(instruction->type == ts::instruction::ARRAY_ACCESS) {
+		instruction->type = AssignStatement::TypeToArrayOperator(this->assignmentToken.type);
+		
+		ALLOCATE_STRING(string(""), instruction->arrayAssign.blank1);
+		instruction->arrayAssign.entry = ts::Entry(); // initialize memory to avoid crash
+		instruction->arrayAssign.fromStack = false;
+		instruction->arrayAssign.pushResult = this->parent->shouldPushToStack(this);
 	}
 
 	if(this->rvalue->getType() == NUMBER_LITERAL) {

@@ -126,8 +126,6 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 	instruction->popArguments.argumentCount = argumentCount;
 	output.addFirst(instruction);
 
-	output.addFirst(this->compileLinkVariables(engine));
-
 	// add a return statement that exits out from our function
 	ts::Instruction* returnInstruction = new ts::Instruction();
 	returnInstruction->type = ts::instruction::RETURN;

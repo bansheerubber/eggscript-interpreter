@@ -46,6 +46,7 @@ class AssignStatement : public Component {
 		static ts::instruction::InstructionType TypeToLocalOperator(TokenType type);
 		static ts::instruction::InstructionType TypeToGlobalOperator(TokenType type);
 		static ts::instruction::InstructionType TypeToObjectOperator(TokenType type);
+		static ts::instruction::InstructionType TypeToArrayOperator(TokenType type);
 		
 		class AccessStatement* lvalue = nullptr;
 		Component* rvalue = nullptr;

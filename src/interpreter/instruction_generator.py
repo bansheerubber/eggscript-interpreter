@@ -22,9 +22,9 @@ structs = {
 	"objectAssign": get_assignment_instructions("OBJECT_ASSIGN"),
 	"objectAccess": ["OBJECT_ACCESS"],
 	"popArguments": ["POP_ARGUMENTS"],
-	"linkVariable": ["LINK_VARIABLE"],
 	"symbolAccess": ["SYMBOL_ACCESS"],
-	"functionReturn": ["RETURN"]
+	"functionReturn": ["RETURN"],
+	"arrayAssign": get_assignment_instructions("ARRAY_ASSIGN"),
 }
 
 instruction_to_struct = {instruction: struct for struct in structs.keys() for instruction in structs[struct]}

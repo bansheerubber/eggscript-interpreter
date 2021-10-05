@@ -1,3 +1,5 @@
+%test = new Array();
+%test.push("", "", "");
 %test[0] = "hey" SPC "how" SPC "are" SPC "you" SPC "doing" SPC "?";
 %test[1] = "hey" TAB "how" TAB "are" TAB "you" TAB "doing" TAB "?";
 %test[2] = "hey" NL "how" NL "are" NL "you" NL "doing" NL "?";

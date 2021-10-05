@@ -51,7 +51,5 @@ ts::InstructionReturn SourceFile::compile(ts::Engine* engine, ts::CompilationCon
 		output.addFirst(push);
 	}
 
-	output.addFirst(this->compileLinkVariables(engine));
-
 	return output;
 }

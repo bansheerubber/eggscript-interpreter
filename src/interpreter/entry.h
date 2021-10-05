@@ -45,8 +45,24 @@ namespace ts {
 		void setString(char* value);
 		void setString(string value);
 		void setObject(ObjectReference* value);
+
+		inline void erase() {
+			if(this->type == entry::STRING && this->stringData != nullptr) {
+				delete[] this->stringData;
+				this->stringData = nullptr;
+			}
+
+			if(this->type == entry::OBJECT && this->objectData != nullptr) {
+				delete this->objectData;
+				this->objectData = nullptr;
+			}
+		}
+		
 		void print(int tabs = 0) const;
 		const char* typeToString() const;
+
+		private:
+			void __erase() __attribute__((always_inline));
 	};
 
 	void copyEntry(const Entry &source, Entry &destination);

@@ -1,3 +1,5 @@
+%var = new Array();
+%var.push("", "", "", "");
 %var[0] = 5.135;
 %var[1] = "hey there";
 %var[2] = "100.05";

@@ -20,7 +20,6 @@ namespace ts {
 	class Scope {
 		public:
 			BoundVariable& allocateVariable(string &variableName, bool isArgument = false);
-			InstructionReturn compileLinkVariables(Engine* engine);
 			size_t allocatedSize();
 		
 		protected:

@@ -1,5 +1,5 @@
-target = torquescript
-library_target = libtorquescript.a
+target = eggscript
+library_target = libeggscript.a
 library_include_c_target = include.c/ts.h
 library_include_cpp_target = include.cpp/ts.h
 cclibs = -lpthread -lreadline
@@ -28,7 +28,7 @@ default:
 
 library:
 	@"$(MAKE)" preprocessor --no-print-directory
-	@"$(MAKE)" dist/$(library_target) --no-print-directory soflags="-fPIC" ldflags="-Wl,--version-script=libtorquescript.map"
+	@"$(MAKE)" dist/$(library_target) --no-print-directory soflags="-fPIC" ldflags="-Wl,--version-script=libeggscript.map"
 
 preprocessor:
 	@echo -e "   PY      tools/preprocessor.py"

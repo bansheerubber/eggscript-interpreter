@@ -16,22 +16,6 @@ BoundVariable& Scope::allocateVariable(string &variableName, bool isArgument) {
 	return this->variables[toLower(variableName)];
 }
 
-ts::InstructionReturn Scope::compileLinkVariables(ts::Engine* engine) {
-	ts::InstructionReturn output;
-
-	for(auto const& [name, value]: this->variables) {
-		ts::Instruction* instruction = new ts::Instruction();
-		instruction->type = ts::instruction::LINK_VARIABLE;
-		instruction->linkVariable.stackIndex = value.stackIndex;
-		ALLOCATE_STRING(name, instruction->linkVariable.source);
-		instruction->linkVariable.hash = hash<string>{}(name);
-
-		output.add(instruction);
-	}
-
-	return output;
-}
-
 size_t Scope::allocatedSize() {
 	return this->variables.size();
 }

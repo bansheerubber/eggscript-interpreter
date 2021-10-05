@@ -1,5 +1,6 @@
 #include "interpreter.h"
 
+#include "../tssl/array.h"
 #include "../util/cloneString.h"
 #include "../compiler/compiler.h"
 #include "debug.h"
@@ -21,7 +22,6 @@
 using namespace ts;
 
 void ts::initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame) {
-	frame->context = new VariableContext(interpreter);
 	frame->container = nullptr;
 	frame->instructionPointer = 0;
 	frame->stackPointer = 0;
@@ -32,7 +32,6 @@ void ts::onFunctionFrameRealloc(Interpreter* interpreter) {
 	FunctionFrame &frame = interpreter->frames[interpreter->frames.head - 1];
 	interpreter->instructionPointer = &frame.instructionPointer;
 	interpreter->stackFramePointer = frame.stackPointer;
-	interpreter->topContext = frame.context;
 }
 
 void ts::initSchedule(Interpreter* interpreter, Schedule** schedule) {
@@ -61,9 +60,7 @@ Interpreter::Interpreter(Engine* engine, ParsedArguments args, bool isParallel) 
 }
 
 Interpreter::~Interpreter() {
-	for(size_t i = 0; i < this->frames.size; i++) {
-		delete this->frames[i].context;
-	}
+	
 }
 
 void Interpreter::enterParallel() { 
@@ -98,7 +95,6 @@ void Interpreter::pushFunctionFrame(
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
 	this->stackFramePointer = frame.stackPointer;
-	this->topContext = frame.context;
 	
 	this->frames.pushed();
 }
@@ -110,14 +106,12 @@ void Interpreter::popFunctionFrame() {
 		this->topContainer = nullptr;
 		this->instructionPointer = nullptr;
 		this->stackFramePointer = 0;
-		this->topContext = nullptr;
 	}
 	else {
 		FunctionFrame &frame = this->frames[this->frames.head - 1];
 		this->topContainer = frame.container;
 		this->instructionPointer = &frame.instructionPointer;
 		this->stackFramePointer = frame.stackPointer;
-		this->topContext = frame.context;
 
 		for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
 			this->pop();
@@ -160,8 +154,9 @@ void Interpreter::push(Entry &entry, instruction::PushType type, bool greedy) {
 void Interpreter::push(double number, instruction::PushType type) {
 	if(type < 0) {
 		// manually inline this b/c for some reason it doesn't want to by itself
-		this->stack[this->stack.head].type = entry::NUMBER;
-		this->stack[this->stack.head].numberData = number;
+		Entry &entry = this->stack[this->stack.head];
+		entry.type = entry::NUMBER;
+		entry.numberData = number;
 		this->stack.pushed();	
 	}
 	else {
@@ -193,17 +188,7 @@ void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 }
 
 void Interpreter::pop() {
-	Entry &test = this->stack[this->stack.head - 1];
-	if(test.type == entry::STRING && test.stringData) {
-		delete[] test.stringData;
-		test.stringData = nullptr;
-	}
-
-	if(test.type == entry::OBJECT && test.objectData) {
-		delete test.objectData;
-		test.objectData = nullptr;
-	}
-	
+	this->stack[this->stack.head - 1].erase();
 	this->stack.popped();
 }
 
@@ -332,6 +317,13 @@ void Interpreter::setTickRate(long tickRate) {
 	this->tickRate = tickRate;
 }
 
+void Interpreter::garbageCollect(unsigned int amount) {
+	for(size_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {		
+		delete this->garbageHeap.array[0];
+		this->garbageHeap.pop();
+	}
+}
+
 void Interpreter::interpret() {
 	start:
 	Instruction &instruction = this->topContainer->array[*this->instructionPointer];
@@ -346,7 +338,6 @@ void Interpreter::interpret() {
 			if(this->showTime && this->frames.head == 0) {
 				(*this->engine->printFunction)("exec time: %lld\n", getMicrosecondsNow() - this->startTime);
 			}
-			// this->stack.head = 0;
 
 			return;	
 		}
@@ -443,23 +434,7 @@ void Interpreter::interpret() {
 		}
 		
 		case instruction::LOCAL_ACCESS: { // push local variable to stack
-			if(instruction.localAccess.stackIndex < 0) {
-				Entry &entry = this->topContext->getVariableEntry(
-					instruction,
-					instruction.localAccess.source,
-					instruction.localAccess.hash
-				);
-
-				for(int i = 0; i < instruction.localAccess.dimensions; i++) {
-					this->pop(); // pop the dimensions if we have any
-				}
-
-				this->push(entry, instruction.pushType);
-			}
-			else {
-				this->push(this->stack[instruction.localAccess.stackIndex + this->stackFramePointer], instruction.pushType);
-			}
-
+			this->push(this->stack[instruction.localAccess.stackIndex + this->stackFramePointer], instruction.pushType);
 			break;
 		}
 
@@ -470,17 +445,13 @@ void Interpreter::interpret() {
 				instruction.globalAccess.hash
 			);
 
-			for(int i = 0; i < instruction.globalAccess.dimensions; i++) {
-				this->pop(); // pop the dimensions if we have any
-			}
-
 			this->push(entry, instruction.pushType);
 
 			break;
 		}
 
 		case instruction::OBJECT_ACCESS: { // push object property to stack
-			Entry &objectEntry = this->stack[this->stack.head - 1 - instruction.localAssign.dimensions];
+			Entry &objectEntry = this->stack[this->stack.head - 1];
 			ObjectWrapper* objectWrapper = nullptr;
 
 			## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
@@ -497,10 +468,6 @@ void Interpreter::interpret() {
 				instruction.localAccess.source,
 				instruction.localAssign.hash
 			);
-
-			for(int i = 0; i < instruction.localAccess.dimensions; i++) {
-				this->pop(); // pop the dimensions if we have any
-			}
 
 			this->pop(); // pop the object
 
@@ -759,7 +726,7 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(this->emptyEntry, instruction.pushType);
+					this->push(getEmptyString(), instruction.pushType);
 					break;
 				}
 			}
@@ -772,11 +739,6 @@ void Interpreter::interpret() {
 			Function* foundFunction = (*list)[packagedFunctionListIndex];
 			## call_generator.py
 			
-			break;
-		}
-
-		case instruction::LINK_VARIABLE: {
-			this->topContext->linkVariable(instruction.linkVariable.source, instruction.linkVariable.hash, instruction.linkVariable.stackIndex);
 			break;
 		}
 
@@ -822,6 +784,62 @@ void Interpreter::interpret() {
 
 				this->push(this->emptyEntry, instruction.pushType);
 				break;
+			}
+
+			break;
+		}
+		
+		case instruction::ARRAY_ACCESS: {
+			Entry &objectEntry = this->stack[this->stack.head - 2];
+			Entry &indexEntry = this->stack[this->stack.head - 1];
+
+			if(objectEntry.type == entry::OBJECT) {
+				Entry &numberOfArguments = this->stack[this->stack.head - 1];
+				
+				MethodTreeEntry* methodTreeEntry = nullptr;
+				
+				// pull the object from the stack
+				ObjectWrapper* objectWrapper = objectEntry.objectData->objectWrapper;
+				Object* object = nullptr;
+
+				if(objectWrapper == nullptr || objectWrapper->object->dataStructure == NO_DATA_STRUCTURE) {
+					this->pop();
+					this->pop();
+					this->push(getEmptyString(), instruction.pushType);
+					break;
+				}
+
+				object = objectWrapper->object;
+
+				bool failure = false;
+				switch(object->dataStructure) {
+					case ARRAY: {
+						unsigned int index = 0;
+						## type_conversion.py indexEntry index NUMBER_STRING_OBJECT NUMBER
+
+						DynamicArray<Entry, sl::Array> &array = ((ts::sl::Array*)objectWrapper->data)->array;
+
+						if(index >= array.head) {
+							failure = true;
+						}
+						else {
+							this->pop();
+							this->pop();
+							this->push(array[index], instruction.pushType);
+						}
+					}
+				}
+
+				if(failure) {
+					this->pop();
+					this->pop();
+					this->push(getEmptyString(), instruction.pushType);
+				}
+			}
+			else {
+				this->pop();
+				this->pop();
+				this->push(getEmptyString(), instruction.pushType);
 			}
 
 			break;

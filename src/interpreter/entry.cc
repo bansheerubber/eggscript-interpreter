@@ -57,35 +57,25 @@ namespace std {
 }
 
 void Entry::setNumber(double value) {
+	this->erase();
 	this->type = entry::NUMBER;
 	this->numberData = value;
 }
 
 void Entry::setString(char* value) {
-	// TODO possible wild pointer free
-	if(this->type != entry::NUMBER && this->stringData != nullptr) { // delete old string data
-		delete[] this->stringData;
-	}
-
+	this->erase();
 	this->type = entry::STRING;
 	this->stringData = value;
 }
 
 void Entry::setString(string value) {
-	// TODO possible wild pointer free
-	if(this->type != entry::NUMBER && this->stringData != nullptr) { // delete old string data
-		delete[] this->stringData;
-	}
-
+	this->erase();
 	this->type = entry::STRING;
 	this->stringData = stringToChars(value);
 }
 
 void Entry::setObject(ObjectReference* object) {
-	if(this->type != entry::NUMBER && this->objectData != nullptr) { // delete old string data
-		delete this->objectData;
-	}
-	
+	this->erase();
 	this->type = entry::OBJECT;
 	this->objectData = object;
 }
@@ -126,16 +116,7 @@ void Entry::print(int tabs) const {
 }
 
 void ts::copyEntry(const Entry &source, Entry &destination) {
-	// delete string data if we're going to copy an entry (prevents memory leak)
-	if(destination.type == entry::STRING && destination.stringData != nullptr) {
-		delete[] destination.stringData;
-		destination.stringData = nullptr;
-	}
-
-	if(destination.type == entry::OBJECT && destination.objectData != nullptr) {
-		delete destination.objectData;
-		destination.objectData = nullptr;
-	}
+	destination.erase();
 	
 	destination.type = source.type;
 	switch(destination.type) {
@@ -161,16 +142,7 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 }
 
 void ts::greedyCopyEntry(Entry &source, Entry &destination) {
-	// delete string data if we're going to copy an entry (prevents memory leak)
-	if(destination.type == entry::STRING && destination.stringData != nullptr) {
-		delete[] destination.stringData;
-		destination.stringData = nullptr;
-	}
-
-	if(destination.type == entry::OBJECT && destination.objectData != nullptr) {
-		delete destination.objectData;
-		destination.objectData = nullptr;
-	}
+	destination.erase();
 	
 	destination.type = source.type;
 	switch(destination.type) {

@@ -2,18 +2,36 @@ function ScriptObject::test(%this) {
 	echo(%this.hey);
 }
 
-%obj[0] = new ScriptObject() {
+%first = new ScriptObject() {
 	hey = "how are you doing";
 };
 
-%obj[1] = new ScriptObject() {
+%second = new ScriptObject() {
 	hey = "not very well";
 };
 
-%obj[2] = new ScriptObject() {
+%third = new ScriptObject() {
 	hey = "superb";
 };
 
+%obj = new Array();
+for(%i = 0; %i < 4; %i++) {
+	%obj.push("");
+}
+
+%objNumber = new Array();
+for(%i = 0; %i < 4; %i++) {
+	%objNumber.push("");
+}
+
+%objString = new Array();
+for(%i = 0; %i < 4; %i++) {
+	%objString.push("");
+}
+
+%obj[0] = %first;
+%obj[1] = %second;
+%obj[2] = %third;
 %obj[3] = -1;
 
 %objNumber[0] = 0;
