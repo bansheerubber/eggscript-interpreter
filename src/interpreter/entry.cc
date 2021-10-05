@@ -57,43 +57,27 @@ namespace std {
 }
 
 void Entry::setNumber(double value) {
-	this->__erase();
+	this->erase();
 	this->type = entry::NUMBER;
 	this->numberData = value;
 }
 
 void Entry::setString(char* value) {
-	this->__erase();
+	this->erase();
 	this->type = entry::STRING;
 	this->stringData = value;
 }
 
 void Entry::setString(string value) {
-	this->__erase();
+	this->erase();
 	this->type = entry::STRING;
 	this->stringData = stringToChars(value);
 }
 
 void Entry::setObject(ObjectReference* object) {
-	this->__erase();
+	this->erase();
 	this->type = entry::OBJECT;
 	this->objectData = object;
-}
-
-void Entry::erase() {
-	this->__erase();
-}
-
-void Entry::__erase() {
-	if(this->type == entry::STRING && this->stringData != nullptr) {
-		delete[] this->stringData;
-		this->stringData = nullptr;
-	}
-
-	if(this->type == entry::OBJECT && this->objectData != nullptr) {
-		delete this->objectData;
-		this->objectData = nullptr;
-	}
 }
 
 ## entry_debug.py
