@@ -2,8 +2,11 @@
 #include "engine.h"
 
 #include <mutex>
+
+#ifndef __switch__
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 std::mutex& shellLock() {
 	static std::mutex m;
@@ -14,20 +17,24 @@ int savedPoint;
 char* savedText;
 
 void saveReadline() {
+	#ifndef __switch__
 	savedText = rl_copy_text(0, rl_end);
 	savedPoint = rl_point;
 
 	rl_save_prompt();
 	rl_replace_line("", 0);
 	rl_redisplay();
+	#endif
 }
 
 void loadReadline() {
+	#ifndef __switch__
 	rl_restore_prompt();
 	rl_replace_line(savedText, 0);
 	rl_point = savedPoint;
 	rl_redisplay();
 	free(savedText);
+	#endif
 }
 
 int shellPrint(const char* format, ...) {
@@ -112,6 +119,7 @@ void Engine::enterShell() {
 	
 	this->interpreter->enterParallel();
 	
+	#ifndef __switch__
 	rl_bind_key('\t', rl_insert);
 
 	char* shellBuffer;
@@ -129,4 +137,5 @@ void Engine::enterShell() {
 
 		free(shellBuffer);
   }
+	#endif
 }
