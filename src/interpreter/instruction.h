@@ -92,6 +92,19 @@ namespace ts {
 			OBJECT_ACCESS,
 			SYMBOL_ACCESS,
 			ARRAY_ACCESS,
+			ARRAY_ASSIGN_EQUAL,
+			ARRAY_ASSIGN_INCREMENT,
+			ARRAY_ASSIGN_DECREMENT,
+			ARRAY_ASSIGN_PLUS,
+			ARRAY_ASSIGN_MINUS,
+			ARRAY_ASSIGN_ASTERISK,
+			ARRAY_ASSIGN_SLASH,
+			ARRAY_ASSIGN_MODULUS,
+			ARRAY_ASSIGN_SHIFT_LEFT,
+			ARRAY_ASSIGN_SHIFT_RIGHT,
+			ARRAY_ASSIGN_BITWISE_AND,
+			ARRAY_ASSIGN_BITWISE_XOR,
+			ARRAY_ASSIGN_BITWISE_OR,
 		};
 
 		enum AssignOperations {
@@ -191,6 +204,14 @@ namespace ts {
 				Entry entry;
 				bool popObject;
 			} objectAssign;
+
+			struct {
+				string blank1; // TODO fix this so we don't need blank entries https://stackoverflow.com/questions/3521914/why-compiler-doesnt-allow-stdstring-inside-union
+				size_t blank2;
+				bool fromStack;
+				bool pushResult;
+				Entry entry;
+			} arrayAssign;
 
 			struct {
 				string source;

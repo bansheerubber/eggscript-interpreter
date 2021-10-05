@@ -1,0 +1,8 @@
+// get a value from the stack if we're doing something like a += operation
+Entry* %% = nullptr;
+if(instruction.arrayAssign.fromStack) {
+	%% = &this->stack[this->stack.head - 3]; // start from top of stack
+}
+else {
+	%% = &instruction.localAssign.entry;
+}

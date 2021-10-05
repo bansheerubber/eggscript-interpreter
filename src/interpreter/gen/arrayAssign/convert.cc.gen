@@ -1,0 +1,3 @@
+// convert the value we read from stack to a number if necessary
+double valueNumber = 0;
+## type_conversion.py *value valueNumber NUMBER_OBJECT_STRING NUMBER

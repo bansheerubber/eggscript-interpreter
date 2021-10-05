@@ -182,10 +182,10 @@ int runTests(bool overwriteResults) {
 	}
 	
 	// regression test some specially crafted files
-	for(const auto &entry: filesystem::directory_iterator("../tests/sources/parser")) {
-		totalTests++;
-		passedTests += parseFileTest("normal code", entry.path().string(), overwriteResults);
-	}
+	// for(const auto &entry: filesystem::directory_iterator("../tests/sources/parser")) {
+	// 	totalTests++;
+	// 	passedTests += parseFileTest("normal code", entry.path().string(), overwriteResults);
+	// }
 
 	// regression test bl source code
 	// parseDirectoryTest("../tests/sources/bl-decompiled", overwriteResults, &totalTests, &passedTests);

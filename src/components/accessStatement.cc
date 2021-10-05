@@ -310,7 +310,12 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 				c.output.add(lastInstruction);
 			}
 			
-			c.output.add(element.component->compile(engine, context));
+			ts::InstructionReturn array = element.component->compile(engine, context);
+
+			c.output.add(array);
+
+			c.lastAccess = array.last;
+
 			lastInstruction = nullptr;
 		}
 		else if(element.token.type == MEMBER_CHAIN) {

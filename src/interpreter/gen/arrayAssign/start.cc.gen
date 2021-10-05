@@ -1,0 +1,26 @@
+// what the stack looks like:
+// {lvalue, data structure object, index}
+Entry &objectEntry = this->stack[this->stack.head - 2];
+Entry &indexEntry = this->stack[this->stack.head - 1];
+ObjectWrapper* objectWrapper = nullptr;
+Object* object = nullptr;
+
+## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
+
+// don't do anything if our reference is dead
+if(objectWrapper == nullptr || objectWrapper->object->dataStructure == NO_DATA_STRUCTURE) {
+	if(instruction.arrayAssign.fromStack) {
+		this->pop(); // pop lvalue from stack
+	}
+
+	this->pop(); // pop data structure from stack
+	this->pop(); // pop index
+	
+	if(instruction.arrayAssign.pushResult) {
+		this->push(this->emptyEntry, instruction.pushType);
+	}
+
+	break;
+}
+
+object = objectWrapper->object;
