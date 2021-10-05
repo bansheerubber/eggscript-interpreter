@@ -22,7 +22,6 @@
 using namespace ts;
 
 void ts::initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame) {
-	frame->context = new VariableContext(interpreter);
 	frame->container = nullptr;
 	frame->instructionPointer = 0;
 	frame->stackPointer = 0;
@@ -33,7 +32,6 @@ void ts::onFunctionFrameRealloc(Interpreter* interpreter) {
 	FunctionFrame &frame = interpreter->frames[interpreter->frames.head - 1];
 	interpreter->instructionPointer = &frame.instructionPointer;
 	interpreter->stackFramePointer = frame.stackPointer;
-	interpreter->topContext = frame.context;
 }
 
 void ts::initSchedule(Interpreter* interpreter, Schedule** schedule) {
@@ -62,9 +60,7 @@ Interpreter::Interpreter(Engine* engine, ParsedArguments args, bool isParallel) 
 }
 
 Interpreter::~Interpreter() {
-	for(size_t i = 0; i < this->frames.size; i++) {
-		delete this->frames[i].context;
-	}
+	
 }
 
 void Interpreter::enterParallel() { 
@@ -99,7 +95,6 @@ void Interpreter::pushFunctionFrame(
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
 	this->stackFramePointer = frame.stackPointer;
-	this->topContext = frame.context;
 	
 	this->frames.pushed();
 }
@@ -111,14 +106,12 @@ void Interpreter::popFunctionFrame() {
 		this->topContainer = nullptr;
 		this->instructionPointer = nullptr;
 		this->stackFramePointer = 0;
-		this->topContext = nullptr;
 	}
 	else {
 		FunctionFrame &frame = this->frames[this->frames.head - 1];
 		this->topContainer = frame.container;
 		this->instructionPointer = &frame.instructionPointer;
 		this->stackFramePointer = frame.stackPointer;
-		this->topContext = frame.context;
 
 		for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
 			this->pop();
@@ -161,8 +154,9 @@ void Interpreter::push(Entry &entry, instruction::PushType type, bool greedy) {
 void Interpreter::push(double number, instruction::PushType type) {
 	if(type < 0) {
 		// manually inline this b/c for some reason it doesn't want to by itself
-		this->stack[this->stack.head].type = entry::NUMBER;
-		this->stack[this->stack.head].numberData = number;
+		Entry &entry = this->stack[this->stack.head];
+		entry.type = entry::NUMBER;
+		entry.numberData = number;
 		this->stack.pushed();	
 	}
 	else {
@@ -194,8 +188,7 @@ void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 }
 
 void Interpreter::pop() {
-	Entry &test = this->stack[this->stack.head - 1];
-	test.erase();
+	this->stack[this->stack.head - 1].erase();
 	this->stack.popped();
 }
 
@@ -733,7 +726,7 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(this->emptyEntry, instruction.pushType);
+					this->push(getEmptyString(), instruction.pushType);
 					break;
 				}
 			}
