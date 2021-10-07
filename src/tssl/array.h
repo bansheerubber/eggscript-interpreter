@@ -14,14 +14,23 @@ namespace ts {
 
 	namespace sl {
 		void arrayInitEntry(class Array* owner, Entry* entry);
-		
-		class Array {
-			public:
-				DynamicArray<Entry, Array> array = DynamicArray<Entry, Array>(this, 16, arrayInitEntry, nullptr);
-		};
 
 		void Array__constructor(ObjectWrapper* wrapper);
 		Entry* Array__push(Engine* engine, unsigned int argc, Entry* args);
 		Entry* Array__size(Engine* engine, unsigned int argc, Entry* args);
+		Entry* Array__insert(Engine* engine, unsigned int argc, Entry* args);
+		Entry* Array__remove(Engine* engine, unsigned int argc, Entry* args);
+		Entry* Array__index(Engine* engine, unsigned int argc, Entry* args);
+		
+		class Array {
+			friend Entry* Array__insert(Engine* engine, unsigned int argc, Entry* args);
+			friend Entry* Array__remove(Engine* engine, unsigned int argc, Entry* args);
+			
+			public:
+				DynamicArray<Entry, Array> array = DynamicArray<Entry, Array>(this, 16, arrayInitEntry, nullptr);
+			
+			protected:
+				void shift(long index, long amount, bool fill = false); // shifts the whole array over to the right by n starting from a index
+		};
 	}
 }

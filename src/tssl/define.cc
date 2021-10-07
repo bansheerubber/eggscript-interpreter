@@ -100,6 +100,7 @@ void ts::sl::define(Engine* engine) {
 	entry::EntryType sn[2] = { entry::STRING, entry::NUMBER };
 	entry::EntryType nn[2] = { entry::NUMBER, entry::NUMBER };
 	entry::EntryType os[2] = { entry::OBJECT, entry::STRING };
+	entry::EntryType on[2] = { entry::OBJECT, entry::NUMBER };
 	entry::EntryType ns[2] = { entry::NUMBER, entry::STRING };
 	entry::EntryType ss[2] = { entry::STRING, entry::STRING };
 	entry::EntryType sss[3] = { entry::STRING, entry::STRING, entry::STRING };
@@ -198,6 +199,9 @@ void ts::sl::define(Engine* engine) {
 	// arrays
 	functions.push_back(FUNC_DEF(entry::INVALID, &Array__push, "Array", "push", 1, o));
 	functions.push_back(FUNC_DEF(entry::NUMBER, &Array__size, "Array", "size", 1, o));
+	functions.push_back(FUNC_DEF(entry::INVALID, &Array__insert, "Array", "insert", 2, on));
+	functions.push_back(FUNC_DEF(entry::INVALID, &Array__remove, "Array", "remove", 2, on));
+	functions.push_back(FUNC_DEF(entry::INVALID, &Array__index, "Array", "index", 1, o));
 
 	for(ts::sl::Function* function: functions) {
 		engine->defineTSSLFunction(function);

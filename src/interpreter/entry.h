@@ -69,6 +69,7 @@ namespace ts {
 	void greedyCopyEntry(Entry &source, Entry &destination);
 	void convertToType(class Interpreter* interpreter, Entry &source, entry::EntryType type);
 	void initEntry(class Interpreter* interpreter, Entry* location);
+	bool isEntryEqual(const Entry &source, const Entry &destination);
 }
 
 namespace std {

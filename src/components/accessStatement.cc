@@ -48,7 +48,7 @@ AccessStatement* AccessStatement::Parse(
 		});
 	}
 	
-	int expectingArrayOrCall = 1;
+	int expectingArrayOrCall = 1; // doesn't quite work for something like %test();
 	while(!engine->tokenizer->eof()) {
 		token = engine->tokenizer->peekToken();
 		if(ArrayStatement::ShouldParse(engine)) {

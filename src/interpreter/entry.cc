@@ -195,6 +195,25 @@ void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType
 	source.type = type;
 }
 
+bool ts::isEntryEqual(const Entry &source, const Entry &destination) {
+	if(source.type != destination.type) {
+		return false;
+	}
+
+	switch(source.type) {
+		case entry::NUMBER:
+			return source.numberData == destination.numberData;
+		
+		case entry::STRING:
+			return strcmp(source.stringData, destination.stringData) == 0;
+		
+		case entry::OBJECT:
+			return source.objectData->objectWrapper == destination.objectData->objectWrapper;
+	}
+
+	return false;
+}
+
 void ts::initEntry(class Interpreter* interpreter, Entry* location) {;
 	new((void*)location) Entry();
 }
