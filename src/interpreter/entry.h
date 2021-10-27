@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "linearAlgebra.h"
 #include "objectReference.h"
 
 using namespace std;
@@ -13,6 +14,7 @@ namespace ts {
 			NUMBER,
 			STRING,
 			OBJECT,
+			MATRIX,
 		};
 	}
 	
@@ -33,6 +35,7 @@ namespace ts {
 			*/
 			char* stringData;
 			ObjectReference* objectData;
+			Matrix* matrixData;
 		};
 
 		Entry();
@@ -55,6 +58,11 @@ namespace ts {
 			if(this->type == entry::OBJECT && this->objectData != nullptr) {
 				delete this->objectData;
 				this->objectData = nullptr;
+			}
+
+			if(this->type == entry::MATRIX && this->matrixData != nullptr) {
+				delete this->matrixData;
+				this->matrixData = nullptr;
 			}
 		}
 		
