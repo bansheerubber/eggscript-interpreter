@@ -102,20 +102,21 @@ void Interpreter::pushFunctionFrame(
 void Interpreter::popFunctionFrame() {
 	this->frames.popped();
 
+	for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
+		this->pop();
+	}
+
 	if(this->frames.head == 0) {
 		this->topContainer = nullptr;
 		this->instructionPointer = nullptr;
 		this->stackFramePointer = 0;
+		this->frames[this->frames.head].stackPopCount = 0; // don't pop any extra stuff
 	}
 	else {
 		FunctionFrame &frame = this->frames[this->frames.head - 1];
 		this->topContainer = frame.container;
 		this->instructionPointer = &frame.instructionPointer;
 		this->stackFramePointer = frame.stackPointer;
-
-		for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
-			this->pop();
-		}
 	}
 }
 
