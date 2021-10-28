@@ -229,6 +229,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	AccessStatementCompiled c;
 
 	auto iterator = this->elements.begin();
+	int count = 0;
 
 	if(this->startsWithFunction()) { // compile a function call
 		c.output.add(this->elements[1].component->compile(engine, context)); // push arguments
@@ -250,7 +251,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		callFunction->callFunction.isCached = false;
 		c.output.add(callFunction);
 
-		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
+		if(this->parent->requiresSemicolon(this) && this->elements.size() == 2) { // if we do not assign/need the value of the function, just pop it
 			ts::Instruction* pop = new ts::Instruction();
 			pop->type = ts::instruction::POP;
 			c.output.add(pop);
@@ -258,6 +259,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 		++iterator;
 		++iterator;
+		count += 2;
 	}
 
 
@@ -265,9 +267,9 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	if(this->elements[0].component != nullptr && this->elements[0].component->getType() == STRING_LITERAL) {
 		c.output.add(this->elements[0].component->compile(engine, context));
 		++iterator;
+		count++;
 	}
 
-	int count = 0;
 	ts::Instruction* lastInstruction = nullptr;
 	for(; iterator != this->elements.end(); ++iterator) {
 		AccessElement element = *iterator;
@@ -360,7 +362,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			c.output.add(instruction);
 
-			if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
+			if(this->parent->requiresSemicolon(this) && count == this->elements.size() - 1) { // if we do not assign/need the value of the function, just pop it
 				ts::Instruction* pop = new ts::Instruction();
 				pop->type = ts::instruction::POP;
 				c.output.add(pop);
