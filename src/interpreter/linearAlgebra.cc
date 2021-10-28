@@ -17,7 +17,7 @@ ts::Matrix::~Matrix() {
 	}
 }
 
-void ts::initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int columns) {
+ts::Matrix* ts::initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int columns, bool fillZeros) {
 	if(matrix->data != nullptr) {
 		for(unsigned int r = 0; r < matrix->rows; r++) {
 			delete[] matrix->data[r];
@@ -31,7 +31,13 @@ void ts::initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int column
 	matrix->data = new Entry*[rows];
 	for(unsigned int r = 0; r < matrix->rows; r++) {
 		matrix->data[r] = new Entry[columns];
+		if(fillZeros) {
+			for(unsigned int c = 0; c < matrix->columns; c++) {
+				matrix->data[r][c].setNumber(0);
+			}
+		}
 	}
+	return matrix;
 }
 
 ts::Matrix* ts::addMatrix(Matrix* matrix1, Matrix* matrix2) {

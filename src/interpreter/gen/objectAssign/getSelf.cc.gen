@@ -7,4 +7,4 @@ entry = &object->properties.getVariableEntry(
 	instruction.objectAssign.hash
 );
 
-## type_conversion.py *entry entryNumber NUMBER_OBJECT_STRING NUMBER
+## type_conversion.py *entry entryNumber ALL NUMBER

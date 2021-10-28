@@ -382,7 +382,7 @@ void Interpreter::interpret() {
 		case instruction::JUMP_IF_TRUE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
 			int number = 0;
-			## type_conversion.py entry number NUMBER_STRING_OBJECT NUMBER
+			## type_conversion.py entry number ALL NUMBER
 
 			if(number != 0) {
 				*this->instructionPointer = instruction.jumpIfTrue.index;
@@ -397,7 +397,7 @@ void Interpreter::interpret() {
 		case instruction::JUMP_IF_FALSE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
 			int number = 1;
-			## type_conversion.py entry number NUMBER_STRING_OBJECT NUMBER
+			## type_conversion.py entry number ALL NUMBER
 
 			if(number == 0) {
 				*this->instructionPointer = instruction.jumpIfFalse.index;
@@ -420,7 +420,7 @@ void Interpreter::interpret() {
 
 			double valueNumber = 0;
 
-			## type_conversion.py *value valueNumber NUMBER_STRING_OBJECT NUMBER
+			## type_conversion.py *value valueNumber ALL NUMBER
 			
 			this->pop();
 
@@ -466,7 +466,7 @@ void Interpreter::interpret() {
 			Entry &objectEntry = this->stack[this->stack.head - 1];
 			ObjectWrapper* objectWrapper = nullptr;
 
-			## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
+			## type_conversion.py objectEntry objectWrapper ALL OBJECT
 
 			// if the object is not alive anymore, push nothing to the stack
 			if(objectWrapper == nullptr) {
@@ -617,7 +617,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.superClassPropertyCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* superClassPropertyCStr;
-					## type_conversion.py entry superClassPropertyCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry superClassPropertyCStr ALL STRING
 					superClassProperty = string(superClassPropertyCStr);
 					this->pop();
 				}
@@ -626,7 +626,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.classPropertyCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* classPropertyCStr;
-					## type_conversion.py entry classPropertyCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry classPropertyCStr ALL STRING
 					classProperty = string(classPropertyCStr);
 					this->pop();
 				}
@@ -635,7 +635,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.symbolNameCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* symbolNameCStr;
-					## type_conversion.py entry symbolNameCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry symbolNameCStr ALL STRING
 					symbolName = string(symbolNameCStr);
 					this->pop();
 				}
@@ -644,7 +644,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.typeNameCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* typeNameCStr;
-					## type_conversion.py entry typeNameCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry typeNameCStr ALL STRING
 					typeName = string(typeNameCStr);
 					this->pop();
 				}
@@ -699,9 +699,11 @@ void Interpreter::interpret() {
 			Entry &objectEntry = this->stack[this->stack.head - 1 - argumentCount];
 			ObjectWrapper* objectWrapper = nullptr;
 			Object* object = nullptr;
-			## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
+			## type_conversion.py objectEntry objectWrapper ALL OBJECT
 
 			if(objectWrapper == nullptr) {
+				this->warning("could not find object for method call\n");
+				
 				// pop arguments that we didn't use
 				Entry &numberOfArguments = this->stack[this->stack.head - 1];
 				int number = (int)numberOfArguments.numberData;
@@ -824,7 +826,7 @@ void Interpreter::interpret() {
 				switch(object->dataStructure) {
 					case ARRAY: {
 						unsigned int index = 0;
-						## type_conversion.py indexEntry index NUMBER_STRING_OBJECT NUMBER
+						## type_conversion.py indexEntry index ALL NUMBER
 
 						DynamicArray<Entry, sl::Array> &array = ((ts::sl::Array*)objectWrapper->data)->array;
 
@@ -845,7 +847,7 @@ void Interpreter::interpret() {
 			}
 			else if(objectEntry.type == entry::MATRIX && objectEntry.matrixData != nullptr) {
 				unsigned int index = 0;
-				## type_conversion.py indexEntry index NUMBER_STRING_OBJECT NUMBER
+				## type_conversion.py indexEntry index ALL NUMBER
 				if(objectEntry.matrixData->rows == 1) { // treat it like an array (return a scalar)
 					if(index >= objectEntry.matrixData->columns) {
 						goto quit_array_access;

@@ -11,7 +11,7 @@ namespace ts {
 		~Matrix();
 	};
 
-	void initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int columns);
+	Matrix* initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int columns, bool fillZeros = false);
 	void deleteMatrix(Matrix* matrix);
 	Matrix* addMatrix(Matrix* matrix1, Matrix* matrix2);
 	Matrix* subtractMatrix(Matrix* matrix1, Matrix* matrix2);

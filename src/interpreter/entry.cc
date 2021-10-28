@@ -204,19 +204,24 @@ void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType
 
 	switch(type) {
 		case entry::NUMBER: {
-			## type_conversion.py source source.numberData STRING_OBJECT NUMBER "" interpreter
+			## type_conversion.py source source.numberData STRING_OBJECT_MATRIX NUMBER "" interpreter
 			break;
 		}
 
 		case entry::OBJECT: {
 			ObjectWrapper* objectWrapper = nullptr;
-			## type_conversion.py source objectWrapper NUMBER_STRING OBJECT "" interpreter
+			## type_conversion.py source objectWrapper NUMBER_STRING_MATRIX OBJECT "" interpreter
 			source.objectData = new ObjectReference(objectWrapper);
 			break;
 		}
 
+		case entry::MATRIX: {
+			## type_conversion.py source source.matrixData NUMBER_OBJECT_STRING MATRIX "" interpreter
+			break;
+		}
+
 		case entry::STRING: {
-			## type_conversion.py source source.stringData NUMBER_OBJECT STRING "" interpreter
+			## type_conversion.py source source.stringData NUMBER_OBJECT_MATRIX STRING "" interpreter
 			break;
 		}
 	}
