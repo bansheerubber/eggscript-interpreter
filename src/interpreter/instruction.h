@@ -105,6 +105,8 @@ namespace ts {
 			ARRAY_ASSIGN_BITWISE_AND,
 			ARRAY_ASSIGN_BITWISE_XOR,
 			ARRAY_ASSIGN_BITWISE_OR,
+			MATRIX_CREATE,
+			MATRIX_SET,
 		};
 
 		enum AssignOperations {
@@ -277,6 +279,16 @@ namespace ts {
 			struct {
 				bool hasValue;
 			} functionReturn;
+
+			struct {
+				unsigned int rows;
+				unsigned int columns;
+			} matrixCreate;
+
+			struct {
+				unsigned int row;
+				unsigned int column;
+			} matrixSet;
 		};
 
 		Instruction() {

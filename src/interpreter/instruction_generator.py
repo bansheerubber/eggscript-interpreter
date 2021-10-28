@@ -25,6 +25,8 @@ structs = {
 	"symbolAccess": ["SYMBOL_ACCESS"],
 	"functionReturn": ["RETURN"],
 	"arrayAssign": get_assignment_instructions("ARRAY_ASSIGN"),
+	"matrixCreate": ["MATRIX_CREATE"],
+	"matrixSet": ["MATRIX_SET"],
 }
 
 instruction_to_struct = {instruction: struct for struct in structs.keys() for instruction in structs[struct]}

@@ -75,6 +75,8 @@ Object::~Object() {
 	
 	this->properties.interpreter->deleteObjectName(this->name);
 	this->properties.interpreter->objects.erase(this->id);
+
+	printf("deleted object %lu\n", this->id);
 }
 
 void Object::inherit(Object* parent) {

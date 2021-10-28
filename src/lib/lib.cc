@@ -61,11 +61,15 @@ void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* chil
 	methodTree->addParent(((ts::Engine*)engine)->getNamespace(parent));
 }
 
-esObjectReferencePtr esCreateObject(esEnginePtr engine, const char* nameSpace, void* data) {
+esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpace, void* data) {
 	ts::MethodTree* methodTree = ((ts::Engine*)engine)->getNamespace(nameSpace);
 	return (esObjectReferencePtr)new ts::ObjectReference(
 		CreateObject(((ts::Engine*)engine)->interpreter, nameSpace, "", methodTree, methodTree, data)
 	);
+}
+
+esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference) {
+	return (esObjectReferencePtr)new ts::ObjectReference((ts::ObjectReference*)reference);
 }
 
 void esDeleteObject(esObjectReferencePtr objectReference) {
@@ -101,4 +105,44 @@ esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned
 
 esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments) {
 	return (esEntryPtr)((ts::Engine*)engine)->interpreter->callMethod((ts::ObjectReference*)object, string(functionName), (ts::Entry*)arguments, argumentCount);
+}
+
+esEntryPtr esCreateNumber(double number) {
+	return (esEntryPtr)(new ts::Entry(number));
+}
+
+esEntryPtr esCreateString(char* string) {
+	return (esEntryPtr)(new ts::Entry(string));
+}
+
+esEntryPtr esCreateVector(unsigned int size, ...) {
+	va_list vl;
+  va_start(vl, size);
+
+	ts::Matrix* matrix = new ts::Matrix();
+	ts::initializeMatrix(matrix, 1, size);
+	for(unsigned int i = 0; i < size; i++) {
+		matrix->data[0][i].setNumber(va_arg(vl, double));
+	}
+	va_end(vl);
+	return (esEntryPtr)(new ts::Entry(matrix));
+}
+
+esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...) {
+	va_list vl;
+  va_start(vl, columns);
+
+	ts::Matrix* matrix = new ts::Matrix();
+	ts::initializeMatrix(matrix, rows, columns);
+	for(unsigned int r = 0; r < rows; r++) {
+		for(unsigned int c = 0; c < columns; c++) {
+			matrix->data[r][c].setNumber(va_arg(vl, double));
+		}
+	}
+	va_end(vl);
+	return (esEntryPtr)(new ts::Entry(matrix));
+}
+
+esEntryPtr esCreateObject(esObjectReferencePtr reference) {
+	return (esEntryPtr)(new ts::Entry((ts::ObjectReference*)reference));
 }

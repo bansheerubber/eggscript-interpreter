@@ -12,6 +12,7 @@ extern "C" {
 		ES_ENTRY_NUMBER,
 		ES_ENTRY_STRING,
 		ES_ENTRY_OBJECT,
+		ES_ENTRY_MATRIX,
 	};
 
 	typedef void* esObjectPtr;
@@ -32,12 +33,21 @@ extern "C" {
 	} esObjectReference;
 	typedef esObjectReference* esObjectReferencePtr;
 
+	struct esEntry;
+	typedef struct esMatrix {
+		esEntry** data;
+		unsigned int rows;
+		unsigned int columns;
+	} esMatrix;
+	typedef esMatrix* esMatrixPtr;
+
 	typedef struct esEntry {
 		esEntryType type;
 		union {
 			double numberData;
 			char* stringData;
 			esObjectReferencePtr objectData;
+			esMatrix matrix;
 		};
 	} esEntry;
 	typedef esEntry* esEntryPtr;
@@ -54,7 +64,8 @@ extern "C" {
 	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
 	void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* child);
-	esObjectReferencePtr esCreateObject(esEnginePtr engine, const char* nameSpace, void* data);
+	esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpace, void* data);
+	esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference);
 	void esDeleteObject(esObjectReferencePtr objectReference);
 	const char* esGetNamespaceFromObject(esObjectReferencePtr object);
 	int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace);
@@ -62,4 +73,10 @@ extern "C" {
 	void esRegisterMethod(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* nameSpace, const char* name, unsigned int argumentCount, esEntryType* argTypes);
 	esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
 	esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
+
+	esEntryPtr esCreateNumber(double number);
+	esEntryPtr esCreateString(char* string);
+	esEntryPtr esCreateVector(unsigned int size, ...);
+	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
+	esEntryPtr esCreateObject(esObjectReferencePtr reference);
 }

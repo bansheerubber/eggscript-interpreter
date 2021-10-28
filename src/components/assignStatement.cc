@@ -234,6 +234,7 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 		|| this->rvalue->getType() == NEW_STATEMENT
 		|| this->rvalue->getType() == PARENT_STATEMENT
 		|| this->rvalue->getType() == INLINE_CONDITIONAL
+		|| this->rvalue->getType() == MATRIX_CREATION_STATEMENT
 	) {
 		output.add(this->rvalue->compile(engine, context));
 		instruction->localAssign.fromStack = true;

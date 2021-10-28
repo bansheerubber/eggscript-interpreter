@@ -7,6 +7,7 @@ namespace ts {
 		unsigned int rows;
 		unsigned int columns;
 
+		Matrix();
 		~Matrix();
 	};
 
@@ -14,4 +15,6 @@ namespace ts {
 	void deleteMatrix(Matrix* matrix);
 	Matrix* addMatrix(Matrix* matrix1, Matrix* matrix2);
 	Matrix* subtractMatrix(Matrix* matrix1, Matrix* matrix2);
+	Matrix* cloneMatrix(Matrix* matrix);
+	Matrix* cloneRowToVector(Matrix* matrix, unsigned int index);
 }

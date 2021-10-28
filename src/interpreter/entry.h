@@ -42,11 +42,13 @@ namespace ts {
 		Entry(const Entry &entry);
 		Entry(double value);
 		Entry(char* value);
+		Entry(Matrix* value);
 		Entry(ObjectReference* value);
 		~Entry();
 		void setNumber(double value);
 		void setString(char* value);
 		void setString(string value);
+		void setMatrix(Matrix* value);
 		void setObject(ObjectReference* value);
 
 		inline void erase() {

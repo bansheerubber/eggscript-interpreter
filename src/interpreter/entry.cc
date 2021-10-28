@@ -30,6 +30,11 @@ Entry::Entry(char* value) {
 	this->stringData = value;
 }
 
+Entry::Entry(Matrix* value) {
+	this->type = entry::MATRIX;
+	this->matrixData = value;
+}
+
 Entry::Entry(ObjectReference* value) {
 	this->type = entry::OBJECT;
 	this->objectData = value;
@@ -74,6 +79,12 @@ void Entry::setString(string value) {
 	this->stringData = stringToChars(value);
 }
 
+void Entry::setMatrix(Matrix* matrix) {
+	this->erase();
+	this->type = entry::MATRIX;
+	this->matrixData = matrix;
+}
+
 void Entry::setObject(ObjectReference* object) {
 	this->erase();
 	this->type = entry::OBJECT;
@@ -108,6 +119,13 @@ void Entry::print(int tabs) const {
 			this->objectData->objectWrapper->object->properties.printWithTab(2 + tabs);
 		}
 	}
+	else if(this->type == entry::MATRIX) {
+		printf("%s   data: 0x%lX,\n", space.c_str(), (long)this->matrixData);
+		if(this->matrixData != nullptr) {
+			printf("%s   rows: %u,\n", space.c_str(), this->matrixData->rows);
+			printf("%s   columns: %u,\n", space.c_str(), this->matrixData->columns);
+		}
+	}
 	else {
 		printf("%s   data: no data,\n", space.c_str());
 	}
@@ -131,6 +149,11 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 
 		case entry::STRING: {
 			destination.stringData = cloneString(source.stringData);
+			break;
+		}
+
+		case entry::MATRIX: {
+			destination.matrixData = cloneMatrix(source.matrixData);
 			break;
 		}
 
@@ -158,6 +181,12 @@ void ts::greedyCopyEntry(Entry &source, Entry &destination) {
 		case entry::STRING: {
 			destination.stringData = source.stringData;
 			source.stringData = nullptr;
+			break;
+		}
+
+		case entry::MATRIX: {
+			destination.matrixData = source.matrixData;
+			source.matrixData = nullptr;
 			break;
 		}
 

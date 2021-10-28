@@ -8,8 +8,6 @@ bool MatrixExpression::ShouldParse(ts::Engine* engine) {
 }
 
 MatrixExpression* MatrixExpression::Parse(Component* parent, ts::Engine* engine) {
-	printf("we're parsing the matrix\n");
-
 	MatrixExpression* output = new MatrixExpression(engine);
 	output->parent = parent;
 
@@ -47,7 +45,7 @@ MatrixExpression* MatrixExpression::Parse(Component* parent, ts::Engine* engine)
 			}
 			columns = 0;
 		}
-		else if(Component::Parse(output, engine)) {
+		else if(Component::ShouldParse(output, engine)) {
 			output->elements.push_back(MatrixElement {
 				component: Component::Parse(output, engine),
 				isRowDelimiter: false,
@@ -59,6 +57,7 @@ MatrixExpression* MatrixExpression::Parse(Component* parent, ts::Engine* engine)
 		}
 		lastToken = token;
 	}
+	output->columns = columns;
 	output->rows = rows + 1;
 
 	if(lastToken.type == SEMICOLON) {
@@ -69,12 +68,39 @@ MatrixExpression* MatrixExpression::Parse(Component* parent, ts::Engine* engine)
 	}
 
 	engine->parser->expectToken(RIGHT_BRACKET);
-	exit(1);
-	return nullptr;
+	return output;
 }
 
 ts::InstructionReturn MatrixExpression::compile(ts::Engine* engine, ts::CompilationContext context) {
-	return {};
+	ts::InstructionReturn output;
+
+	ts::Instruction* create = new ts::Instruction();
+	create->type = ts::instruction::MATRIX_CREATE;
+	create->matrixCreate.rows = this->rows;
+	create->matrixCreate.columns = this->columns;
+	output.add(create);
+
+	unsigned int row = 0;
+	unsigned int column = 0;
+	for(MatrixElement &element: this->elements) {
+		if(element.isRowDelimiter) {
+			row++;
+			column = 0;
+		}
+		else {
+			output.add(element.component->compile(engine, context));
+			
+			ts::Instruction* set = new ts::Instruction();
+			set->type = ts::instruction::MATRIX_SET;
+			set->matrixSet.row = row;
+			set->matrixSet.column = column;
+			output.add(set);
+
+			column++;
+		}
+	}
+
+	return output;
 }
 
 string MatrixExpression::print() {

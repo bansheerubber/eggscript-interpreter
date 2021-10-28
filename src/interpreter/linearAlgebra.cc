@@ -2,6 +2,12 @@
 
 #include "entry.h"
 
+ts::Matrix::Matrix() {
+	this->data = nullptr;
+	this->rows = 0;
+	this->columns = 0;
+}
+
 ts::Matrix::~Matrix() {
 	if(this->data != nullptr) {
 		for(unsigned int r = 0; r < this->rows; r++) {
@@ -33,7 +39,7 @@ ts::Matrix* ts::addMatrix(Matrix* matrix1, Matrix* matrix2) {
 		return nullptr;
 	}
 	
-	Matrix* output = new Matrix;
+	Matrix* output = new Matrix();
 	initializeMatrix(output, matrix1->rows, matrix1->columns);
 	for(unsigned int r = 0; r < matrix1->rows; r++) {
 		for(unsigned int c = 0; c < matrix1->columns; c++) {
@@ -48,7 +54,7 @@ ts::Matrix* ts::subtractMatrix(Matrix* matrix1, Matrix* matrix2) {
 		return nullptr;
 	}
 	
-	Matrix* output = new Matrix;
+	Matrix* output = new Matrix();
 	initializeMatrix(output, matrix1->rows, matrix1->columns);
 	for(unsigned int r = 0; r < matrix1->rows; r++) {
 		for(unsigned int c = 0; c < matrix1->columns; c++) {
@@ -56,4 +62,28 @@ ts::Matrix* ts::subtractMatrix(Matrix* matrix1, Matrix* matrix2) {
 		}
 	}
 	return nullptr;
+}
+
+ts::Matrix* ts::cloneMatrix(Matrix* matrix) {
+	Matrix* output = new Matrix();
+	initializeMatrix(output, matrix->rows, matrix->columns);
+	for(unsigned int r = 0; r < matrix->rows; r++) {
+		for(unsigned int c = 0; c < matrix->columns; c++) {
+			copyEntry(matrix->data[r][c], output->data[r][c]);
+		}
+	}
+	return output;
+}
+
+ts::Matrix* ts::cloneRowToVector(Matrix* matrix, unsigned int index) { // extract a row out of a matrix and return it as a vector
+	if(index >= matrix->rows) {
+		return nullptr;
+	}
+
+	Matrix* output = new Matrix();
+	initializeMatrix(output, 1, matrix->columns);
+	for(unsigned int c = 0; c < matrix->columns; c++) {
+		copyEntry(matrix->data[index][c], output->data[0][c]);
+	}
+	return output;
 }

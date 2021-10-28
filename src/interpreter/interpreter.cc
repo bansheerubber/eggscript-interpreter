@@ -176,6 +176,17 @@ void Interpreter::push(char* value, instruction::PushType type) {
 	}
 }
 
+// push a matrix onto the stack
+void Interpreter::push(Matrix* value, instruction::PushType type) {
+	if(type < 0) {
+		this->stack[this->stack.head].setMatrix(value);
+		this->stack.pushed();
+	}
+	else {
+		this->returnRegister.setMatrix(value);
+	}
+}
+
 // push an object onto the stack
 void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 	if(type < 0) {
@@ -803,10 +814,7 @@ void Interpreter::interpret() {
 				Object* object = nullptr;
 
 				if(objectWrapper == nullptr || objectWrapper->object->dataStructure == NO_DATA_STRUCTURE) {
-					this->pop();
-					this->pop();
-					this->push(getEmptyString(), instruction.pushType);
-					break;
+					goto quit_array_access;
 				}
 
 				object = objectWrapper->object;
@@ -831,17 +839,68 @@ void Interpreter::interpret() {
 				}
 
 				if(failure) {
+					goto quit_array_access;
+				}
+			}
+			else if(objectEntry.type == entry::MATRIX && objectEntry.matrixData != nullptr) {
+				unsigned int index = 0;
+				## type_conversion.py indexEntry index NUMBER_STRING_OBJECT NUMBER
+				if(objectEntry.matrixData->rows == 1) { // treat it like an array (return a scalar)
+					if(index >= objectEntry.matrixData->columns) {
+						goto quit_array_access;
+					}
+
+					copyEntry(objectEntry.matrixData->data[0][index], this->returnRegister);
 					this->pop();
 					this->pop();
-					this->push(getEmptyString(), instruction.pushType);
+					this->push(this->returnRegister, instruction.pushType);
+				}
+				else if(objectEntry.matrixData->columns == 1) { // treat it like an array (return a scalar)
+					if(index >= objectEntry.matrixData->rows) {
+						goto quit_array_access;
+					}
+
+					copyEntry(objectEntry.matrixData->data[index][0], this->returnRegister);
+					this->pop();
+					this->pop();
+					this->push(this->returnRegister, instruction.pushType);
+				}
+				else { // dealing with multiple rows and columns (return a row as a vector)
+					if(index >= objectEntry.matrixData->rows) {
+						goto quit_array_access;
+					}
+
+					Matrix* output = cloneRowToVector(objectEntry.matrixData, index);
+					if(output == nullptr) {
+						goto quit_array_access;
+					}
+					else {
+						this->pop();
+						this->pop();
+						this->push(output, instruction.pushType);
+					}
 				}
 			}
 			else {
+				quit_array_access:
 				this->pop();
 				this->pop();
 				this->push(getEmptyString(), instruction.pushType);
 			}
+			break;
+		}
 
+		case instruction::MATRIX_CREATE: {
+			Matrix* matrix = new Matrix();
+			initializeMatrix(matrix, instruction.matrixCreate.rows, instruction.matrixCreate.columns);
+			this->push(matrix, instruction.pushType);
+			break;
+		}
+
+		case instruction::MATRIX_SET: {
+			Matrix* matrix = this->stack[this->stack.head - 2].matrixData;
+			copyEntry(this->stack[this->stack.head - 1], matrix->data[instruction.matrixSet.row][instruction.matrixSet.column]);
+			this->pop();
 			break;
 		}
 
