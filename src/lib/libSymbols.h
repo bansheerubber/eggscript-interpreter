@@ -47,7 +47,7 @@ extern "C" {
 			double numberData;
 			char* stringData;
 			esObjectReferencePtr objectData;
-			esMatrix matrix;
+			esMatrixPtr matrixData;
 		};
 	} esEntry;
 	typedef esEntry* esEntryPtr;
