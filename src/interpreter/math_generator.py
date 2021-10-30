@@ -7,7 +7,13 @@ number_operations = {
 	"MATH_SUBTRACT": "this->push({0} - {1}, instruction.pushType);",
 	"MATH_MULTIPLY": "this->push({0} * {1}, instruction.pushType);",
 	"MATH_DIVISION": "this->push({0} / {1}, instruction.pushType);",
-	"MATH_MODULUS": "this->push((int){0} % (int){1}, instruction.pushType);",
+	"MATH_MODULUS": """if(((int){1}) == 0) {{
+			this->push((double)0, instruction.pushType);
+		}}
+		else {{
+			this->push((int){0} % (int){1}, instruction.pushType);
+		}}
+	""",
 	"MATH_SHIFT_LEFT": "this->push((int){0} << (int){1}, instruction.pushType);",
 	"MATH_SHIFT_RIGHT": "this->push((int){0} >> (int){1}, instruction.pushType);",
 	"MATH_EQUAL": "this->push({0} == {1}, instruction.pushType);",
