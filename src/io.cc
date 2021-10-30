@@ -32,6 +32,7 @@ int printError(const char* format, ...) {
 
 	#ifdef __linux__
 	cout << "\e[91m" << output << "\e[0m";
+	fflush(stdout);
 	#endif
 
 	#ifdef __APPLE__
@@ -51,6 +52,7 @@ int printError(const char* format, va_list argptr) {
 
 	#ifdef __linux__
 	cout << "\e[91m" << output << "\e[0m";
+	fflush(stdout);
 	#endif
 
 	#ifdef __APPLE__
@@ -73,6 +75,7 @@ int printWarning(const char* format, ...) {
 
 	#ifdef __linux__
 	cout << "\e[93m" << output << "\e[0m";
+	fflush(stdout);
 	#endif
 
 	#ifdef __APPLE__
@@ -92,6 +95,7 @@ int printWarning(const char* format, va_list argptr) {
 
 	#ifdef __linux__
 	cout << "\e[93m" << output << "\e[0m";
+	fflush(stdout);
 	#endif
 
 	#ifdef __APPLE__
