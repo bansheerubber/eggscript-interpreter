@@ -30,8 +30,8 @@ string_operations = {
 			this->push(result, instruction.pushType);""",
 	"MATH_APPEND": """size_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 1];
-			strncpy(stringResult, {0}, firstSize);
-			strncpy(&stringResult[firstSize], {1}, secondSize);
+			memcpy(stringResult, {0}, firstSize);
+			memcpy(&stringResult[firstSize], {1}, secondSize);
 			stringResult[firstSize + secondSize] = '\\0';
 
 			%%popStrings%%
@@ -39,9 +39,9 @@ string_operations = {
 			this->push(stringResult, instruction.pushType);""",
 	"MATH_SPC": """size_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 2];
-			strncpy(stringResult, {0}, firstSize);
+			memcpy(stringResult, {0}, firstSize);
 			stringResult[firstSize] = ' ';
-			strncpy(&stringResult[firstSize + 1], {1}, secondSize);
+			memcpy(&stringResult[firstSize + 1], {1}, secondSize);
 			stringResult[firstSize + secondSize + 1] = '\\0';
 
 			%%popStrings%%
@@ -49,9 +49,9 @@ string_operations = {
 			this->push(stringResult, instruction.pushType);""",
 	"MATH_TAB": """size_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 2];
-			strncpy(stringResult, {0}, firstSize);
+			memcpy(stringResult, {0}, firstSize);
 			stringResult[firstSize] = '\\t';
-			strncpy(&stringResult[firstSize + 1], {1}, secondSize);
+			memcpy(&stringResult[firstSize + 1], {1}, secondSize);
 			stringResult[firstSize + secondSize + 1] = '\\0';
 
 			%%popStrings%%
@@ -59,9 +59,9 @@ string_operations = {
 			this->push(stringResult, instruction.pushType);""",
 	"MATH_NL": """size_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 2];
-			strncpy(stringResult, {0}, firstSize);
+			memcpy(stringResult, {0}, firstSize);
 			stringResult[firstSize] = '\\n';
-			strncpy(&stringResult[firstSize + 1], {1}, secondSize);
+			memcpy(&stringResult[firstSize + 1], {1}, secondSize);
 			stringResult[firstSize + secondSize + 1] = '\\0';
 
 			%%popStrings%%
