@@ -16,8 +16,9 @@ MatrixExpression* MatrixExpression::Parse(Component* parent, ts::Engine* engine)
 	unsigned int rows = 0;
 	unsigned int columns = 0;
 	Token lastToken;
+	lastToken.type = INVALID;
 	while(!engine->tokenizer->eof()) {
-		Token &token = engine->tokenizer->peekToken();
+		Token token = engine->tokenizer->peekToken();
 		if(token.type == COMMA) {
 			if(lastToken.type == COMMA || lastToken.type == SEMICOLON) {
 				engine->parser->error("no empty entries allowed in matrix");
