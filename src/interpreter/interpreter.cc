@@ -422,7 +422,9 @@ void Interpreter::interpret() {
 
 			## type_conversion.py *value valueNumber ALL NUMBER
 			
-			this->pop();
+			if(instruction.unaryMathematics.stackIndex < 0) {
+				this->pop();
+			}
 
 			double result = 0.0;
 			switch(instruction.unaryMathematics.operation) {
