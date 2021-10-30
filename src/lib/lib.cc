@@ -144,5 +144,5 @@ esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...) {
 }
 
 esEntryPtr esCreateObject(esObjectReferencePtr reference) {
-	return (esEntryPtr)(new ts::Entry((ts::ObjectReference*)reference));
+	return (esEntryPtr)(new ts::Entry(new ts::ObjectReference((ts::ObjectReference*)reference)));
 }

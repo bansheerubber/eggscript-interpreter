@@ -191,7 +191,8 @@ void ts::greedyCopyEntry(Entry &source, Entry &destination) {
 		}
 
 		case entry::OBJECT: {
-			destination.objectData = new ObjectReference(source.objectData);
+			destination.objectData = source.objectData;
+			source.objectData = nullptr;
 			break;
 		}
 	}
