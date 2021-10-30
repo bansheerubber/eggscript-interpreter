@@ -146,3 +146,43 @@ esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...) {
 esEntryPtr esCreateObject(esObjectReferencePtr reference) {
 	return (esEntryPtr)(new ts::Entry(new ts::ObjectReference((ts::ObjectReference*)reference)));
 }
+
+esEntryPtr esCreateNumberAt(esEntryPtr entry, double number) {
+	return (esEntryPtr)new((void*)entry) Entry(number);
+}
+
+esEntryPtr esCreateStringAt(esEntryPtr entry, char* string) {
+	return (esEntryPtr)new((void*)entry) Entry(string);
+}
+
+esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...) {
+	va_list vl;
+  va_start(vl, size);
+
+	ts::Matrix* matrix = new ts::Matrix();
+	ts::initializeMatrix(matrix, 1, size);
+	for(unsigned int i = 0; i < size; i++) {
+		matrix->data[0][i].setNumber(va_arg(vl, double));
+	}
+	va_end(vl);
+	return (esEntryPtr)new((void*)entry) Entry(matrix);
+}
+
+esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...) {
+	va_list vl;
+  va_start(vl, columns);
+
+	ts::Matrix* matrix = new ts::Matrix();
+	ts::initializeMatrix(matrix, rows, columns);
+	for(unsigned int r = 0; r < rows; r++) {
+		for(unsigned int c = 0; c < columns; c++) {
+			matrix->data[r][c].setNumber(va_arg(vl, double));
+		}
+	}
+	va_end(vl);
+	return (esEntryPtr)new((void*)entry) Entry(matrix);
+}
+
+esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference) {
+	return (esEntryPtr)new((void*)entry) Entry(new ts::ObjectReference((ts::ObjectReference*)reference));
+}

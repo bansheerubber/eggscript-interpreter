@@ -79,4 +79,10 @@ extern "C" {
 	esEntryPtr esCreateVector(unsigned int size, ...);
 	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObject(esObjectReferencePtr reference);
+
+	esEntryPtr esCreateNumberAt(esEntryPtr entry, double number);
+	esEntryPtr esCreateStringAt(esEntryPtr entry, char* string);
+	esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...);
+	esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...);
+	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);
 }
