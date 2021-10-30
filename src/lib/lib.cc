@@ -84,6 +84,10 @@ const char* esGetNamespaceFromObject(esObjectReferencePtr object) {
 }
 
 int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace) {
+	if(object->objectWrapper == nullptr) {
+		return 0;
+	}
+	
 	return string(((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name) == string(nameSpace);
 }
 
