@@ -155,6 +155,18 @@ void MethodTree::addParent(MethodTree* parent) {
 	parent->addChild(this);
 }
 
+bool MethodTree::hasParent(string nameSpace) {
+	for(unsigned int i = 0; i < this->parents.head; i++) {
+		if(this->parents[i]->name == nameSpace) {
+			return true;
+		}
+		else if(this->parents[i]->hasParent(nameSpace)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void MethodTree::addChild(MethodTree* child) {
 	this->children[this->children.head] = child;
 	this->children.pushed();

@@ -71,6 +71,7 @@ extern "C" {
 	void esDeleteObject(esObjectReferencePtr objectReference);
 	const char* esGetNamespaceFromObject(esObjectReferencePtr object);
 	int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace);
+	int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* nameSpace);
 	void esRegisterFunction(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* name, unsigned int argumentCount, esEntryType* argTypes);
 	void esRegisterMethod(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* nameSpace, const char* name, unsigned int argumentCount, esEntryType* argTypes);
 	esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);

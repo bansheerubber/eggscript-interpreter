@@ -96,7 +96,20 @@ int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpac
 		return 0;
 	}
 	
-	return string(((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name) == string(nameSpace);
+	return ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name == string(nameSpace);
+}
+
+int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* nameSpace) {
+	if(object->objectWrapper == nullptr) {
+		return 0;
+	}
+
+	ts::MethodTree* tree = ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree;
+	if(tree->name == string(nameSpace)) {
+		return 1;
+	}
+
+	return tree->hasParent(nameSpace);
 }
 
 void esRegisterFunction(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* name, unsigned int argumentCount, esEntryType* argTypes) {
