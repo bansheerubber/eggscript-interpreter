@@ -145,9 +145,9 @@ esEntryPtr esCreateVector(unsigned int size, ...) {
   va_start(vl, size);
 
 	ts::Matrix* matrix = new ts::Matrix();
-	ts::initializeMatrix(matrix, 1, size);
+	ts::initializeMatrix(matrix, size, 1);
 	for(unsigned int i = 0; i < size; i++) {
-		matrix->data[0][i].setNumber(va_arg(vl, double));
+		matrix->data[i][0].setNumber(va_arg(vl, double));
 	}
 	va_end(vl);
 	return (esEntryPtr)(new ts::Entry(matrix));
