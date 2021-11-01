@@ -109,6 +109,10 @@ void MethodTree::addPackageMethod(string name, size_t nameIndex, Function* conta
 }
 
 void MethodTree::updateMethodTree(string methodName, size_t methodNameIndex) {
+	if(this->methodIndexToEntry.find(methodNameIndex) == this->methodIndexToEntry.end()) {
+		this->methodIndexToEntry[methodNameIndex] = new MethodTreeEntry(this, methodName);
+	}
+	
 	vector<PackagedFunctionList*> list = this->buildMethodTreeEntryForParents(methodName, methodNameIndex, false);
 	MethodTreeEntry* entry = this->methodIndexToEntry[methodNameIndex];
 	entry->list.head = 1;
@@ -116,12 +120,17 @@ void MethodTree::updateMethodTree(string methodName, size_t methodNameIndex) {
 		entry->list[entry->list.head] = functionList;
 		entry->list.pushed();
 	}
+
+	// recursively update the method tree
+	for(size_t i = 0; i < this->children.head; i++) {
+		this->children[i]->updateMethodTree(methodName, methodNameIndex);
+	}
 }
 
 vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string methodName, size_t methodNameIndex, bool addInitial) {
 	MethodTreeEntry* entry;
 	if(this->methodIndexToEntry.find(methodNameIndex) == this->methodIndexToEntry.end()) {
-		entry = this->methodIndexToEntry[methodNameIndex] = new MethodTreeEntry(this, methodName);
+		return vector<PackagedFunctionList*>();
 	}
 	else {
 		entry = this->methodIndexToEntry[methodNameIndex];
