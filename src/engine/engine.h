@@ -46,6 +46,7 @@ namespace ts {
 			Interpreter* interpreter;
 
 			void execFile(string fileName, bool forceExecution = false);
+			void execFileContents(string fileName, string shell);
 			void execPiped(string piped);
 			void execShell(string shell, bool forceExecution = false);
 

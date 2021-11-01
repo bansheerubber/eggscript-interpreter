@@ -59,7 +59,9 @@ extern "C" {
 	bool esTick(esEnginePtr engine);
 	void esSetTickRate(esEnginePtr engine, long tickRate);
 	void esExecFile(esEnginePtr engine, const char* filename);
+	void esExecFileFromContents(esEnginePtr, const char* fileName, const char* contents);
 	void esEval(esEnginePtr engine, const char* shell);
+	const char* esGetLastExecFileName(esEnginePtr engine);
 	void esSetPrintFunction(esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
 	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);

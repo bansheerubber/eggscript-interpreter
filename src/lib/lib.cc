@@ -34,8 +34,16 @@ void esExecFile(esEnginePtr engine, const char* filename) {
 	((ts::Engine*)engine)->execFile(string(filename));
 }
 
+void esExecFileFromContents(esEnginePtr engine, const char* fileName, const char* contents) {
+	((ts::Engine*)engine)->execFileContents(string(fileName), string(contents));
+}
+
 void esEval(esEnginePtr engine, const char* shell) {
 	((ts::Engine*)engine)->execShell(string(shell));
+}
+
+const char* esGetLastExecFileName(esEnginePtr engine) {
+	return ((ts::Engine*)engine)->interpreter->getTopFileNameFromFrame().c_str();
 }
 
 void esSetPrintFunction(esEnginePtr engine, esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error)) {

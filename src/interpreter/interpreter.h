@@ -40,6 +40,7 @@ namespace ts {
 		MethodTreeEntry* methodTreeEntry;
 		int methodTreeEntryIndex;
 		bool isTSSL;
+		string fileName;
 	};
 
 	void initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame);
@@ -92,6 +93,8 @@ namespace ts {
 			Entry* callFunction(string functionName, Entry* arguments, size_t argumentCount);
 			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount);
 
+			string& getTopFileNameFromFrame();
+
 			Entry emptyEntry;
 
 			size_t highestObjectId = 1;
@@ -141,7 +144,8 @@ namespace ts {
 				MethodTreeEntry* methodTreeEntry = nullptr,
 				int methodTreeEntryIndex = -1,
 				size_t argumentCount = 0,
-				size_t popCount = 0
+				size_t popCount = 0,
+				string fileName = ""
 			);
 			void popFunctionFrame() __attribute__((always_inline));
 			void pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex);

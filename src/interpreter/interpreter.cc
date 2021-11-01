@@ -1,5 +1,6 @@
 #include "interpreter.h"
 
+#include "../util/allocateString.h"
 #include "../tssl/array.h"
 #include "../util/cloneString.h"
 #include "../compiler/compiler.h"
@@ -75,7 +76,8 @@ void Interpreter::pushFunctionFrame(
 	MethodTreeEntry* methodTreeEntry,
 	int methodTreeEntryIndex,
 	size_t argumentCount,
-	size_t popCount
+	size_t popCount,
+	string fileName
 ) {
 	if(this->frames.head == 0) {
 		this->startTime = getMicrosecondsNow();
@@ -91,6 +93,7 @@ void Interpreter::pushFunctionFrame(
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
 	frame.isTSSL = false;
+	ALLOCATE_STRING(fileName, frame.fileName);
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -126,7 +129,18 @@ void Interpreter::pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int me
 	frame.stackPopCount = 0;
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
+	ALLOCATE_STRING(string(""), frame.fileName);
 	this->frames.pushed();
+}
+
+string& Interpreter::getTopFileNameFromFrame() {
+	static string empty = "";
+	for(int i = this->frames.head - 1; i >= 0; i--) {
+		if(this->frames[i].fileName != "") {
+			return this->frames[i].fileName;
+		}
+	}
+	return empty;
 }
 
 // push an entry onto the stack
