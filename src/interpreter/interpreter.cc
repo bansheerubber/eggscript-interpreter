@@ -734,6 +734,7 @@ void Interpreter::interpret() {
 			object = objectWrapper->object;
 
 			// cache the method entry pointer in the instruction
+			// TODO as soon as the namespace type changes, this breaks
 			if(instruction.callObject.isCached == false) {
 				bool found = false;
 				auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(instruction.callObject.name));
@@ -763,7 +764,7 @@ void Interpreter::interpret() {
 
 			// look up the method in the method tree
 			MethodTreeEntry* methodTreeEntry = instruction.callObject.cachedEntry;
-			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod ? 0 : 1;
+			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
 			size_t packagedFunctionListIndex = list->topValidIndex;
 			Function* foundFunction = (*list)[packagedFunctionListIndex];
