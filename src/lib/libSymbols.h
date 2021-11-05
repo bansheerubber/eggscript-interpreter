@@ -65,6 +65,8 @@ extern "C" {
 	void esSetPrintFunction(esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
 	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
+	void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper));
+	void esSetNamespaceDeconstructor(esEnginePtr engine, const char* nameSpace, void (*deconstructor)(esObjectWrapperPtr wrapper));
 	void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* child);
 	esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpace, void* data);
 	esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference);

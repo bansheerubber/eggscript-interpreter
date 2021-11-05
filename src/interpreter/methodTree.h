@@ -63,6 +63,7 @@ namespace ts {
 			bool isTSSL = false;
 
 			TS_OBJECT_CONSTRUCTOR(tsslConstructor) = nullptr;
+			TS_OBJECT_DECONSTRUCTOR(tsslDeconstructor) = nullptr;
 		
 		private:
 			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, size_t methodNameIndex, bool addInitial = true);

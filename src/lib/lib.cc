@@ -64,6 +64,16 @@ void esRegisterNamespace(esEnginePtr engine, const char* nameSpace) {
 	((ts::Engine*)engine)->defineTSSLMethodTree(methodTree);
 }
 
+void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper)) {
+	ts::MethodTree* methodTree = ((ts::Engine*)engine)->getNamespace(nameSpace);
+	methodTree->tsslConstructor = (void (*)(ObjectWrapper* wrapper))constructor;
+}
+
+void esSetNamespaceDeconstructor(esEnginePtr engine, const char* nameSpace, void (*deconstructor)(esObjectWrapperPtr wrapper)) {
+	ts::MethodTree* methodTree = ((ts::Engine*)engine)->getNamespace(nameSpace);
+	methodTree->tsslDeconstructor = (void (*)(ObjectWrapper* wrapper))deconstructor;
+}
+
 void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* child) {
 	ts::MethodTree* methodTree = ((ts::Engine*)engine)->getNamespace(child);
 	methodTree->addParent(((ts::Engine*)engine)->getNamespace(parent));
@@ -81,7 +91,7 @@ esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference) {
 }
 
 void esDeleteObject(esObjectReferencePtr objectReference) {
-	// only delete the object if its already deleted
+	// only delete the object if its not already deleted
 	if(((ObjectReference*)objectReference)->objectWrapper != nullptr) {
 		delete ((ObjectReference*)objectReference)->objectWrapper->object;
 	}
