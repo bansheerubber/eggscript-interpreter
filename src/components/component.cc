@@ -96,7 +96,8 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 			isPostfix = true;
 		}
 		// handle inline conditionals here
-		else if(InlineConditional::ShouldParse(engine) && lvalue != nullptr) {
+		// we need the parent to not be a math expression in order to do operator precedence correctly
+		else if(InlineConditional::ShouldParse(engine) && lvalue != nullptr && parent->getType() != MATH_EXPRESSION) {
 			lvalue = InlineConditional::Parse(lvalue, parent, engine);
 		}
 
