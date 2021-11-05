@@ -1013,7 +1013,13 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 			foundFunction->variableCount
 		);
 		this->interpret();
-		return new Entry(this->returnRegister);
+
+		if(this->returnRegister.type == entry::INVALID) {
+			return new Entry(getEmptyString());
+		}
+		else {
+			return new Entry(this->returnRegister);
+		}
 	}
 }
 
@@ -1083,6 +1089,11 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 		);
 		this->interpret();
 
-		return new Entry(this->returnRegister);
+		if(this->returnRegister.type == entry::INVALID) {
+			return new Entry(getEmptyString());
+		}
+		else {
+			return new Entry(this->returnRegister);
+		}
 	}
 }

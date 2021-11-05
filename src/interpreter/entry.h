@@ -66,6 +66,8 @@ namespace ts {
 				delete this->matrixData;
 				this->matrixData = nullptr;
 			}
+
+			this->type = entry::INVALID;
 		}
 		
 		void print(int tabs = 0) const;

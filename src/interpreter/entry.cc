@@ -196,6 +196,8 @@ void ts::greedyCopyEntry(Entry &source, Entry &destination) {
 			break;
 		}
 	}
+
+	source.type = entry::INVALID;
 }
 
 void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type) {
