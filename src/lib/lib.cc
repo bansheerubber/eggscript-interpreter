@@ -81,9 +81,14 @@ void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* chil
 
 esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpace, void* data) {
 	ts::MethodTree* methodTree = ((ts::Engine*)engine)->getNamespace(nameSpace);
-	return (esObjectReferencePtr)new ts::ObjectReference(
-		CreateObject(((ts::Engine*)engine)->interpreter, nameSpace, "", methodTree, methodTree, data)
-	);
+	if(methodTree == nullptr) {
+		return nullptr;
+	}
+	else {
+		return (esObjectReferencePtr)new ts::ObjectReference(
+			CreateObject(((ts::Engine*)engine)->interpreter, nameSpace, "", methodTree, methodTree, data)
+		);
+	}
 }
 
 esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference) {
