@@ -90,4 +90,6 @@ extern "C" {
 	esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...);
 	esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);
+
+	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry);
 }

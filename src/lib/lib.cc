@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 
+#include "../tssl/array.h"
 #include "../args.h"
 #include "../compiler/compiler.h"
 #include "../tssl/define.h"
@@ -225,4 +226,16 @@ esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int co
 
 esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference) {
 	return (esEntryPtr)new((void*)entry) Entry(new ts::ObjectReference((ts::ObjectReference*)reference));
+}
+
+void esArrayPush(esObjectReferencePtr reference, esEntryPtr entry) {
+	if(reference->objectWrapper != nullptr) {
+		ObjectReference* array = (ObjectReference*)reference;
+		if(array->objectWrapper->object->dataStructure != ARRAY) {
+			printf("not an array\n");
+			return;
+		}
+
+		((ts::sl::Array*)array->objectWrapper->data)->push((ts::Entry*)entry, 1);
+	}
 }
