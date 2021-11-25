@@ -72,9 +72,6 @@ namespace ts {
 		
 		void print(int tabs = 0) const;
 		const char* typeToString() const;
-
-		private:
-			void __erase() __attribute__((always_inline));
 	};
 
 	void copyEntry(const Entry &source, Entry &destination);

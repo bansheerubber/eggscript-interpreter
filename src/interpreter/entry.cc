@@ -41,15 +41,7 @@ Entry::Entry(ObjectReference* value) {
 }
 
 Entry::~Entry() {
-	if(this->type == entry::STRING && this->stringData != nullptr) {
-		delete[] this->stringData;
-		this->stringData = nullptr;
-	}
-
-	if(this->type == entry::OBJECT && this->objectData != nullptr) {
-		delete this->objectData;
-		this->objectData = nullptr;
-	}
+	this->erase();
 }
 
 namespace std {
