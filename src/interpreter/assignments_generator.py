@@ -59,18 +59,24 @@ for prefix, folder in get_prefixes().items():
 	START_MACRO = get_generated_code(folder, "start", 3)
 	GET_SELF_MACRO = get_generated_code(folder, "getSelf", 3)
 	GET_VALUE_MACRO = get_generated_code(folder, "getValue", 3)
-	CONVERT_MACRO = get_generated_code(folder, "convert", 3)
+	# CONVERT_MACRO = get_generated_code(folder, "convert", 3)
 	END_MACRO = get_generated_code(folder, "end", 3)
 
 	for suffix in get_suffixes():
 		if suffix != "EQUAL": # handle all other instructions using the files we pulled from
-			operation = operations[suffix].format("entryNumber", "valueNumber")
+			operation = operations[suffix].format("entryNumber", "value->numberData")
 			formatted = GET_VALUE_MACRO.replace(r"%%", "value")
-			get_macro = f"{formatted}\n{CONVERT_MACRO}" if suffix not in no_get else ""
+			get_macro = f"{formatted}\n" if suffix not in no_get else ""
+			additional_test = "|| value->type != entry::NUMBER" if suffix not in no_get else ""
 			
 			print(f"""		case instruction::{prefix}_{suffix}: {{
 {START_MACRO}{GET_SELF_MACRO}{get_macro}
-			entry->setNumber({operation});\n
+			if(entry->type != entry::NUMBER {additional_test}) {{
+				entry->erase();
+			}}
+			else {{
+				entry->setNumber({operation});\n
+			}}
 {END_MACRO}
 			break;
 		}}\n""")

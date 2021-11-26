@@ -145,7 +145,7 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 		}
 
 		case entry::MATRIX: {
-			destination.matrixData = cloneMatrix(source.matrixData);
+			destination.matrixData = source.matrixData->clone();
 			break;
 		}
 
@@ -234,17 +234,44 @@ bool ts::isEntryEqual(const Entry &source, const Entry &destination) {
 			return true;
 		}
 
-		case entry::NUMBER:
+		case entry::NUMBER: {
 			return source.numberData == destination.numberData;
+		}
 		
-		case entry::STRING:
+		case entry::STRING: {
 			return strcmp(source.stringData, destination.stringData) == 0;
-		
-		case entry::OBJECT:
+		}
+
+		case entry::OBJECT: {
 			return source.objectData->objectWrapper == destination.objectData->objectWrapper;
+		}
 	}
 
 	return false;
+}
+
+bool ts::isEntryTruthy(const Entry &source) {
+	switch(source.type) {
+		case entry::EMPTY: {
+			return false;
+		}
+
+		case entry::NUMBER: {
+			return source.numberData != 0;
+		}
+
+		case entry::STRING: {
+			return strlen(source.stringData) != 0;
+		}
+
+		case entry::MATRIX: {
+			return true;
+		}
+
+		case entry::OBJECT: {
+			return source.objectData->objectWrapper != nullptr;
+		}
+	}
 }
 
 void ts::initEntry(class Interpreter* interpreter, Entry* location) {;

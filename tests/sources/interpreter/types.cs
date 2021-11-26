@@ -16,17 +16,17 @@ function ScriptObject::test(%this) {
 
 %obj = new Array();
 for(%i = 0; %i < 4; %i++) {
-	%obj.push("");
+	%obj.push(null);
 }
 
 %objNumber = new Array();
 for(%i = 0; %i < 4; %i++) {
-	%objNumber.push("");
+	%objNumber.push(null);
 }
 
 %objString = new Array();
 for(%i = 0; %i < 4; %i++) {
-	%objString.push("");
+	%objString.push(null);
 }
 
 %obj[0] = %first;

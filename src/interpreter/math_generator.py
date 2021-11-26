@@ -2,29 +2,75 @@ import sys
 sys.path.insert(0, "../../tools")
 from gen import get_generated_code
 
-number_operations = {
-	"MATH_ADDITION": "this->push({0} + {1}, instruction.pushType);",
-	"MATH_SUBTRACT": "this->push({0} - {1}, instruction.pushType);",
-	"MATH_MULTIPLY": "this->push({0} * {1}, instruction.pushType);",
-	"MATH_DIVISION": "this->push({0} / {1}, instruction.pushType);",
-	"MATH_MODULUS": """if(((int){1}) == 0) {{
-			this->push((double)0, instruction.pushType);
-		}}
-		else {{
-			this->push((int){0} % (int){1}, instruction.pushType);
-		}}
-	""",
-	"MATH_SHIFT_LEFT": "this->push((int){0} << (int){1}, instruction.pushType);",
-	"MATH_SHIFT_RIGHT": "this->push((int){0} >> (int){1}, instruction.pushType);",
-	"MATH_EQUAL": "this->push({0} == {1}, instruction.pushType);",
-	"MATH_NOT_EQUAL": "this->push({0} != {1}, instruction.pushType);",
-	"MATH_LESS_THAN_EQUAL": "this->push({0} <= {1}, instruction.pushType);",
-	"MATH_GREATER_THAN_EQUAL": "this->push({0} >= {1}, instruction.pushType);",
-	"MATH_LESS_THAN": "this->push({0} < {1}, instruction.pushType);",
-	"MATH_GREATER_THAN": "this->push({0} > {1}, instruction.pushType);",
-	"MATH_BITWISE_AND": "this->push((int){0} & (int){1}, instruction.pushType);",
-	"MATH_BITWISE_OR": "this->push((int){0} | (int){1}, instruction.pushType);",
-	"MATH_BITWISE_XOR": "this->push((int){0} ^ (int){1}, instruction.pushType);",
+math_operations = {
+	"MATH_ADDITION": (
+		"this->push({0} + {1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_SUBTRACT": (
+		"this->push({0} - {1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_MULTIPLY": (
+		"this->push({0} * {1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_DIVISION": (
+		"this->push({0} / {1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_MODULUS": (
+		"""if(((int){1}) == 0) {{
+				this->push((double)0, instruction.pushType);
+			}}
+			else {{
+				this->push((int){0} % (int){1}, instruction.pushType);
+			}}
+		""",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_SHIFT_LEFT": (
+		"this->push((int){0} << (int){1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_SHIFT_RIGHT": (
+		"this->push((int){0} >> (int){1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_LESS_THAN_EQUAL": (
+		"this->push({0} <= {1}, instruction.pushType);",
+		"this->push(0.0, instruction.pushType);",
+	),
+	"MATH_GREATER_THAN_EQUAL": (
+		"this->push({0} >= {1}, instruction.pushType);",
+		"this->push(0.0, instruction.pushType);",
+	),
+	"MATH_LESS_THAN": (
+		"this->push({0} < {1}, instruction.pushType);",
+		"this->push(0.0, instruction.pushType);",
+	),
+	"MATH_GREATER_THAN": (
+		"this->push({0} > {1}, instruction.pushType);",
+		"this->push(0.0, instruction.pushType);",
+	),
+	"MATH_BITWISE_AND": (
+		"this->push((int){0} & (int){1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_BITWISE_OR": (
+		"this->push((int){0} | (int){1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+	"MATH_BITWISE_XOR": (
+		"this->push((int){0} ^ (int){1}, instruction.pushType);",
+		"this->pushEmpty(instruction.pushType);",
+	),
+}
+
+# operations shared between all types
+common_operations = {
+	"MATH_EQUAL": "this->push(isEntryEqual({0}, {1}), instruction.pushType);",
+	"MATH_NOT_EQUAL": "this->push(isEntryEqual({0}, {1}), instruction.pushType);",
 }
 
 string_operations = {
@@ -83,22 +129,22 @@ string_pop = """if(popLValue) {{
 				this->pop();
 			}}"""
 
-number_body = """if(type1 != type2) {{
-	this->pushEmpty(instruction.pushType);
+math_body = """if(type1 != type2) {{
+	{1}
 }}
 else if(type1 == entry::NUMBER) {{
 	{0}
 }}
 else {{
-	this->pushEmpty(instruction.pushType);
+	{1}
 }}"""
 
 NUMBER_MATH_MACRO = get_generated_code("math", "numbers", 3)
 
 # handle number instructions
-for instruction, operation in number_operations.items():
-	formatted = operation.format("lvalueNumber", "rvalueNumber")
-	formatted = number_body.format(formatted)
+for instruction, (number_operation, failure) in math_operations.items():
+	formatted = number_operation.format("lvalueNumber", "rvalueNumber")
+	formatted = math_body.format(formatted, failure)
 
 	print(f"""		case instruction::{instruction}: {{
 {NUMBER_MATH_MACRO}

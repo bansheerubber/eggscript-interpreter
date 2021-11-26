@@ -79,6 +79,7 @@ namespace ts {
 	void convertToType(class Interpreter* interpreter, Entry &source, entry::EntryType type);
 	void initEntry(class Interpreter* interpreter, Entry* location);
 	bool isEntryEqual(const Entry &source, const Entry &destination);
+	bool isEntryTruthy(const Entry &source);
 }
 
 namespace std {

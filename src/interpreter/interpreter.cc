@@ -403,10 +403,7 @@ void Interpreter::interpret() {
 
 		case instruction::JUMP_IF_TRUE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
-			int number = 0;
-			## type_conversion.py entry number ALL NUMBER
-
-			if(number != 0) {
+			if(isEntryTruthy(entry)) {
 				*this->instructionPointer = instruction.jumpIfTrue.index;
 			}
 
@@ -418,10 +415,7 @@ void Interpreter::interpret() {
 
 		case instruction::JUMP_IF_FALSE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
-			int number = 1;
-			## type_conversion.py entry number ALL NUMBER
-
-			if(number == 0) {
+			if(!isEntryTruthy(entry)) {
 				*this->instructionPointer = instruction.jumpIfFalse.index;
 			}
 
@@ -440,10 +434,13 @@ void Interpreter::interpret() {
 				value = &this->stack[instruction.unaryMathematics.stackIndex + this->stackFramePointer];
 			}
 
-			double valueNumber = 0;
+			if(value->type != entry::NUMBER) {
+				this->pushEmpty(instruction.pushType);
+				break;
+			}
 
-			## type_conversion.py *value valueNumber ALL NUMBER
-			
+			double valueNumber = value->numberData; // copy number out before doing a pop
+
 			if(instruction.unaryMathematics.stackIndex < 0) {
 				this->pop();
 			}
@@ -898,7 +895,7 @@ void Interpreter::interpret() {
 						goto quit_array_access;
 					}
 
-					Matrix* output = cloneRowToVector(objectEntry.matrixData, index);
+					Matrix* output = objectEntry.matrixData->cloneRowToVector(index);
 					if(output == nullptr) {
 						goto quit_array_access;
 					}
@@ -919,9 +916,7 @@ void Interpreter::interpret() {
 		}
 
 		case instruction::MATRIX_CREATE: {
-			Matrix* matrix = new Matrix();
-			initializeMatrix(matrix, instruction.matrixCreate.rows, instruction.matrixCreate.columns);
-			this->push(matrix, instruction.pushType);
+			this->push(new Matrix(instruction.matrixCreate.rows, instruction.matrixCreate.columns), instruction.pushType);
 			break;
 		}
 

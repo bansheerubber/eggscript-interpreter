@@ -2,19 +2,20 @@
 
 namespace ts {
 	struct Entry;
-	struct Matrix {
-		Entry** data;
-		unsigned int rows;
-		unsigned int columns;
+	class Matrix {
+		public:
+			Matrix();
+			Matrix(unsigned int rows, unsigned int columns, bool fillZeros = false);
+			~Matrix();
 
-		Matrix();
-		~Matrix();
+			Entry** data;
+			unsigned int rows;
+			unsigned int columns;
+
+			Matrix* initialize(unsigned int rows, unsigned int columns, bool fillZeros = false);
+			Matrix* add(const Matrix* other);
+			Matrix* subtract(const Matrix* other);
+			Matrix* clone();
+			Matrix* cloneRowToVector(unsigned int index);
 	};
-
-	Matrix* initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int columns, bool fillZeros = false);
-	void deleteMatrix(Matrix* matrix);
-	Matrix* addMatrix(Matrix* matrix1, Matrix* matrix2);
-	Matrix* subtractMatrix(Matrix* matrix1, Matrix* matrix2);
-	Matrix* cloneMatrix(Matrix* matrix);
-	Matrix* cloneRowToVector(Matrix* matrix, unsigned int index);
 }

@@ -1,4 +1,4 @@
 %%conditional%%((%%entry%%).type == entry::NUMBER) {
-	%%output%% = ts::initializeMatrix(new ts::Matrix(), 1, 1, true);
+	%%output%% = new ts::Matrix(1, 1, true);
 	%%delete%%
 }

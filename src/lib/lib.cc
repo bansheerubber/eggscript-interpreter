@@ -160,8 +160,7 @@ esEntryPtr esCreateVector(unsigned int size, ...) {
 	va_list vl;
   va_start(vl, size);
 
-	ts::Matrix* matrix = new ts::Matrix();
-	ts::initializeMatrix(matrix, size, 1);
+	ts::Matrix* matrix = new ts::Matrix(size, 1);
 	for(unsigned int i = 0; i < size; i++) {
 		matrix->data[i][0].setNumber(va_arg(vl, double));
 	}
@@ -173,8 +172,7 @@ esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...) {
 	va_list vl;
   va_start(vl, columns);
 
-	ts::Matrix* matrix = new ts::Matrix();
-	ts::initializeMatrix(matrix, rows, columns);
+	ts::Matrix* matrix = new ts::Matrix(rows, columns);
 	for(unsigned int r = 0; r < rows; r++) {
 		for(unsigned int c = 0; c < columns; c++) {
 			matrix->data[r][c].setNumber(va_arg(vl, double));
@@ -200,8 +198,7 @@ esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...) {
 	va_list vl;
   va_start(vl, size);
 
-	ts::Matrix* matrix = new ts::Matrix();
-	ts::initializeMatrix(matrix, size, 1);
+	ts::Matrix* matrix = new ts::Matrix(size, 1);
 	for(unsigned int i = 0; i < size; i++) {
 		matrix->data[i][0].setNumber(va_arg(vl, double));
 	}
@@ -213,8 +210,7 @@ esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int co
 	va_list vl;
   va_start(vl, columns);
 
-	ts::Matrix* matrix = new ts::Matrix();
-	ts::initializeMatrix(matrix, rows, columns);
+	ts::Matrix* matrix = new ts::Matrix(rows, columns);
 	for(unsigned int r = 0; r < rows; r++) {
 		for(unsigned int c = 0; c < columns; c++) {
 			matrix->data[r][c].setNumber(va_arg(vl, double));

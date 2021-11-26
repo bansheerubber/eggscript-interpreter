@@ -8,6 +8,13 @@ ts::Matrix::Matrix() {
 	this->columns = 0;
 }
 
+ts::Matrix::Matrix(unsigned int rows, unsigned int columns, bool fillZeros) {
+	this->data = nullptr;
+	this->rows = 0;
+	this->columns = 0;
+	this->initialize(rows, columns, fillZeros);
+}
+
 ts::Matrix::~Matrix() {
 	if(this->data != nullptr) {
 		for(unsigned int r = 0; r < this->rows; r++) {
@@ -17,79 +24,75 @@ ts::Matrix::~Matrix() {
 	}
 }
 
-ts::Matrix* ts::initializeMatrix(Matrix* matrix, unsigned int rows, unsigned int columns, bool fillZeros) {
-	if(matrix->data != nullptr) {
-		for(unsigned int r = 0; r < matrix->rows; r++) {
-			delete[] matrix->data[r];
+ts::Matrix* ts::Matrix::initialize(unsigned int rows, unsigned int columns, bool fillZeros) {
+	if(this->data != nullptr) {
+		for(unsigned int r = 0; r < this->rows; r++) {
+			delete[] this->data[r];
 		}
-		delete[] matrix->data;
+		delete[] this->data;
 	}
 	
-	matrix->rows = rows;
-	matrix->columns = columns;
+	this->rows = rows;
+	this->columns = columns;
 
-	matrix->data = new Entry*[rows];
-	for(unsigned int r = 0; r < matrix->rows; r++) {
-		matrix->data[r] = new Entry[columns];
+	this->data = new Entry*[rows];
+	for(unsigned int r = 0; r < this->rows; r++) {
+		this->data[r] = new Entry[columns];
 		if(fillZeros) {
-			for(unsigned int c = 0; c < matrix->columns; c++) {
-				matrix->data[r][c].setNumber(0);
+			for(unsigned int c = 0; c < this->columns; c++) {
+				this->data[r][c].setNumber(0);
 			}
 		}
 	}
-	return matrix;
+	return this;
 }
 
-ts::Matrix* ts::addMatrix(Matrix* matrix1, Matrix* matrix2) {
-	if(matrix1->rows != matrix2->rows || matrix1->columns != matrix2->columns) {
+ts::Matrix* ts::Matrix::add(const Matrix* other) {
+	if(this->rows != other->rows || this->columns != other->columns) {
 		return nullptr;
 	}
 	
-	Matrix* output = new Matrix();
-	initializeMatrix(output, matrix1->rows, matrix1->columns);
-	for(unsigned int r = 0; r < matrix1->rows; r++) {
-		for(unsigned int c = 0; c < matrix1->columns; c++) {
-			output->data[r][c] = matrix1->data[r][c].numberData + matrix2->data[r][c].numberData;
+	Matrix* output = new Matrix(this->rows, this->columns);
+	for(unsigned int r = 0; r < this->rows; r++) {
+		for(unsigned int c = 0; c < this->columns; c++) {
+			output->data[r][c] = this->data[r][c].numberData + other->data[r][c].numberData;
 		}
 	}
 	return output;
 }
 
-ts::Matrix* ts::subtractMatrix(Matrix* matrix1, Matrix* matrix2) {
-	if(matrix1->rows != matrix2->rows || matrix1->columns != matrix2->columns) {
+ts::Matrix* ts::Matrix::subtract(const Matrix* other) {
+	if(this->rows != other->rows || this->columns != other->columns) {
 		return nullptr;
 	}
 	
-	Matrix* output = new Matrix();
-	initializeMatrix(output, matrix1->rows, matrix1->columns);
-	for(unsigned int r = 0; r < matrix1->rows; r++) {
-		for(unsigned int c = 0; c < matrix1->columns; c++) {
-			output->data[r][c] = matrix1->data[r][c].numberData - matrix2->data[r][c].numberData;
+	Matrix* output = new Matrix(this->rows, this->columns);
+	for(unsigned int r = 0; r < this->rows; r++) {
+		for(unsigned int c = 0; c < this->columns; c++) {
+			output->data[r][c] = this->data[r][c].numberData - other->data[r][c].numberData;
 		}
 	}
 	return nullptr;
 }
 
-ts::Matrix* ts::cloneMatrix(Matrix* matrix) {
-	Matrix* output = new Matrix();
-	initializeMatrix(output, matrix->rows, matrix->columns);
-	for(unsigned int r = 0; r < matrix->rows; r++) {
-		for(unsigned int c = 0; c < matrix->columns; c++) {
-			copyEntry(matrix->data[r][c], output->data[r][c]);
+ts::Matrix* ts::Matrix::clone() {
+	Matrix* output = new Matrix(this->rows, this->columns);
+	for(unsigned int r = 0; r < this->rows; r++) {
+		for(unsigned int c = 0; c < this->columns; c++) {
+			copyEntry(this->data[r][c], output->data[r][c]);
 		}
 	}
 	return output;
 }
 
-ts::Matrix* ts::cloneRowToVector(Matrix* matrix, unsigned int index) { // extract a row out of a matrix and return it as a vector
-	if(index >= matrix->rows) {
+ts::Matrix* ts::Matrix::cloneRowToVector(unsigned int index) { // extract a row out of a matrix and return it as a vector
+	if(index >= this->rows) {
 		return nullptr;
 	}
 
-	Matrix* output = new Matrix();
-	initializeMatrix(output, 1, matrix->columns);
-	for(unsigned int c = 0; c < matrix->columns; c++) {
-		copyEntry(matrix->data[index][c], output->data[0][c]);
+	Matrix* output = new Matrix(1, this->columns);
+	for(unsigned int c = 0; c < this->columns; c++) {
+		copyEntry(this->data[index][c], output->data[0][c]);
 	}
 	return output;
 }
