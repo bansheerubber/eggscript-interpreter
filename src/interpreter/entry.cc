@@ -230,6 +230,10 @@ bool ts::isEntryEqual(const Entry &source, const Entry &destination) {
 	}
 
 	switch(source.type) {
+		case entry::EMPTY: {
+			return true;
+		}
+
 		case entry::NUMBER:
 			return source.numberData == destination.numberData;
 		

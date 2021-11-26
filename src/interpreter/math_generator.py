@@ -83,11 +83,22 @@ string_pop = """if(popLValue) {{
 				this->pop();
 			}}"""
 
+number_body = """if(type1 != type2) {{
+	this->pushEmpty(instruction.pushType);
+}}
+else if(type1 == entry::NUMBER) {{
+	{0}
+}}
+else {{
+	this->pushEmpty(instruction.pushType);
+}}"""
+
 NUMBER_MATH_MACRO = get_generated_code("math", "numbers", 3)
 
 # handle number instructions
 for instruction, operation in number_operations.items():
 	formatted = operation.format("lvalueNumber", "rvalueNumber")
+	formatted = number_body.format(formatted)
 
 	print(f"""		case instruction::{instruction}: {{
 {NUMBER_MATH_MACRO}
