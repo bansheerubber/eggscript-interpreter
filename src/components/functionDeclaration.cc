@@ -114,8 +114,6 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 			ts::Instruction* push = new ts::Instruction();
 			push->type = ts::instruction::PUSH;
 			push->push.entry = ts::Entry();
-			push->push.entry = ts::Entry();
-			push->push.entry.setString(getEmptyString());
 			output.addFirst(push);
 		}
 	}

@@ -41,8 +41,6 @@ void ts::initSchedule(Interpreter* interpreter, Schedule** schedule) {
 
 Interpreter::Interpreter(Engine* engine, ParsedArguments args, bool isParallel) {
 	this->engine = engine;
-	
-	this->emptyEntry.setString(getEmptyString());
 
 	if(args.arguments["no-warnings"] != "") {
 		this->warnings = false;
@@ -213,6 +211,16 @@ void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 	}
 }
 
+void Interpreter::pushEmpty(instruction::PushType type) {
+	if(type < 0) {
+		this->stack[this->stack.head].erase();
+		this->stack.pushed();
+	}
+	else {
+		this->returnRegister.erase();
+	}
+}
+
 void Interpreter::pop() {
 	this->stack[this->stack.head - 1].erase();
 	this->stack.popped();
@@ -285,7 +293,7 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 		}
 	}
 
-	return new Entry(getEmptyString());
+	return new Entry();
 }
 
 void Interpreter::warning(const char* format, ...) {
@@ -617,7 +625,7 @@ void Interpreter::interpret() {
 			}
 
 			for(int i = 0; i < -number; i++) {
-				this->push(getEmptyString(), instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 			}
 
 			break;
@@ -670,7 +678,7 @@ void Interpreter::interpret() {
 				MethodTree* typeCheck = this->engine->getNamespace(typeName);
 				if(typeCheck == nullptr || !typeCheck->isTSSL) {
 					this->warning("could not create object with type '%s'\n", typeName.c_str());
-					this->push(getEmptyString(), instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 
@@ -687,7 +695,7 @@ void Interpreter::interpret() {
 			}
 			else if(!instruction.createObject.canCreate) {
 				this->warning("could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
-				this->push(getEmptyString(), instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 			
@@ -757,7 +765,7 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(getEmptyString(), instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 			}
@@ -905,7 +913,7 @@ void Interpreter::interpret() {
 				quit_array_access:
 				this->pop();
 				this->pop();
-				this->push(getEmptyString(), instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 			}
 			break;
 		}
@@ -980,7 +988,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	}
 	else {
 		this->warning("could not find function with name '%s'\n", functionName.c_str());
-		return new Entry(getEmptyString());
+		return new Entry();
 	}
 
 	if(foundFunction->isTSSL) { // TODO handle argument type conversion
@@ -990,7 +998,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 		this->popFunctionFrame();
 
 		if(result == nullptr) {
-			return new Entry(getEmptyString());
+			return new Entry();
 		}
 		return result;
 	}
@@ -1014,8 +1022,8 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 		);
 		this->interpret();
 
-		if(this->returnRegister.type == entry::INVALID) {
-			return new Entry(getEmptyString());
+		if(this->returnRegister.type == entry::EMPTY) {
+			return new Entry();
 		}
 		else {
 			return new Entry(this->returnRegister);
@@ -1034,7 +1042,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	ObjectWrapper* objectWrapper = objectReference->objectWrapper;
 	Object* object = nullptr;
 	if(objectWrapper == nullptr) {
-		return new Entry(getEmptyString());
+		return new Entry();
 	}
 
 	object = objectWrapper->object;
@@ -1055,7 +1063,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 
 	if(!found) {
 		this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), methodName.c_str());
-		return new Entry(getEmptyString());
+		return new Entry();
 	}
 
 	if(foundFunction->isTSSL) { // TODO handle argument type conversion
@@ -1065,7 +1073,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 		this->popFunctionFrame();
 
 		if(output == nullptr) {
-			return new Entry(getEmptyString());
+			return new Entry();
 		}
 		return output;
 	}
@@ -1089,8 +1097,8 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 		);
 		this->interpret();
 
-		if(this->returnRegister.type == entry::INVALID) {
-			return new Entry(getEmptyString());
+		if(this->returnRegister.type == entry::EMPTY) {
+			return new Entry();
 		}
 		else {
 			return new Entry(this->returnRegister);

@@ -127,7 +127,7 @@ elif sys.argv[1] == "debug.cc":
 			elif "long" in variable_type or "size_t" in variable_type: # handle longs
 				print(f'	printf("   {variable_name}: %ld,\\n", instruction.{struct}.{variable_name});')
 			elif variable_type == "Entry": # handle entries
-				print(f"""	if(instruction.{struct}.{variable_name}.type != entry::INVALID) {{
+				print(f"""	if(instruction.{struct}.{variable_name}.type != entry::EMPTY) {{
 		printf("   {variable_name} type: %d,\\n", instruction.{struct}.{variable_name}.type);
 
 		if(instruction.{struct}.{variable_name}.type == entry::STRING) {{

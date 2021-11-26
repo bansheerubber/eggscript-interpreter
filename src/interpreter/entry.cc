@@ -11,12 +11,12 @@
 using namespace ts;
 
 Entry::Entry() {
-	this->type = entry::INVALID;
+	this->type = entry::EMPTY;
 	this->stringData = nullptr;
 }
 
 Entry::Entry(const Entry &source) {
-	this->type = entry::INVALID;
+	this->type = entry::EMPTY;
 	copyEntry(source, *this);
 }
 
@@ -130,7 +130,7 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 	
 	destination.type = source.type;
 	switch(destination.type) {
-		case entry::INVALID: {
+		case entry::EMPTY: {
 			break;
 		}
 		
@@ -161,7 +161,7 @@ void ts::greedyCopyEntry(Entry &source, Entry &destination) {
 	
 	destination.type = source.type;
 	switch(destination.type) {
-		case entry::INVALID: {
+		case entry::EMPTY: {
 			break;
 		}
 		
@@ -189,7 +189,7 @@ void ts::greedyCopyEntry(Entry &source, Entry &destination) {
 		}
 	}
 
-	source.type = entry::INVALID;
+	source.type = entry::EMPTY;
 }
 
 void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type) {
@@ -199,24 +199,24 @@ void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType
 
 	switch(type) {
 		case entry::NUMBER: {
-			## type_conversion.py source source.numberData STRING_OBJECT_MATRIX NUMBER "" interpreter
+			## type_conversion.py source source.numberData STRING_OBJECT_MATRIX_EMPTY NUMBER "" interpreter
 			break;
 		}
 
 		case entry::OBJECT: {
 			ObjectWrapper* objectWrapper = nullptr;
-			## type_conversion.py source objectWrapper NUMBER_STRING_MATRIX OBJECT "" interpreter
+			## type_conversion.py source objectWrapper NUMBER_STRING_MATRIX_EMPTY OBJECT "" interpreter
 			source.objectData = new ObjectReference(objectWrapper);
 			break;
 		}
 
 		case entry::MATRIX: {
-			## type_conversion.py source source.matrixData NUMBER_OBJECT_STRING MATRIX "" interpreter
+			## type_conversion.py source source.matrixData NUMBER_OBJECT_STRING_EMPTY MATRIX "" interpreter
 			break;
 		}
 
 		case entry::STRING: {
-			## type_conversion.py source source.stringData NUMBER_OBJECT_MATRIX STRING "" interpreter
+			## type_conversion.py source source.stringData NUMBER_OBJECT_MATRIX_EMPTY STRING "" interpreter
 			break;
 		}
 	}

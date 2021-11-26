@@ -123,6 +123,7 @@ namespace ts {
 			void push(char* data, instruction::PushType type) __attribute__((always_inline));
 			void push(Matrix* matrix, instruction::PushType type) __attribute__((always_inline));
 			void push(ObjectReference* data, instruction::PushType) __attribute__((always_inline));
+			void pushEmpty(instruction::PushType type)  __attribute__((always_inline));
 			void pop() __attribute__((always_inline));
 
 			size_t ranInstructions = 0;

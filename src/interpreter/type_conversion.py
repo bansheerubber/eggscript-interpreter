@@ -10,6 +10,7 @@ additional = sys.argv[5] if len(sys.argv) >= 6 else ""
 interpreter = sys.argv[6] if len(sys.argv) >= 7 else "this"
 
 entry_types = [
+	"EMPTY",
 	"NUMBER",
 	"STRING",
 	"OBJECT",

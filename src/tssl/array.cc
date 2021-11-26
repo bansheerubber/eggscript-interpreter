@@ -6,7 +6,7 @@
 namespace ts {
 	namespace sl {
 		void arrayInitEntry(Array* owner, Entry* entry) {
-			entry->type = entry::INVALID;
+			entry->type = entry::EMPTY;
 		}
 		
 		void Array__constructor(ObjectWrapper* wrapper) {
@@ -44,10 +44,6 @@ namespace ts {
 			for(int i = index; i < index + amount; i++) {
 				// re-initialize entries
 				new((void*)&this->array[i]) ts::Entry();
-
-				if(fill) {
-					this->array[i].setString(getEmptyString());
-				}
 			}
 
 			if(amount < 0) { // pop for shift lefts

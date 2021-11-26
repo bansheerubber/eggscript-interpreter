@@ -10,7 +10,7 @@ using namespace std;
 namespace ts {
 	namespace entry {
 		enum EntryType {
-			INVALID,
+			EMPTY,
 			NUMBER,
 			STRING,
 			OBJECT,
@@ -67,7 +67,7 @@ namespace ts {
 				this->matrixData = nullptr;
 			}
 
-			this->type = entry::INVALID;
+			this->type = entry::EMPTY;
 		}
 		
 		void print(int tabs = 0) const;

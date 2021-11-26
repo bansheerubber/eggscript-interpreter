@@ -2,7 +2,7 @@ const char* words = %%words%%;
 int startCount = %%start%%;
 
 if(startCount < 0) {
-	return nullptr;
+	return new Entry(getEmptyString());
 }
 
 int endCount = -1;

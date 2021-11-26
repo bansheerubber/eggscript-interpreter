@@ -9,6 +9,7 @@
 #include "comment.h"
 #include "continueStatement.h"
 #include "datablockDeclaration.h"
+#include "emptyLiteral.h"
 #include "forBody.h"
 #include "functionDeclaration.h"
 #include "ifBody.h"
@@ -41,7 +42,8 @@ bool Component::ShouldParse(Component* parent, ts::Engine* engine) {
 		|| NamespaceStatement::ShouldParse(engine)
 		|| InheritanceStatement::ShouldParse(nullptr, parent, engine)
 		|| Symbol::ShouldParse(engine)
-		|| MatrixExpression::ShouldParse(engine);
+		|| MatrixExpression::ShouldParse(engine)
+		|| EmptyLiteral::ShouldParse(engine);
 }
 
 // handles member chaining, inline conditionals. basically, any tacked on stuff that we might
@@ -134,6 +136,9 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 	}
 	else if(MatrixExpression::ShouldParse(engine)) {
 		output = MatrixExpression::Parse(parent, engine);
+	}
+	else if(EmptyLiteral::ShouldParse(engine)) {
+		output = EmptyLiteral::Parse(parent, engine);
 	}
 	
 	// additional support for edge cases
