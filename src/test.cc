@@ -46,7 +46,9 @@ bool parseFileTest(string name, string filename, bool overwriteResults) {
 	string json = engine.parser->printJSON();
 
 	if(overwriteResults) {
+		#ifndef __switch__
 		filesystem::create_directories(filesystem::path(resultsFile).remove_filename());
+		#endif
 		ofstream file;
 		file.open(resultsFile);
 		file << json;
@@ -62,7 +64,9 @@ bool parseFileTest(string name, string filename, bool overwriteResults) {
 		printError("   failed test\n");
 		printf("parsed %ld lines\n", engine.tokenizer->getTotalLineCount());
 
+		#ifndef __switch__
 		filesystem::create_directories(filesystem::path(errorsFile).remove_filename());
+		#endif
 		ofstream file;
 		file.open(errorsFile);
 		file << json;
@@ -79,6 +83,7 @@ void parseDirectoryTest(string filename, bool overwriteResults, int* totalTests,
 	printBoundary();
 	printf("Parser test: parse '%s':\n", filename.c_str());
 	int totalLines = 0;
+	#ifndef __switch__
 	for(const auto &entry: filesystem::recursive_directory_iterator(filename)) {
 		string candidateFile = entry.path().string();
 		if(entry.is_regular_file() && candidateFile.find(".cs") == candidateFile.length() - 3) {
@@ -120,6 +125,7 @@ void parseDirectoryTest(string filename, bool overwriteResults, int* totalTests,
 			}
 		}
 	}
+	#endif
 	printf("parsed %d lines\n", totalLines);
 }
 
@@ -132,6 +138,7 @@ void interpretDirectoryTest(string filename, int* totalTests, int* passedTests) 
 	printBoundary();
 	printf("Interpreter test: interpret '%s':\n", filename.c_str());
 	int totalLines = 0;
+	#ifndef __switch__
 	for(const auto &entry: filesystem::recursive_directory_iterator(filename)) {
 		string candidateFile = entry.path().string();
 		if(entry.is_regular_file() && candidateFile.find(".cs") == candidateFile.length() - 3) {
@@ -160,7 +167,9 @@ void interpretDirectoryTest(string filename, int* totalTests, int* passedTests) 
 			else {
 				printError("     %s failed test\n", candidateFile.c_str());
 
+				#ifndef __switch__
 				filesystem::create_directories(filesystem::path(errorsFile).remove_filename());
+				#endif
 				ofstream file;
 				file.open(errorsFile);
 				file << ts::sl::mockStdout;
@@ -170,6 +179,7 @@ void interpretDirectoryTest(string filename, int* totalTests, int* passedTests) 
 			}
 		}
 	}
+	#endif
 	printf("interpreted %d lines\n", totalLines);
 }
 
@@ -177,24 +187,26 @@ int runTests(bool overwriteResults) {
 	int totalTests = 0;
 	int passedTests = 0;
 	
+	#ifndef __switch__
 	if(!filesystem::is_directory("../tests")) {
 		printError("could not find tests");
 	}
+	#endif
 	
 	// regression test some specially crafted files
-	for(const auto &entry: filesystem::directory_iterator("../tests/sources/parser")) {
-		totalTests++;
-		passedTests += parseFileTest("normal code", entry.path().string(), overwriteResults);
-	}
+	// for(const auto &entry: filesystem::directory_iterator("../tests/sources/parser")) {
+	// 	totalTests++;
+	// 	passedTests += parseFileTest("normal code", entry.path().string(), overwriteResults);
+	// }
 
 	// regression test bl source code
-	parseDirectoryTest("../tests/sources/bl-decompiled", overwriteResults, &totalTests, &passedTests);
+	// parseDirectoryTest("../tests/sources/bl-decompiled", overwriteResults, &totalTests, &passedTests);
 
 	// regression test Server_MiniDungeons
-	parseDirectoryTest("../tests/sources/Server_MiniDungeons", overwriteResults, &totalTests, &passedTests);
+	// parseDirectoryTest("../tests/sources/Server_MiniDungeons", overwriteResults, &totalTests, &passedTests);
 
 	// regression test Brick_LuaLogic
-	parseDirectoryTest("../tests/sources/Brick_LuaLogic", overwriteResults, &totalTests, &passedTests);
+	// parseDirectoryTest("../tests/sources/Brick_LuaLogic", overwriteResults, &totalTests, &passedTests);
 
 	// regression test the interpreter
 	interpretDirectoryTest("../tests/sources/interpreter", &totalTests, &passedTests);

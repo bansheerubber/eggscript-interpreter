@@ -73,6 +73,19 @@ void Engine::execFile(string fileName, bool forceExecution) {
 	}
 }
 
+void Engine::execFileContents(string fileName, string contents) {
+	this->tokenizer->tokenizePiped(contents);
+	this->parser->startParse();
+
+	// compile
+	InstructionReturn result = parser->getSourceFile()->compile(this, {
+		loop: nullptr,
+		scope: nullptr,
+	});
+	this->interpreter->pushFunctionFrame(new InstructionContainer(result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
+	this->interpreter->interpret();
+}
+
 void Engine::execPiped(string piped) {
 	this->tokenizer->tokenizePiped(piped);
 	this->parser->startParse();

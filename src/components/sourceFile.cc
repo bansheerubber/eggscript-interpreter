@@ -47,11 +47,8 @@ ts::InstructionReturn SourceFile::compile(ts::Engine* engine, ts::CompilationCon
 		ts::Instruction* push = new ts::Instruction();
 		push->type = ts::instruction::PUSH;
 		push->push.entry = ts::Entry();
-		push->push.entry.setString(getEmptyString());
 		output.addFirst(push);
 	}
-
-	output.addFirst(this->compileLinkVariables(engine));
 
 	return output;
 }

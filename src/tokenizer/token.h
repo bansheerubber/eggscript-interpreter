@@ -86,6 +86,7 @@ enum TokenType {
 	SYMBOL,
 	COMMENT,
 	MEMBER_CHAIN,
+	EMPTY,
 };
 
 struct Token {

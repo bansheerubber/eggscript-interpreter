@@ -295,7 +295,6 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 
 			ALLOCATE_STRING(instruction->symbolAccess.source, instruction->objectAssign.destination);
 			instruction->objectAssign.hash = hash<string>{}(instruction->symbolAccess.source);
-			instruction->objectAssign.dimensions = instruction->symbolAccess.dimensions;
 			instruction->objectAssign.fromStack = false;
 			instruction->objectAssign.pushResult = false;
 			instruction->objectAssign.popObject = false;

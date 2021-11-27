@@ -48,28 +48,28 @@ AccessStatement* AccessStatement::Parse(
 		});
 	}
 	
-	bool expectingArrayOrCall = true;
+	int expectingArrayOrCall = 1; // doesn't quite work for something like %test();
 	while(!engine->tokenizer->eof()) {
 		token = engine->tokenizer->peekToken();
-		if(token.type == LEFT_BRACE) {
-			if(expectingArrayOrCall) {
+		if(ArrayStatement::ShouldParse(engine)) {
+			if(expectingArrayOrCall > 0) {
 				output->elements.push_back((AccessElement){
 					isArray: true,
 					component: ArrayStatement::Parse(output, engine),
 				});
-				expectingArrayOrCall = false;
+				expectingArrayOrCall = 2;
 			}
 			else {
 				engine->parser->error("was not expecting array access");
 			}
 		}
-		else if(token.type == LEFT_PARENTHESIS) {
-			if(expectingArrayOrCall) {
+		else if(CallStatement::ShouldParse(engine)) {
+			if(expectingArrayOrCall == 1) {
 				output->elements.push_back((AccessElement){
 					isCall: true,
 					component: CallStatement::Parse(output, engine),
 				});
-				expectingArrayOrCall = false;
+				expectingArrayOrCall = 0;
 			}
 			else {
 				engine->parser->error("was not expecting call");
@@ -80,7 +80,7 @@ AccessStatement* AccessStatement::Parse(
 			output->elements.push_back((AccessElement){
 				token: token,
 			});
-			expectingArrayOrCall = true;
+			expectingArrayOrCall = 1;
 		}
 		else {
 			break;
@@ -229,6 +229,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	AccessStatementCompiled c;
 
 	auto iterator = this->elements.begin();
+	int count = 0;
 
 	if(this->startsWithFunction()) { // compile a function call
 		c.output.add(this->elements[1].component->compile(engine, context)); // push arguments
@@ -250,7 +251,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		callFunction->callFunction.isCached = false;
 		c.output.add(callFunction);
 
-		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
+		if(this->parent->requiresSemicolon(this) && this->elements.size() == 2) { // if we do not assign/need the value of the function, just pop it
 			ts::Instruction* pop = new ts::Instruction();
 			pop->type = ts::instruction::POP;
 			c.output.add(pop);
@@ -258,6 +259,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 		++iterator;
 		++iterator;
+		count += 2;
 	}
 
 
@@ -265,16 +267,15 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	if(this->elements[0].component != nullptr && this->elements[0].component->getType() == STRING_LITERAL) {
 		c.output.add(this->elements[0].component->compile(engine, context));
 		++iterator;
+		count++;
 	}
 
-	int count = 0;
 	ts::Instruction* lastInstruction = nullptr;
 	for(; iterator != this->elements.end(); ++iterator) {
 		AccessElement element = *iterator;
 		if(element.token.type == LOCAL_VARIABLE) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::LOCAL_ACCESS;
-			instruction->localAccess.dimensions = 0;
 			instruction->localAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->localAccess.source);
 			instruction->localAccess.stackIndex = -1;
@@ -286,7 +287,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == GLOBAL_VARIABLE) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::GLOBAL_ACCESS;
-			instruction->globalAccess.dimensions = 0;
 			instruction->globalAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->globalAccess.source);
 
@@ -297,7 +297,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == SYMBOL) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::SYMBOL_ACCESS;
-			instruction->symbolAccess.dimensions = 0;
 			instruction->symbolAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->symbolAccess.source);
 
@@ -306,12 +305,24 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			lastInstruction = instruction;
 		}
 		else if(element.isArray) {
-			lastInstruction->localAccess.dimensions = ((ArrayStatement*)element.component)->getDimensions();
-			c.output.add(element.component->compile(engine, context));
+			if(lastInstruction != nullptr) {
+				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
+					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
+				}
+				c.output.add(lastInstruction);
+			}
+			
+			ts::InstructionReturn array = element.component->compile(engine, context);
+
+			c.output.add(array);
+
+			c.lastAccess = array.last;
+
+			lastInstruction = nullptr;
 		}
 		else if(element.token.type == MEMBER_CHAIN) {
 			if(lastInstruction != nullptr) {
-				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS && lastInstruction->localAccess.dimensions == 0) {
+				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
 				}
 				c.output.add(lastInstruction);
@@ -319,7 +330,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::OBJECT_ACCESS;
-			instruction->objectAccess.dimensions = 0;
 			instruction->objectAccess.hash = hash<string>{}(toLower(element.token.lexeme));
 			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->objectAccess.source);
 
@@ -352,7 +362,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			c.output.add(instruction);
 
-			if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
+			if(this->parent->requiresSemicolon(this) && count == this->elements.size() - 1) { // if we do not assign/need the value of the function, just pop it
 				ts::Instruction* pop = new ts::Instruction();
 				pop->type = ts::instruction::POP;
 				c.output.add(pop);
@@ -374,7 +384,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	}
 
 	if(lastInstruction != nullptr) {
-		if(lastInstruction->type == ts::instruction::LOCAL_ACCESS && lastInstruction->localAccess.dimensions == 0) {
+		if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 			lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
 		}
 		c.output.add(lastInstruction);

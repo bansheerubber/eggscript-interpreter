@@ -3,59 +3,93 @@
 #include <stdarg.h>
 
 extern "C" {	
-	typedef void* tsEnginePtr;
-	#define tsPrintFunction(name)		int (*name)(const char* format, ...)
-	#define tsVPrintFunction(name)		int (*name)(const char* format, va_list args)
+	typedef void* esEnginePtr;
+	#define esPrintFunction(name)		int (*name)(const char* format, ...)
+	#define esVPrintFunction(name)		int (*name)(const char* format, va_list args)
 
-	enum tsEntryType {
-		TS_ENTRY_INVALID,
-		TS_ENTRY_NUMBER,
-		TS_ENTRY_STRING,
-		TS_ENTRY_OBJECT,
+	enum esEntryType {
+		ES_ENTRY_INVALID,
+		ES_ENTRY_NUMBER,
+		ES_ENTRY_STRING,
+		ES_ENTRY_OBJECT,
+		ES_ENTRY_MATRIX,
 	};
-	
-	typedef struct tsObjectWrapper {
-		void* object;
-		void* data;
-	} tsObjectWrapper;
-	typedef tsObjectWrapper* tsObjectWrapperPtr;
 
-	typedef struct tsObjectReference {
-		tsObjectWrapperPtr objectWrapper;
+	typedef void* esObjectPtr;
+	
+	typedef struct esObjectWrapper {
+		esObjectPtr object;
+		void* data;
+		int referenceCount;
+		long heapIndex;
+	} esObjectWrapper;
+	typedef esObjectWrapper* esObjectWrapperPtr;
+
+	typedef struct esObjectReference {
+		esObjectWrapperPtr objectWrapper;
 		unsigned long id = 0;
 		void* __pad1;
 		void* __pad2;
-	} tsObjectReference;
-	typedef tsObjectReference* tsObjectReferencePtr;
+	} esObjectReference;
+	typedef esObjectReference* esObjectReferencePtr;
 
-	typedef struct tsEntry {
-		tsEntryType type;
+	struct esEntry;
+	typedef struct esMatrix {
+		esEntry** data;
+		unsigned int rows;
+		unsigned int columns;
+	} esMatrix;
+	typedef esMatrix* esMatrixPtr;
+
+	typedef struct esEntry {
+		esEntryType type;
 		union {
 			double numberData;
 			char* stringData;
-			tsObjectReferencePtr objectData;
+			esObjectReferencePtr objectData;
+			esMatrixPtr matrixData;
 		};
-	} tsEntry;
-	typedef tsEntry* tsEntryPtr;
+	} esEntry;
+	typedef esEntry* esEntryPtr;
 	
-	typedef tsEntryPtr (*tsFunctionPtr)(tsEnginePtr engine, unsigned int argc, tsEntryPtr args);
+	typedef esEntryPtr (*esFunctionPtr)(esEnginePtr engine, unsigned int argc, esEntryPtr args);
 	
-	tsEnginePtr tsCreateEngine(char isParallel);
+	esEnginePtr esCreateEngine(char isParallel);
 
-	bool tsTick(tsEnginePtr engine);
-	void tsSetTickRate(tsEnginePtr engine, long tickRate);
-	void tsExecFile(tsEnginePtr engine, const char* filename);
-	void tsEval(tsEnginePtr engine, const char* shell);
-	void tsSetPrintFunction(tsPrintFunction(print), tsPrintFunction(warning), tsPrintFunction(error));
-	void tsSetVPrintFunction(tsVPrintFunction(print), tsVPrintFunction(warning), tsVPrintFunction(error));
-	void tsRegisterNamespace(tsEnginePtr engine, const char* nameSpace);
-	void tsNamespaceInherit(tsEnginePtr engine, const char* parent, const char* child);
-	tsObjectReferencePtr tsCreateObject(tsEnginePtr engine, const char* nameSpace, void* data);
-	void tsDeleteObject(tsObjectReferencePtr objectReference);
-	const char* tsGetNamespaceFromObject(tsObjectReferencePtr object);
-	int tsCompareNamespaceToObject(tsObjectReferencePtr object, const char* nameSpace);
-	void tsRegisterFunction(tsEnginePtr engine, tsEntryType returnType, tsFunctionPtr function, const char* name, unsigned int argumentCount, tsEntryType* argTypes);
-	void tsRegisterMethod(tsEnginePtr engine, tsEntryType returnType, tsFunctionPtr function, const char* nameSpace, const char* name, unsigned int argumentCount, tsEntryType* argTypes);
-	tsEntryPtr tsCallFunction(tsEnginePtr engine, const char* functionName, unsigned int argumentCount, tsEntryPtr arguments);
-	tsEntryPtr tsCallMethod(tsEnginePtr engine, tsObjectReferencePtr object, const char* functionName, unsigned int argumentCount, tsEntryPtr arguments);
+	bool esTick(esEnginePtr engine);
+	void esSetTickRate(esEnginePtr engine, long tickRate);
+	void esExecFile(esEnginePtr engine, const char* filename);
+	void esExecFileFromContents(esEnginePtr, const char* fileName, const char* contents);
+	void esEval(esEnginePtr engine, const char* shell);
+	const char* esGetLastExecFileName(esEnginePtr engine);
+	void esSetPrintFunction(esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
+	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
+	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
+	void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper));
+	void esSetNamespaceDeconstructor(esEnginePtr engine, const char* nameSpace, void (*deconstructor)(esObjectWrapperPtr wrapper));
+	void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* child);
+	esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpace, void* data);
+	esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference);
+	void esDeleteObject(esObjectReferencePtr objectReference);
+	const char* esGetNamespaceFromObject(esObjectReferencePtr object);
+	int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace);
+	int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* nameSpace);
+	void esRegisterFunction(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* name, unsigned int argumentCount, esEntryType* argTypes);
+	void esRegisterMethod(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* nameSpace, const char* name, unsigned int argumentCount, esEntryType* argTypes);
+	esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
+	esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
+
+	esEntryPtr esCreateNumber(double number);
+	esEntryPtr esCreateString(char* string);
+	esEntryPtr esCreateVector(unsigned int size, ...);
+	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
+	esEntryPtr esCreateObject(esObjectReferencePtr reference);
+
+	esEntryPtr esCreateNumberAt(esEntryPtr entry, double number);
+	esEntryPtr esCreateStringAt(esEntryPtr entry, char* string);
+	esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...);
+	esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...);
+	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);
+
+	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry);
 }

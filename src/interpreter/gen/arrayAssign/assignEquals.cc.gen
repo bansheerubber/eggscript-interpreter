@@ -1,0 +1,37 @@
+// get the value of the variable contained in the instruction
+Entry* foundEntry = nullptr;
+
+bool failure = false;
+switch(object->dataStructure) {
+	case ARRAY: {
+		unsigned int index = 0;
+		## type_conversion.py indexEntry index ALL NUMBER
+
+		DynamicArray<Entry, sl::Array> &array = ((ts::sl::Array*)objectWrapper->data)->array;
+
+		if(index >= array.head) {
+			failure = true;
+		}
+		else {
+			foundEntry = &array[index];
+		}
+	}
+}
+
+if(failure) {
+	this->pop(); // pop lvalue from stack
+	this->pop(); // pop data structure from stack
+	this->pop(); // pop index
+	
+	if(instruction.arrayAssign.pushResult) {
+		this->push(this->emptyEntry, instruction.pushType);
+	}
+	break;
+}
+
+if(instruction.localAssign.fromStack) {
+	greedyCopyEntry(*entry, *foundEntry);
+}
+else {
+	copyEntry(*entry, *foundEntry);
+}

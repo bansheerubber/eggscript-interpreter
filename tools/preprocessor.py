@@ -56,22 +56,22 @@ if __name__ == "__main__":
 
 	# generate the map file
 	global_symbols = ";".join(functions)
-	map_contents = """torquescript {
+	map_contents = """eggscript {
 		global: %%;
 		local: *;
 	};""".replace("%%", global_symbols)
 
-	map_file = open("libtorquescript.map", "w")
+	map_file = open("libeggscript.map", "w")
 	map_file.write(map_contents)
 	map_file.close()
 
 	# generate the include files
 	os.makedirs("./dist/include.cpp", exist_ok=True)
-	copyfile("./src/lib/libSymbols.h", "./dist/include.cpp/ts.h")
+	copyfile("./src/lib/libSymbols.h", "./dist/include.cpp/egg.h")
 
 	os.makedirs("./dist/include.c", exist_ok=True)
 	include_c_source = open("./src/lib/libSymbols.h")
-	include_c_destination = open("./dist/include.c/ts.h", "w")
+	include_c_destination = open("./dist/include.c/egg.h", "w")
 	include_c_lines = []
 	for line in include_c_source:
 		if 'extern "C"' not in line and line.strip() != "}":

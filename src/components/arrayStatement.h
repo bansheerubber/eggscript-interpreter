@@ -11,11 +11,6 @@
 
 using namespace std;
 
-struct ArrayElement {
-	Component* component;
-	bool isComma;
-};
-
 // parses the [...] part of an access
 class ArrayStatement : public Component {
 	public:
@@ -39,10 +34,7 @@ class ArrayStatement : public Component {
 		string printJSON();
 		static bool ShouldParse(ts::Engine* engine);
 		static ArrayStatement* Parse(Component* parent, ts::Engine* engine);
-
-		int getDimensions();
 	
 	private:
-		// can be literals, a mathematical statement, access statements, etc
-		vector<ArrayElement> elements;
+		Component* component = nullptr;
 };

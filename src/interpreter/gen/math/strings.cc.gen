@@ -13,30 +13,30 @@
 	// we have to define lvalue first when working with prefix
 	if(instruction.mathematics.lvalueEntry.type) {
 		Entry &lvalue = instruction.mathematics.lvalueEntry;
-		## type_conversion.py lvalue lvalueString STRING_NUMBER_OBJECT STRING deleteLValueString
+		## type_conversion.py lvalue lvalueString ALL STRING deleteLValueString
 	}
 	else if(instruction.mathematics.lvalueStackIndex < 0) {
 		Entry &lvalue = this->stack[this->stack.head - 1];
-		## type_conversion.py lvalue lvalueString STRING_NUMBER_OBJECT STRING deleteLValueString
+		## type_conversion.py lvalue lvalueString ALL STRING deleteLValueString
 		popLValue = true;
 	}
 	else {
 		Entry &lvalue = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer];
-		## type_conversion.py lvalue lvalueString STRING_NUMBER_OBJECT STRING deleteLValueString
+		## type_conversion.py lvalue lvalueString ALL STRING deleteLValueString
 	}
 
 	if(instruction.mathematics.rvalueEntry.type) {
 		Entry &rvalue = instruction.mathematics.rvalueEntry;
-		## type_conversion.py rvalue rvalueString STRING_NUMBER_OBJECT STRING deleteRValueString
+		## type_conversion.py rvalue rvalueString ALL STRING deleteRValueString
 	}
 	else if(instruction.mathematics.rvalueStackIndex < 0) {
 		Entry &rvalue = this->stack[this->stack.head - 1 - popLValue];
-		## type_conversion.py rvalue rvalueString STRING_NUMBER_OBJECT STRING deleteRValueString
+		## type_conversion.py rvalue rvalueString ALL STRING deleteRValueString
 		popRValue = true;
 	}
 	else {
 		Entry &rvalue = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer];
-		## type_conversion.py rvalue rvalueString STRING_NUMBER_OBJECT STRING deleteRValueString
+		## type_conversion.py rvalue rvalueString ALL STRING deleteRValueString
 	}
 #else
 	// final strings after converting type
@@ -50,29 +50,29 @@
 	// we have to define rvalue first when working with postfix
 	if(instruction.mathematics.rvalueEntry.type) {
 		Entry &rvalue = instruction.mathematics.rvalueEntry;
-		## type_conversion.py rvalue rvalueString STRING_NUMBER_OBJECT STRING deleteRValueString
+		## type_conversion.py rvalue rvalueString ALL STRING deleteRValueString
 	}
 	else if(instruction.mathematics.rvalueStackIndex < 0) {
 		Entry &rvalue = this->stack[this->stack.head - 1];
-		## type_conversion.py rvalue rvalueString STRING_NUMBER_OBJECT STRING deleteRValueString
+		## type_conversion.py rvalue rvalueString ALL STRING deleteRValueString
 		popRValue = true;
 	}
 	else {
 		Entry &rvalue = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer];
-		## type_conversion.py rvalue rvalueString STRING_NUMBER_OBJECT STRING deleteRValueString
+		## type_conversion.py rvalue rvalueString ALL STRING deleteRValueString
 	}
 	
 	if(instruction.mathematics.lvalueEntry.type) {
 		Entry &lvalue = instruction.mathematics.lvalueEntry;
-		## type_conversion.py lvalue lvalueString STRING_NUMBER_OBJECT STRING deleteLValueString
+		## type_conversion.py lvalue lvalueString ALL STRING deleteLValueString
 	}
 	else if(instruction.mathematics.lvalueStackIndex < 0) {
 		Entry &lvalue = this->stack[this->stack.head - 1 - popRValue];
-		## type_conversion.py lvalue lvalueString STRING_NUMBER_OBJECT STRING deleteLValueString
+		## type_conversion.py lvalue lvalueString ALL STRING deleteLValueString
 		popLValue = true;
 	}
 	else {
 		Entry &lvalue = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer];
-		## type_conversion.py lvalue lvalueString STRING_NUMBER_OBJECT STRING deleteLValueString
+		## type_conversion.py lvalue lvalueString ALL STRING deleteLValueString
 	}
 #endif

@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
 		engine.execPiped(file);
 	}
 	else {
+		#ifndef __switch__
 		for(string fileName: args.files) {
 			filesystem::path path(fileName);
 			error_code error;
@@ -91,6 +92,7 @@ int main(int argc, char* argv[]) {
 				printError("error opening file %s\n", fileName.c_str());
 			}
 		}
+		#endif
 	}
 
 	if(args.arguments["interactive"] != "") {

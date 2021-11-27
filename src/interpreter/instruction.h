@@ -90,8 +90,23 @@ namespace ts {
 			OBJECT_ASSIGN_BITWISE_XOR,
 			OBJECT_ASSIGN_BITWISE_OR,
 			OBJECT_ACCESS,
-			LINK_VARIABLE,
 			SYMBOL_ACCESS,
+			ARRAY_ACCESS,
+			ARRAY_ASSIGN_EQUAL,
+			ARRAY_ASSIGN_INCREMENT,
+			ARRAY_ASSIGN_DECREMENT,
+			ARRAY_ASSIGN_PLUS,
+			ARRAY_ASSIGN_MINUS,
+			ARRAY_ASSIGN_ASTERISK,
+			ARRAY_ASSIGN_SLASH,
+			ARRAY_ASSIGN_MODULUS,
+			ARRAY_ASSIGN_SHIFT_LEFT,
+			ARRAY_ASSIGN_SHIFT_RIGHT,
+			ARRAY_ASSIGN_BITWISE_AND,
+			ARRAY_ASSIGN_BITWISE_XOR,
+			ARRAY_ASSIGN_BITWISE_OR,
+			MATRIX_CREATE,
+			MATRIX_SET,
 		};
 
 		enum AssignOperations {
@@ -167,7 +182,6 @@ namespace ts {
 			} unaryMathematics;
 
 			struct {
-				int dimensions;
 				string destination;
 				size_t hash;
 				bool fromStack;
@@ -177,7 +191,6 @@ namespace ts {
 			} localAssign;
 
 			struct {
-				int dimensions;
 				string destination;
 				size_t hash;
 				bool fromStack;
@@ -186,7 +199,6 @@ namespace ts {
 			} globalAssign;
 
 			struct {
-				int dimensions;
 				string destination;
 				size_t hash;
 				bool fromStack;
@@ -196,26 +208,30 @@ namespace ts {
 			} objectAssign;
 
 			struct {
-				int dimensions;
+				string blank1; // TODO fix this so we don't need blank entries https://stackoverflow.com/questions/3521914/why-compiler-doesnt-allow-stdstring-inside-union
+				size_t blank2;
+				bool fromStack;
+				bool pushResult;
+				Entry entry;
+			} arrayAssign;
+
+			struct {
 				string source;
 				size_t hash;
 				int stackIndex;
 			} localAccess;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 			} globalAccess;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 			} objectAccess;
 
 			struct {
-				int dimensions;
 				string source;
 				size_t hash;
 			} symbolAccess;
@@ -255,12 +271,6 @@ namespace ts {
 			} popArguments;
 
 			struct {
-				int stackIndex;
-				string source;
-				size_t hash;
-			} linkVariable;
-
-			struct {
 				string name;
 				size_t cachedIndex;
 				bool isCached;
@@ -269,6 +279,16 @@ namespace ts {
 			struct {
 				bool hasValue;
 			} functionReturn;
+
+			struct {
+				unsigned int rows;
+				unsigned int columns;
+			} matrixCreate;
+
+			struct {
+				unsigned int row;
+				unsigned int column;
+			} matrixSet;
 		};
 
 		Instruction() {

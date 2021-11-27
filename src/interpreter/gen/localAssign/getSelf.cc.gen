@@ -1,16 +1,5 @@
 // get the value of the variable contained in the instruction
-Entry* entry = nullptr;
+Entry* entry = &this->stack[instruction.localAssign.stackIndex + this->stackFramePointer];;
 double entryNumber = 0;
 
-if(instruction.localAssign.stackIndex < 0) {
-	entry = &this->topContext->getVariableEntry(
-		instruction,
-		instruction.localAssign.destination,
-		instruction.localAssign.hash
-	);
-}
-else {
-	entry = &this->stack[instruction.localAssign.stackIndex + this->stackFramePointer];
-}
-
-## type_conversion.py *entry entryNumber NUMBER_OBJECT_STRING NUMBER
+## type_conversion.py *entry entryNumber ALL NUMBER

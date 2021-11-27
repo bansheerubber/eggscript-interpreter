@@ -114,8 +114,6 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 			ts::Instruction* push = new ts::Instruction();
 			push->type = ts::instruction::PUSH;
 			push->push.entry = ts::Entry();
-			push->push.entry = ts::Entry();
-			push->push.entry.setString(getEmptyString());
 			output.addFirst(push);
 		}
 	}
@@ -125,8 +123,6 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 	instruction->type = ts::instruction::POP_ARGUMENTS;
 	instruction->popArguments.argumentCount = argumentCount;
 	output.addFirst(instruction);
-
-	output.addFirst(this->compileLinkVariables(engine));
 
 	// add a return statement that exits out from our function
 	ts::Instruction* returnInstruction = new ts::Instruction();

@@ -46,16 +46,17 @@ namespace ts {
 			Interpreter* interpreter;
 
 			void execFile(string fileName, bool forceExecution = false);
+			void execFileContents(string fileName, string shell);
 			void execPiped(string piped);
 			void execShell(string shell, bool forceExecution = false);
 
-			tsPrintFunction(printFunction) = &printf;
-			tsPrintFunction(warningFunction) = &printWarning;
-			tsPrintFunction(errorFunction) = &printError;
+			esPrintFunction(printFunction) = &printf;
+			esPrintFunction(warningFunction) = &printWarning;
+			esPrintFunction(errorFunction) = &printError;
 
-			tsVPrintFunction(vPrintFunction) = &vprintf;
-			tsVPrintFunction(vWarningFunction) = &printWarning;
-			tsVPrintFunction(vErrorFunction) = &printError;
+			esVPrintFunction(vPrintFunction) = &vprintf;
+			esVPrintFunction(vWarningFunction) = &printWarning;
+			esVPrintFunction(vErrorFunction) = &printError;
 
 			void enterShell();
 

@@ -1,10 +1,10 @@
 // what the stack looks like:
 // {lvalue, object we're assigning to, dimensions...}
-Entry &objectEntry = this->stack[this->stack.head - 1 - instruction.objectAssign.dimensions];
+Entry &objectEntry = this->stack[this->stack.head - 1];
 ObjectWrapper* objectWrapper = nullptr;
 Object* object = nullptr;
 
-## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
+## type_conversion.py objectEntry objectWrapper ALL OBJECT
 
 // don't do anything if our reference is dead
 if(objectWrapper == nullptr) {

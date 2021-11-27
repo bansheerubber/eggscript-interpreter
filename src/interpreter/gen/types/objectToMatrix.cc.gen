@@ -1,0 +1,4 @@
+%%conditional%%((%%entry%%).type == entry::OBJECT) {
+	%%output%% = new ts::Matrix(1, 1, true);
+	%%delete%%
+}

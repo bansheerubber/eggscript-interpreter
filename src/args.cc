@@ -54,7 +54,7 @@ Argument getArgumentFromName(vector<Argument> &arguments, string &name) {
 }
 
 void printHelp(vector<Argument> &arguments, string argumentName) {
-	cout << "usage: torquescript [options] [files or directories]" << endl;
+	cout << "usage: eggscript [options] [files or directories]" << endl;
 
 	int helpPosition = 50;
 	for(Argument argument: arguments) {

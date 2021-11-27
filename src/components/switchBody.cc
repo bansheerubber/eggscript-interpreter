@@ -100,9 +100,9 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 			}
 
 			comparison->mathematics.lvalueEntry = ts::Entry();
-			comparison->mathematics.lvalueEntry.type = ts::entry::INVALID;
+			comparison->mathematics.lvalueEntry.type = ts::entry::EMPTY;
 			comparison->mathematics.rvalueEntry = ts::Entry();
-			comparison->mathematics.rvalueEntry.type = ts::entry::INVALID;
+			comparison->mathematics.rvalueEntry.type = ts::entry::EMPTY;
 			comparison->mathematics.lvalueStackIndex = -1;
 			comparison->mathematics.rvalueStackIndex = -1;
 

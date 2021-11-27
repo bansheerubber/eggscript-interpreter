@@ -1,0 +1,10 @@
+if(instruction.arrayAssign.fromStack && !instruction.arrayAssign.pushResult) {
+	this->pop(); // pop value from the stack
+}
+
+this->pop(); // pop array access index
+this->pop(); // pop array object
+
+if(instruction.arrayAssign.pushResult && entry != nullptr && !instruction.arrayAssign.fromStack) {
+	this->push(*entry, instruction.pushType);
+}

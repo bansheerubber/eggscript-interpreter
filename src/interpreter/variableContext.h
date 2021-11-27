@@ -15,6 +15,7 @@ namespace ts {
 	class VariableContext {
 		friend class Interpreter;
 		friend class Object;
+		friend class ObjectWrapper;
 		friend void initFunctionFrame(Interpreter* interpreter, class FunctionFrame* frame);
 		
 		public:
@@ -26,7 +27,6 @@ namespace ts {
 			void setVariableEntry(class Instruction &instruction, string &name, size_t hash, Entry &entry, bool greedy);
 			void setVariableEntry(string &name, Entry &entry);
 			string computeVariableString(class Instruction &instruction, string &variable);
-			void linkVariable(string &name, size_t hash, int stackIndex);
 			void print();
 			void printWithTab(int tabs);
 			void clear();
@@ -34,7 +34,7 @@ namespace ts {
 		
 		private:
 			class Interpreter* interpreter;
-			robin_map<string, VariableContextEntry> variableMap;
+			robin_map<string, Entry> variableMap;
 	};
 
 	void initVariableContext(VariableContext* location);

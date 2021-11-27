@@ -1,12 +1,18 @@
+%values = new Array();
+%values.push("", "", "");
 %values[0] = 51;
 %values[1] = "51";
 %values[2] = new ScriptObject();
 
+$values = new Array();
+$values.push("", "", "");
 $values[0] = 51;
 $values[1] = "51";
 $values[2] = new ScriptObject();
 
 %test = new ScriptObject();
+%test.values = new Array();
+%test.values.push("", "", "");
 %test.values[0] = 51;
 %test.values[1] = "51";
 %test.values[2] = new ScriptObject();

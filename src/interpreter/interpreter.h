@@ -10,6 +10,7 @@
 #include "../util/dynamicArray.h"
 #include "entry.h"
 #include "function.h"
+#include "../util/garbageCollectionHeap.h"
 #include "../io.h"
 #include "instruction.h"
 #include "instructionContainer.h"
@@ -30,7 +31,6 @@ using namespace std;
 
 namespace ts {
 	struct FunctionFrame {
-		VariableContext* context;
 		InstructionContainer* container;
 		size_t instructionPointer;
 		size_t stackPointer;
@@ -40,6 +40,7 @@ namespace ts {
 		MethodTreeEntry* methodTreeEntry;
 		int methodTreeEntryIndex;
 		bool isTSSL;
+		string fileName;
 	};
 
 	void initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame);
@@ -56,6 +57,7 @@ namespace ts {
 		friend string VariableContext::computeVariableString(Instruction &instruction, string &variable);
 		friend VariableContext;
 		friend Object;
+		friend ObjectWrapper;
 		friend void convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type);
 		friend ObjectWrapper* CreateObject(
 			class ts::Interpreter* interpreter,
@@ -66,7 +68,7 @@ namespace ts {
 			void* data
 		);
 		friend Entry* ts::sl::PARENT(Engine* engine, const char* methodName, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes);
-		friend bool tsTick(tsEnginePtr engine);
+		friend bool esTick(esEnginePtr engine);
 		
 		public:
 			Interpreter();
@@ -83,12 +85,15 @@ namespace ts {
 
 			bool tick();
 			void setTickRate(long tickRate);
+			void garbageCollect(unsigned int amount);
 
 			void setObjectName(string &name, ObjectWrapper* object);
 			void deleteObjectName(string &name);
 
 			Entry* callFunction(string functionName, Entry* arguments, size_t argumentCount);
 			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount);
+
+			string& getTopFileNameFromFrame();
 
 			Entry emptyEntry;
 
@@ -101,6 +106,8 @@ namespace ts {
 			bool isParallel = false;
 		
 		private:
+			GarbageCollectionHeap<ObjectWrapper*> garbageHeap;
+			
 			void interpret(); // interprets the next instruction
 
 			void actuallyExecFile(string filename);
@@ -114,7 +121,9 @@ namespace ts {
 			void push(Entry &entry, instruction::PushType type) __attribute__((always_inline));
 			void push(double number, instruction::PushType type) __attribute__((always_inline));
 			void push(char* data, instruction::PushType type) __attribute__((always_inline));
+			void push(Matrix* matrix, instruction::PushType type) __attribute__((always_inline));
 			void push(ObjectReference* data, instruction::PushType) __attribute__((always_inline));
+			void pushEmpty(instruction::PushType type)  __attribute__((always_inline));
 			void pop() __attribute__((always_inline));
 
 			size_t ranInstructions = 0;
@@ -123,7 +132,6 @@ namespace ts {
 			// stacks
 			DynamicArray<Entry, Interpreter> stack = DynamicArray<Entry, Interpreter>(this, 10000, initEntry, nullptr);
 			DynamicArray<FunctionFrame, Interpreter> frames = DynamicArray<FunctionFrame, Interpreter>(this, 100, initFunctionFrame, onFunctionFrameRealloc);
-			VariableContext* topContext;
 			InstructionContainer* topContainer; // the current container we're executing code from, taken from frames
 			size_t* instructionPointer; // the current instruction pointer, taken from frames
 			size_t stackFramePointer; // the current frame pointer
@@ -137,7 +145,8 @@ namespace ts {
 				MethodTreeEntry* methodTreeEntry = nullptr,
 				int methodTreeEntryIndex = -1,
 				size_t argumentCount = 0,
-				size_t popCount = 0
+				size_t popCount = 0,
+				string fileName = ""
 			);
 			void popFunctionFrame() __attribute__((always_inline));
 			void pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex);

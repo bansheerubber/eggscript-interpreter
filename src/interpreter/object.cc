@@ -13,6 +13,7 @@ ObjectWrapper* ts::CreateObject(
 ) {
 	Object* object = new Object(interpreter, nameSpace, inheritedName, methodTree, typeMethodTree);
 	ObjectWrapper* wrapper = new ObjectWrapper(object, data);
+	object->wrapper = wrapper;
 	interpreter->objects[object->id] = wrapper;
 
 	if(data == nullptr) {
@@ -24,7 +25,26 @@ ObjectWrapper* ts::CreateObject(
 		wrapper->data = data;
 	}
 
+	interpreter->garbageHeap.insert(wrapper);
+
 	return wrapper;
+}
+
+ObjectWrapper::~ObjectWrapper() {
+	// if we weren't garbage collected, we need to remove ourselves from the garbage collection heap
+	if(this->object->properties.interpreter->garbageHeap.array[0] != this) {
+		this->referenceCount = -10000;
+		this->object->properties.interpreter->garbageHeap.updateDown(this->heapIndex);
+		this->object->properties.interpreter->garbageHeap.pop();
+	}
+
+	if(this->object->methodTree->tsslDeconstructor != nullptr) {
+		(*this->object->methodTree->tsslDeconstructor)(this);
+	}
+	else {
+		delete this->data;
+	}
+	delete this->object;
 }
 
 Object::Object(ts::Interpreter* interpreter, string nameSpace, string inheritedName, MethodTree* methodTree, MethodTree* typeMethodTree) {
@@ -75,6 +95,9 @@ void Object::addReference(ObjectReference* reference) {
 	}
 
 	this->top = reference;
+
+	this->wrapper->referenceCount++;
+	this->properties.interpreter->garbageHeap.updateUp(this->wrapper->heapIndex);
 }
 
 void Object::removeReference(ObjectReference* reference) {
@@ -93,6 +116,9 @@ void Object::removeReference(ObjectReference* reference) {
 		reference->previous->next = reference->next;
 		reference->next->previous = reference->previous;
 	}
+
+	this->wrapper->referenceCount--;
+	this->properties.interpreter->garbageHeap.updateDown(this->wrapper->heapIndex);
 }
 
 void Object::setName(string &name) {

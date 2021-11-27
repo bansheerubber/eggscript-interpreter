@@ -9,11 +9,13 @@
 #include "comment.h"
 #include "continueStatement.h"
 #include "datablockDeclaration.h"
+#include "emptyLiteral.h"
 #include "forBody.h"
 #include "functionDeclaration.h"
 #include "ifBody.h"
 #include "inlineConditional.h"
 #include "mathExpression.h"
+#include "matrix.h"
 #include "namespaceStatement.h"
 #include "newStatement.h"
 #include "numberLiteral.h"
@@ -39,7 +41,9 @@ bool Component::ShouldParse(Component* parent, ts::Engine* engine) {
 		|| NewStatement::ShouldParse(engine)
 		|| NamespaceStatement::ShouldParse(engine)
 		|| InheritanceStatement::ShouldParse(nullptr, parent, engine)
-		|| Symbol::ShouldParse(engine);
+		|| Symbol::ShouldParse(engine)
+		|| MatrixExpression::ShouldParse(engine)
+		|| EmptyLiteral::ShouldParse(engine);
 }
 
 // handles member chaining, inline conditionals. basically, any tacked on stuff that we might
@@ -94,7 +98,8 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 			isPostfix = true;
 		}
 		// handle inline conditionals here
-		else if(InlineConditional::ShouldParse(engine) && lvalue != nullptr) {
+		// we need the parent to not be a math expression in order to do operator precedence correctly
+		else if(InlineConditional::ShouldParse(engine) && lvalue != nullptr && parent->getType() != MATH_EXPRESSION) {
 			lvalue = InlineConditional::Parse(lvalue, parent, engine);
 		}
 
@@ -128,6 +133,18 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 	}
 	else if(Symbol::ShouldParse(engine)) {
 		output = Symbol::Parse(parent, engine);
+	}
+	else if(MatrixExpression::ShouldParse(engine)) {
+		Component* lvalue = MatrixExpression::Parse(parent, engine);
+		if(parent->getType() != MATH_EXPRESSION && MathExpression::ShouldParse(lvalue, engine)) {
+			output = MathExpression::Parse(lvalue, parent, engine); // let math expression take over parsing
+		}
+		else {
+			output = lvalue;
+		}
+	}
+	else if(EmptyLiteral::ShouldParse(engine)) {
+		output = EmptyLiteral::Parse(parent, engine);
 	}
 	
 	// additional support for edge cases

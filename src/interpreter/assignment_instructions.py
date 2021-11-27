@@ -20,6 +20,7 @@ prefixes = {
 	"LOCAL_ASSIGN": "localAssign",
 	"OBJECT_ASSIGN": "objectAssign",
 	"GLOBAL_ASSIGN": "globalAssign",
+	"ARRAY_ASSIGN": "arrayAssign",
 }
 
 # get instructions for just the prefix

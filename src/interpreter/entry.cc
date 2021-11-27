@@ -11,12 +11,12 @@
 using namespace ts;
 
 Entry::Entry() {
-	this->type = entry::INVALID;
+	this->type = entry::EMPTY;
 	this->stringData = nullptr;
 }
 
 Entry::Entry(const Entry &source) {
-	this->type = entry::INVALID;
+	this->type = entry::EMPTY;
 	copyEntry(source, *this);
 }
 
@@ -30,21 +30,18 @@ Entry::Entry(char* value) {
 	this->stringData = value;
 }
 
+Entry::Entry(Matrix* value) {
+	this->type = entry::MATRIX;
+	this->matrixData = value;
+}
+
 Entry::Entry(ObjectReference* value) {
 	this->type = entry::OBJECT;
 	this->objectData = value;
 }
 
 Entry::~Entry() {
-	if(this->type == entry::STRING && this->stringData != nullptr) {
-		delete[] this->stringData;
-		this->stringData = nullptr;
-	}
-
-	if(this->type == entry::OBJECT && this->objectData != nullptr) {
-		delete this->objectData;
-		this->objectData = nullptr;
-	}
+	this->erase();
 }
 
 namespace std {
@@ -57,35 +54,31 @@ namespace std {
 }
 
 void Entry::setNumber(double value) {
+	this->erase();
 	this->type = entry::NUMBER;
 	this->numberData = value;
 }
 
 void Entry::setString(char* value) {
-	// TODO possible wild pointer free
-	if(this->type != entry::NUMBER && this->stringData != nullptr) { // delete old string data
-		delete[] this->stringData;
-	}
-
+	this->erase();
 	this->type = entry::STRING;
 	this->stringData = value;
 }
 
 void Entry::setString(string value) {
-	// TODO possible wild pointer free
-	if(this->type != entry::NUMBER && this->stringData != nullptr) { // delete old string data
-		delete[] this->stringData;
-	}
-
+	this->erase();
 	this->type = entry::STRING;
 	this->stringData = stringToChars(value);
 }
 
+void Entry::setMatrix(Matrix* matrix) {
+	this->erase();
+	this->type = entry::MATRIX;
+	this->matrixData = matrix;
+}
+
 void Entry::setObject(ObjectReference* object) {
-	if(this->type != entry::NUMBER && this->objectData != nullptr) { // delete old string data
-		delete this->objectData;
-	}
-	
+	this->erase();
 	this->type = entry::OBJECT;
 	this->objectData = object;
 }
@@ -118,6 +111,13 @@ void Entry::print(int tabs) const {
 			this->objectData->objectWrapper->object->properties.printWithTab(2 + tabs);
 		}
 	}
+	else if(this->type == entry::MATRIX) {
+		printf("%s   data: 0x%lX,\n", space.c_str(), (long)this->matrixData);
+		if(this->matrixData != nullptr) {
+			printf("%s   rows: %u,\n", space.c_str(), this->matrixData->rows);
+			printf("%s   columns: %u,\n", space.c_str(), this->matrixData->columns);
+		}
+	}
 	else {
 		printf("%s   data: no data,\n", space.c_str());
 	}
@@ -126,20 +126,11 @@ void Entry::print(int tabs) const {
 }
 
 void ts::copyEntry(const Entry &source, Entry &destination) {
-	// delete string data if we're going to copy an entry (prevents memory leak)
-	if(destination.type == entry::STRING && destination.stringData != nullptr) {
-		delete[] destination.stringData;
-		destination.stringData = nullptr;
-	}
-
-	if(destination.type == entry::OBJECT && destination.objectData != nullptr) {
-		delete destination.objectData;
-		destination.objectData = nullptr;
-	}
+	destination.erase();
 	
 	destination.type = source.type;
 	switch(destination.type) {
-		case entry::INVALID: {
+		case entry::EMPTY: {
 			break;
 		}
 		
@@ -153,6 +144,11 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 			break;
 		}
 
+		case entry::MATRIX: {
+			destination.matrixData = source.matrixData->clone();
+			break;
+		}
+
 		case entry::OBJECT: {
 			destination.objectData = new ObjectReference(source.objectData);
 			break;
@@ -161,20 +157,11 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 }
 
 void ts::greedyCopyEntry(Entry &source, Entry &destination) {
-	// delete string data if we're going to copy an entry (prevents memory leak)
-	if(destination.type == entry::STRING && destination.stringData != nullptr) {
-		delete[] destination.stringData;
-		destination.stringData = nullptr;
-	}
-
-	if(destination.type == entry::OBJECT && destination.objectData != nullptr) {
-		delete destination.objectData;
-		destination.objectData = nullptr;
-	}
+	destination.erase();
 	
 	destination.type = source.type;
 	switch(destination.type) {
-		case entry::INVALID: {
+		case entry::EMPTY: {
 			break;
 		}
 		
@@ -189,11 +176,20 @@ void ts::greedyCopyEntry(Entry &source, Entry &destination) {
 			break;
 		}
 
+		case entry::MATRIX: {
+			destination.matrixData = source.matrixData;
+			source.matrixData = nullptr;
+			break;
+		}
+
 		case entry::OBJECT: {
-			destination.objectData = new ObjectReference(source.objectData);
+			destination.objectData = source.objectData;
+			source.objectData = nullptr;
 			break;
 		}
 	}
+
+	source.type = entry::EMPTY;
 }
 
 void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type) {
@@ -203,24 +199,79 @@ void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType
 
 	switch(type) {
 		case entry::NUMBER: {
-			## type_conversion.py source source.numberData STRING_OBJECT NUMBER "" interpreter
+			## type_conversion.py source source.numberData STRING_OBJECT_MATRIX_EMPTY NUMBER "" interpreter
 			break;
 		}
 
 		case entry::OBJECT: {
 			ObjectWrapper* objectWrapper = nullptr;
-			## type_conversion.py source objectWrapper NUMBER_STRING OBJECT "" interpreter
+			## type_conversion.py source objectWrapper NUMBER_STRING_MATRIX_EMPTY OBJECT "" interpreter
 			source.objectData = new ObjectReference(objectWrapper);
 			break;
 		}
 
+		case entry::MATRIX: {
+			## type_conversion.py source source.matrixData NUMBER_OBJECT_STRING_EMPTY MATRIX "" interpreter
+			break;
+		}
+
 		case entry::STRING: {
-			## type_conversion.py source source.stringData NUMBER_OBJECT STRING "" interpreter
+			## type_conversion.py source source.stringData NUMBER_OBJECT_MATRIX_EMPTY STRING "" interpreter
 			break;
 		}
 	}
 
 	source.type = type;
+}
+
+bool ts::isEntryEqual(const Entry &source, const Entry &destination) {
+	if(source.type != destination.type) {
+		return false;
+	}
+
+	switch(source.type) {
+		case entry::EMPTY: {
+			return true;
+		}
+
+		case entry::NUMBER: {
+			return source.numberData == destination.numberData;
+		}
+		
+		case entry::STRING: {
+			return strcmp(source.stringData, destination.stringData) == 0;
+		}
+
+		case entry::OBJECT: {
+			return source.objectData->objectWrapper == destination.objectData->objectWrapper;
+		}
+	}
+
+	return false;
+}
+
+bool ts::isEntryTruthy(const Entry &source) {
+	switch(source.type) {
+		case entry::EMPTY: {
+			return false;
+		}
+
+		case entry::NUMBER: {
+			return source.numberData != 0;
+		}
+
+		case entry::STRING: {
+			return strlen(source.stringData) != 0;
+		}
+
+		case entry::MATRIX: {
+			return true;
+		}
+
+		case entry::OBJECT: {
+			return source.objectData->objectWrapper != nullptr;
+		}
+	}
 }
 
 void ts::initEntry(class Interpreter* interpreter, Entry* location) {;

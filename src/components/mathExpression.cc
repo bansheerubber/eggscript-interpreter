@@ -3,8 +3,10 @@
 
 #include "accessStatement.h"
 #include "booleanLiteral.h"
+#include "emptyLiteral.h"
 #include "../interpreter/entry.h"
 #include "inlineConditional.h"
+#include "matrix.h"
 #include "numberLiteral.h"
 #include "stringLiteral.h"
 #include "symbol.h"
@@ -48,6 +50,7 @@ bool MathExpression::ShouldParse(Component* lvalue, ts::Engine* engine) {
 					|| StringLiteral::ShouldParse(engine)
 					|| BooleanLiteral::ShouldParse(engine)
 					|| Symbol::ShouldParse(engine)
+					|| EmptyLiteral::ShouldParse(engine)
 				)
 				&& MathExpression::IsOperator(engine->tokenizer->peekToken(1).type)
 			)
@@ -468,9 +471,9 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = MathExpression::TypeToOperator(element.element->op.type);
 			instruction->mathematics.lvalueEntry = ts::Entry();
-			instruction->mathematics.lvalueEntry.type = ts::entry::INVALID;
+			instruction->mathematics.lvalueEntry.type = ts::entry::EMPTY;
 			instruction->mathematics.rvalueEntry = ts::Entry();
-			instruction->mathematics.rvalueEntry.type = ts::entry::INVALID;
+			instruction->mathematics.rvalueEntry.type = ts::entry::EMPTY;
 			instruction->mathematics.lvalueStackIndex = -1;
 			instruction->mathematics.rvalueStackIndex = -1;
 
