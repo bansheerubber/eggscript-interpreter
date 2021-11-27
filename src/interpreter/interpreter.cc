@@ -222,7 +222,8 @@ void Interpreter::pushEmpty(instruction::PushType type) {
 }
 
 void Interpreter::pop() {
-	this->stack[this->stack.head - 1].erase();
+	// TODO does this fuck everything??
+	// this->stack[this->stack.head - 1].erase();
 	this->stack.popped();
 }
 

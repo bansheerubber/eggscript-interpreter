@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+
+using namespace std;
+
 namespace ts {
 	struct Entry;
 	class Matrix {
@@ -17,5 +21,6 @@ namespace ts {
 			Matrix* subtract(const Matrix* other);
 			Matrix* clone();
 			Matrix* cloneRowToVector(unsigned int index);
+			string print();
 	};
 }

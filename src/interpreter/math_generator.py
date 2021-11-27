@@ -4,22 +4,27 @@ from gen import get_generated_code
 
 math_operations = {
 	"MATH_ADDITION": (
-		"this->push({0} + {1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push({0} + {1}, instruction.pushType);",
+		"this->push({0}->add({1}), instruction.pushType);",
 	),
 	"MATH_SUBTRACT": (
-		"this->push({0} - {1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push({0} - {1}, instruction.pushType);",
+		"this->push({0}->subtract({1}), instruction.pushType);",
 	),
 	"MATH_MULTIPLY": (
-		"this->push({0} * {1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push({0} * {1}, instruction.pushType);",
+		None,
 	),
 	"MATH_DIVISION": (
-		"this->push({0} / {1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push({0} / {1}, instruction.pushType);",
+		None,
 	),
 	"MATH_MODULUS": (
+		"this->pushEmpty(instruction.pushType);",
 		"""if(((int){1}) == 0) {{
 				this->push((double)0, instruction.pushType);
 			}}
@@ -27,50 +32,59 @@ math_operations = {
 				this->push((int){0} % (int){1}, instruction.pushType);
 			}}
 		""",
-		"this->pushEmpty(instruction.pushType);",
+		None,
 	),
 	"MATH_SHIFT_LEFT": (
-		"this->push((int){0} << (int){1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push((int){0} << (int){1}, instruction.pushType);",
+		None,
 	),
 	"MATH_SHIFT_RIGHT": (
-		"this->push((int){0} >> (int){1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push((int){0} >> (int){1}, instruction.pushType);",
+		None,
 	),
 	"MATH_LESS_THAN_EQUAL": (
-		"this->push({0} <= {1}, instruction.pushType);",
 		"this->push(0.0, instruction.pushType);",
+		"this->push({0} <= {1}, instruction.pushType);",
+		None,
 	),
 	"MATH_GREATER_THAN_EQUAL": (
-		"this->push({0} >= {1}, instruction.pushType);",
 		"this->push(0.0, instruction.pushType);",
+		"this->push({0} >= {1}, instruction.pushType);",
+		None,
 	),
 	"MATH_LESS_THAN": (
-		"this->push({0} < {1}, instruction.pushType);",
 		"this->push(0.0, instruction.pushType);",
+		"this->push({0} < {1}, instruction.pushType);",
+		None,
 	),
 	"MATH_GREATER_THAN": (
-		"this->push({0} > {1}, instruction.pushType);",
 		"this->push(0.0, instruction.pushType);",
+		"this->push({0} > {1}, instruction.pushType);",
+		None,
 	),
 	"MATH_BITWISE_AND": (
-		"this->push((int){0} & (int){1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push((int){0} & (int){1}, instruction.pushType);",
+		None,
 	),
 	"MATH_BITWISE_OR": (
-		"this->push((int){0} | (int){1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push((int){0} | (int){1}, instruction.pushType);",
+		None,
 	),
 	"MATH_BITWISE_XOR": (
-		"this->push((int){0} ^ (int){1}, instruction.pushType);",
 		"this->pushEmpty(instruction.pushType);",
+		"this->push((int){0} ^ (int){1}, instruction.pushType);",
+		None,
 	),
 }
 
 # operations shared between all types
 common_operations = {
 	"MATH_EQUAL": "this->push(isEntryEqual({0}, {1}), instruction.pushType);",
-	"MATH_NOT_EQUAL": "this->push(isEntryEqual({0}, {1}), instruction.pushType);",
+	"MATH_NOT_EQUAL": "this->push(!isEntryEqual({0}, {1}), instruction.pushType);",
 }
 
 string_operations = {
@@ -130,24 +144,43 @@ string_pop = """if(popLValue) {{
 			}}"""
 
 math_body = """if(type1 != type2) {{
-	{1}
-}}
-else if(type1 == entry::NUMBER) {{
 	{0}
 }}
-else {{
+else if(type1 == entry::NUMBER) {{
 	{1}
+}}
+else if(type1 == entry::MATRIX) {{
+	{2}
+}}
+else {{
+	{0}
 }}"""
 
 NUMBER_MATH_MACRO = get_generated_code("math", "numbers", 3)
 
 # handle number instructions
-for instruction, (number_operation, failure) in math_operations.items():
+for instruction, (failure, number_operation, matrix_operation) in math_operations.items():
+	if matrix_operation == None:
+		matrix_operation = failure
+	
 	formatted = number_operation.format("lvalueNumber", "rvalueNumber")
-	formatted = math_body.format(formatted, failure)
+	formatted = math_body.format(failure, formatted, matrix_operation.format("lvalueMatrix", "rvalueMatrix"))
 
 	print(f"""		case instruction::{instruction}: {{
 {NUMBER_MATH_MACRO}
+
+			{formatted}
+			break;
+		}}\n""")
+
+COMMON_MATH_MACRO = get_generated_code("math", "common", 3)
+
+# handle common instructions
+for instruction, operation in common_operations.items():
+	formatted = operation.format("*lvalue", "*rvalue")
+
+	print(f"""		case instruction::{instruction}: {{
+{COMMON_MATH_MACRO}
 
 			{formatted}
 			break;

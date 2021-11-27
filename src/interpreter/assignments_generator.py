@@ -67,15 +67,13 @@ for prefix, folder in get_prefixes().items():
 			operation = operations[suffix].format("entryNumber", "value->numberData")
 			formatted = GET_VALUE_MACRO.replace(r"%%", "value")
 			get_macro = f"{formatted}\n" if suffix not in no_get else ""
-			additional_test = "|| value->type != entry::NUMBER" if suffix not in no_get else ""
+			additional_test = "|| (value->type != entry::NUMBER && value->type != entry::EMPTY)" if suffix not in no_get else ""
 			
 			print(f"""		case instruction::{prefix}_{suffix}: {{
 {START_MACRO}{GET_SELF_MACRO}{get_macro}
-			if(entry->type != entry::NUMBER {additional_test}) {{
+			entry->setNumber({operation});
+			if((entry->type != entry::NUMBER && entry->type != entry::EMPTY) {additional_test}) {{
 				entry->erase();
-			}}
-			else {{
-				entry->setNumber({operation});\n
 			}}
 {END_MACRO}
 			break;

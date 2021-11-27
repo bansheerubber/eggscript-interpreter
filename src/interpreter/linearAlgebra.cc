@@ -1,6 +1,8 @@
 #include "linearAlgebra.h"
 
+#include "../util/cloneString.h"
 #include "entry.h"
+#include "../util/numberToString.h"
 
 ts::Matrix::Matrix() {
 	this->data = nullptr;
@@ -51,7 +53,7 @@ ts::Matrix* ts::Matrix::add(const Matrix* other) {
 	if(this->rows != other->rows || this->columns != other->columns) {
 		return nullptr;
 	}
-	
+
 	Matrix* output = new Matrix(this->rows, this->columns);
 	for(unsigned int r = 0; r < this->rows; r++) {
 		for(unsigned int c = 0; c < this->columns; c++) {
@@ -94,5 +96,27 @@ ts::Matrix* ts::Matrix::cloneRowToVector(unsigned int index) { // extract a row 
 	for(unsigned int c = 0; c < this->columns; c++) {
 		copyEntry(this->data[index][c], output->data[0][c]);
 	}
+	return output;
+}
+
+string ts::Matrix::print() {
+	string output = "{ ";
+	for(unsigned int r = 0; r < this->rows; r++) {
+		for(unsigned int c = 0; c < this->columns; c++) {
+			const char* number;
+			bool deleteString = false;
+			## type_conversion.py "this->data[r][c]" number ALL STRING deleteString
+			output += number;
+			output += ", ";
+			if(deleteString) {
+				delete[] number;
+			}
+		}
+
+		if(r != this->rows - 1) {
+			output += "\n  ";
+		}
+	}
+	output += "}";
 	return output;
 }

@@ -135,7 +135,13 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 		output = Symbol::Parse(parent, engine);
 	}
 	else if(MatrixExpression::ShouldParse(engine)) {
-		output = MatrixExpression::Parse(parent, engine);
+		Component* lvalue = MatrixExpression::Parse(parent, engine);
+		if(parent->getType() != MATH_EXPRESSION && MathExpression::ShouldParse(lvalue, engine)) {
+			output = MathExpression::Parse(lvalue, parent, engine); // let math expression take over parsing
+		}
+		else {
+			output = lvalue;
+		}
 	}
 	else if(EmptyLiteral::ShouldParse(engine)) {
 		output = EmptyLiteral::Parse(parent, engine);

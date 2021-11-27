@@ -6,6 +6,7 @@
 #include "emptyLiteral.h"
 #include "../interpreter/entry.h"
 #include "inlineConditional.h"
+#include "matrix.h"
 #include "numberLiteral.h"
 #include "stringLiteral.h"
 #include "symbol.h"

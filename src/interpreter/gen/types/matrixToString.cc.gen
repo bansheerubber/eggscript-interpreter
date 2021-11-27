@@ -1,4 +1,4 @@
-%%conditional%%((%%entry%%).type == entry::STRING) {
-	%%output%% = numberToString((%%entry%%).matrixData->rows * (%%entry%%).matrixData->columns); // TODO have matrix pretty-print
+%%conditional%%((%%entry%%).type == entry::MATRIX) {
+	%%output%% = cloneString((%%entry%%).matrixData->print().c_str());
 	%%delete%%
 }
