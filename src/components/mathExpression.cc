@@ -21,8 +21,6 @@ bool MathExpression::IsOperator(TokenType type) {
 		|| type == MODULUS
 		|| type == NOT_EQUAL
 		|| type == EQUAL
-		|| type == STRING_EQUAL
-		|| type == STRING_NOT_EQUAL
 		|| type == LESS_THAN_EQUAL
 		|| type == GREATER_THAN_EQUAL
 		|| type == LESS_THAN
@@ -287,8 +285,6 @@ map<TokenType, int> MathExpression::CreatePrecedenceMap() {
 	output[BITWISE_AND] = 2;
 	output[EQUAL] = 3;
 	output[NOT_EQUAL] = 3;
-	output[STRING_EQUAL] = 3;
-	output[STRING_NOT_EQUAL] = 3;
 	output[LESS_THAN_EQUAL] = 4;
 	output[GREATER_THAN_EQUAL] = 4;
 	output[LESS_THAN] = 4;
@@ -319,10 +315,6 @@ ts::instruction::InstructionType MathExpression::TypeToOperator(TokenType type) 
 			return ts::instruction::MATH_EQUAL;
 		case NOT_EQUAL:
 			return ts::instruction::MATH_NOT_EQUAL;
-		case STRING_EQUAL:
-			return ts::instruction::MATH_STRING_EQUAL;
-		case STRING_NOT_EQUAL:
-			return ts::instruction::MATH_STRING_NOT_EQUAL;
 		case LESS_THAN_EQUAL:
 			return ts::instruction::MATH_LESS_THAN_EQUAL;
 		case GREATER_THAN_EQUAL:

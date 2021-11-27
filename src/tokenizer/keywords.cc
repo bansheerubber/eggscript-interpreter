@@ -123,15 +123,6 @@ void Tokenizer::readKeyword() {
 	}
 	// return invalid argument after rolling back characters
 	else {
-		// TODO generalize this special case
-		if(argumentBuffer == "!$") {
-			this->prevChar();
-			argument.lexeme = "!";
-			argument.type = LOGICAL_NOT;
-			this->tokens.push_back(argument);
-			return;
-		}
-		
 		// get argument from partial
 		string keyword = this->getKeywordFromPartial(argumentBuffer);
 		if(this->isArgument(keyword)) { // if we're a partial argument, then display error

@@ -118,6 +118,14 @@ void Tokenizer::tokenize() {
 				});
 			}
 		}
+		else if(character == '$') { // handle global variable
+			char nextCharacter = this->getChar();
+			if(this->isValidVariableFirstChar(nextCharacter)) {
+				this->prevChar();
+				this->prevChar();
+				this->tokens.push_back(this->readGlobalVariable());
+			}
+		}
 		// handle string/tagged string
 		else if(character == '"' || character == '\'') {
 			this->prevChar();
@@ -127,11 +135,7 @@ void Tokenizer::tokenize() {
 		else if(!this->freezeKeywordTest && this->isPartialKeyword(character)) {
 			char nextCharacter = this->getChar();
 			this->prevChar();
-			if(character == '$' && this->isValidVariableFirstChar(nextCharacter)) { // handle global variable
-				this->prevChar();
-				this->tokens.push_back(this->readGlobalVariable());
-			}
-			else if(character == '/' && nextCharacter == '/') { // handle comment
+			if(character == '/' && nextCharacter == '/') { // handle comment
 				this->prevChar();
 				this->readComment();
 			}

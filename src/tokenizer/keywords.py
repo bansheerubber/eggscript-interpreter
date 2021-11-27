@@ -1,8 +1,6 @@
 keywords = {
 	"!=": "NOT_EQUAL",
 	"==": "EQUAL",
-	"$=": "STRING_EQUAL",
-	"!$=": "STRING_NOT_EQUAL",
 	"<=": "LESS_THAN_EQUAL",
 	">=": "GREATER_THAN_EQUAL",
 	"<": "LESS_THAN",
@@ -54,7 +52,6 @@ keywords = {
 	"while": "WHILE",
 	"for": "FOR",
 	"switch": "SWITCH",
-	"switch$": "STRING_SWITCH",
 	"case": "CASE",
 	"or": "OR",
 	"default": "DEFAULT",

@@ -14,8 +14,6 @@ enum TokenType {
 	ASTERISK, // *
 	NOT_EQUAL, // !=
 	EQUAL, // ==
-	STRING_EQUAL, // $=
-	STRING_NOT_EQUAL, // !$=
 	LESS_THAN_EQUAL, // <=
 	GREATER_THAN_EQUAL, // >=
 	LESS_THAN, // <
@@ -63,7 +61,6 @@ enum TokenType {
 	WHILE,
 	FOR,
 	SWITCH,
-	STRING_SWITCH,
 	CASE,
 	OR,
 	DEFAULT,

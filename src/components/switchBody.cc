@@ -6,14 +6,14 @@
 
 bool SwitchBody::ShouldParse(ts::Engine* engine) {
 	Token token = engine->tokenizer->peekToken();
-	return token.type == SWITCH || token.type == STRING_SWITCH;
+	return token.type == SWITCH;
 }
 
 SwitchBody* SwitchBody::Parse(Body* body, ts::Engine* engine) {
 	SwitchBody* output = new SwitchBody(engine);
 	output->parent = body;
 
-	output->switchType = engine->parser->expectToken(SWITCH, STRING_SWITCH);
+	output->switchType = engine->parser->expectToken(SWITCH);
 	engine->parser->expectToken(LEFT_PARENTHESIS);
 
 	if(!Component::ShouldParse(output, engine)) {
@@ -91,14 +91,7 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 			ts::InstructionReturn switchConditional = this->conditional->compile(engine, context);
 
 			ts::Instruction* comparison = new ts::Instruction();
-
-			if(this->switchType.type == STRING_SWITCH) {
-				comparison->type = ts::instruction::MATH_STRING_EQUAL;
-			}
-			else {
-				comparison->type = ts::instruction::MATH_EQUAL;
-			}
-
+			comparison->type = ts::instruction::MATH_EQUAL;
 			comparison->mathematics.lvalueEntry = ts::Entry();
 			comparison->mathematics.lvalueEntry.type = ts::entry::EMPTY;
 			comparison->mathematics.rvalueEntry = ts::Entry();
