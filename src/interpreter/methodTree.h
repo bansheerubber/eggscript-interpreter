@@ -42,8 +42,8 @@ namespace ts {
 			void defineInitialMethod(string name, size_t nameIndex, class Function* container);
 			void addPackageMethod(string name, size_t nameIndex, class Function* container);
 
-			// add a parent for this method tree, order matters
-			void addParent(MethodTree* parent);
+			void addParent(MethodTree* parent); // add a parent for this method tree, order matters
+			bool hasParent(string nameSpace); // recursively check for parent
 
 			// adds a child to this method tree, order doesn't matter
 			void addChild(MethodTree* child);
@@ -63,6 +63,7 @@ namespace ts {
 			bool isTSSL = false;
 
 			TS_OBJECT_CONSTRUCTOR(tsslConstructor) = nullptr;
+			TS_OBJECT_DECONSTRUCTOR(tsslDeconstructor) = nullptr;
 		
 		private:
 			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, size_t methodNameIndex, bool addInitial = true);

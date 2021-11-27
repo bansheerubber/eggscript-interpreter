@@ -1,0 +1,4 @@
+%%conditional%%((%%entry%%).type == entry::STRING) {
+	%%output%% = new ts::Matrix(1, 1, true);
+	%%delete%%
+}

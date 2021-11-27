@@ -1,0 +1,4 @@
+%%conditional%%((%%entry%%).type == entry::MATRIX) {
+	%%output%% = cloneString((%%entry%%).matrixData->print().c_str());
+	%%delete%%
+}

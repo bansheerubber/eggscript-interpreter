@@ -67,6 +67,7 @@ keywords = {
 	"spc": "SPC",
 	"tab": "TAB",
 	"nl": "NL",
+	"null": "EMPTY",
 }
 
 for syntax, token_type in keywords.items():

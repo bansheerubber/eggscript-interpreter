@@ -34,19 +34,19 @@ namespace ts {
 				string functionName(args[2].stringData);
 
 				Entry* arguments = new Entry[1];
-				copyEntry(args[0], arguments[0]);
-				engine->interpreter->addSchedule((unsigned long long)args[1].numberData * 1000, functionName, arguments, 1, new ObjectReference(args[0].objectData));
+				arguments[0].setObject(new ObjectReference(args[0].objectData));
+				engine->interpreter->addSchedule((unsigned long long)args[1].numberData * 1000, functionName, arguments, 1, arguments[0].objectData);
 				return nullptr;
 			}
 
 			Entry* copiedArguments = new Entry[argc - 2];
-			copyEntry(args[0], copiedArguments[0]);
+			copiedArguments[0].setObject(new ObjectReference(args[0].objectData));
 			for(size_t i = 0; i < argc - 3; i++) {
 				copyEntry(args[i + 3], copiedArguments[i + 1]);
 			}
 			
 			string functionName(args[2].stringData);
-			engine->interpreter->addSchedule((unsigned long long)args[1].numberData * 1000, functionName, copiedArguments, argc - 2, new ObjectReference(args[0].objectData));
+			engine->interpreter->addSchedule((unsigned long long)args[1].numberData * 1000, functionName, copiedArguments, argc - 2, copiedArguments[0].objectData);
 			return nullptr;
 		}
 	}

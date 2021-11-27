@@ -36,11 +36,15 @@ ObjectWrapper::~ObjectWrapper() {
 		this->referenceCount = -10000;
 		this->object->properties.interpreter->garbageHeap.updateDown(this->heapIndex);
 		this->object->properties.interpreter->garbageHeap.pop();
-		printf("had to extract from the min heap\n");
 	}
-	
+
+	if(this->object->methodTree->tsslDeconstructor != nullptr) {
+		(*this->object->methodTree->tsslDeconstructor)(this);
+	}
+	else {
+		delete this->data;
+	}
 	delete this->object;
-	delete this->data;
 }
 
 Object::Object(ts::Interpreter* interpreter, string nameSpace, string inheritedName, MethodTree* methodTree, MethodTree* typeMethodTree) {

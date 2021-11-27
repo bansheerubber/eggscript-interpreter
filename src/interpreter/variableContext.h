@@ -34,7 +34,7 @@ namespace ts {
 		
 		private:
 			class Interpreter* interpreter;
-			robin_map<string, VariableContextEntry> variableMap;
+			robin_map<string, Entry> variableMap;
 	};
 
 	void initVariableContext(VariableContext* location);

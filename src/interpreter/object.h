@@ -15,6 +15,8 @@ namespace ts {
 	};
 	
 	#define TS_OBJECT_CONSTRUCTOR(name)		void (*name)(ObjectWrapper* wrapper)
+	#define TS_OBJECT_DECONSTRUCTOR(name)		void (*name)(ObjectWrapper* wrapper)
+
 	struct ObjectWrapper* CreateObject(
 		class ts::Interpreter* interpreter,
 		string nameSpace,

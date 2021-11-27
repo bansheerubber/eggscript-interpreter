@@ -14,7 +14,7 @@ if(foundFunction->isTSSL) {
 			}
 		}
 		else {
-			argv[i] = Entry(getEmptyString());
+			argv[i] = Entry();
 		}
 	}
 
@@ -28,7 +28,7 @@ if(foundFunction->isTSSL) {
 	}
 
 	if(returnValue == nullptr) {
-		this->push(getEmptyString(), instruction.pushType);
+		this->pushEmpty(instruction.pushType);
 	}
 	else {
 		this->push(*returnValue, instruction.pushType, true);

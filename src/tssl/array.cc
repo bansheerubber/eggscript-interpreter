@@ -6,12 +6,19 @@
 namespace ts {
 	namespace sl {
 		void arrayInitEntry(Array* owner, Entry* entry) {
-			entry->type = entry::INVALID;
+			entry->type = entry::EMPTY;
 		}
 		
 		void Array__constructor(ObjectWrapper* wrapper) {
 			wrapper->object->dataStructure = ARRAY;
 			wrapper->data = new Array();
+		}
+
+		void Array::push(Entry* entries, long amount) {
+			for(long i = 0; i < amount; i++) {
+				copyEntry(entries[i], this->array[this->array.head]);
+				this->array.pushed();
+			}
 		}
 
 		// TODO: if amount < 0 and |amount| > index(?) then its going to be screwy
@@ -37,10 +44,6 @@ namespace ts {
 			for(int i = index; i < index + amount; i++) {
 				// re-initialize entries
 				new((void*)&this->array[i]) ts::Entry();
-
-				if(fill) {
-					this->array[i].setString(getEmptyString());
-				}
 			}
 
 			if(amount < 0) { // pop for shift lefts
@@ -57,11 +60,7 @@ namespace ts {
 			}
 
 			Array* array = (Array*)args[0].objectData->objectWrapper->data;
-			
-			for(unsigned int i = 1; i < argc; i++) {
-				copyEntry(args[i], array->array[array->array.head]);
-				array->array.pushed();
-			}
+			array->push(&args[1], argc - 1);
 			
 			return nullptr;
 		}

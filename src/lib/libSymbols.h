@@ -12,6 +12,7 @@ extern "C" {
 		ES_ENTRY_NUMBER,
 		ES_ENTRY_STRING,
 		ES_ENTRY_OBJECT,
+		ES_ENTRY_MATRIX,
 	};
 
 	typedef void* esObjectPtr;
@@ -32,12 +33,21 @@ extern "C" {
 	} esObjectReference;
 	typedef esObjectReference* esObjectReferencePtr;
 
+	struct esEntry;
+	typedef struct esMatrix {
+		esEntry** data;
+		unsigned int rows;
+		unsigned int columns;
+	} esMatrix;
+	typedef esMatrix* esMatrixPtr;
+
 	typedef struct esEntry {
 		esEntryType type;
 		union {
 			double numberData;
 			char* stringData;
 			esObjectReferencePtr objectData;
+			esMatrixPtr matrixData;
 		};
 	} esEntry;
 	typedef esEntry* esEntryPtr;
@@ -49,17 +59,37 @@ extern "C" {
 	bool esTick(esEnginePtr engine);
 	void esSetTickRate(esEnginePtr engine, long tickRate);
 	void esExecFile(esEnginePtr engine, const char* filename);
+	void esExecFileFromContents(esEnginePtr, const char* fileName, const char* contents);
 	void esEval(esEnginePtr engine, const char* shell);
+	const char* esGetLastExecFileName(esEnginePtr engine);
 	void esSetPrintFunction(esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
 	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
+	void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper));
+	void esSetNamespaceDeconstructor(esEnginePtr engine, const char* nameSpace, void (*deconstructor)(esObjectWrapperPtr wrapper));
 	void esNamespaceInherit(esEnginePtr engine, const char* parent, const char* child);
-	esObjectReferencePtr esCreateObject(esEnginePtr engine, const char* nameSpace, void* data);
+	esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpace, void* data);
+	esObjectReferencePtr esCloneObjectReference(esObjectReferencePtr reference);
 	void esDeleteObject(esObjectReferencePtr objectReference);
 	const char* esGetNamespaceFromObject(esObjectReferencePtr object);
 	int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace);
+	int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* nameSpace);
 	void esRegisterFunction(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* name, unsigned int argumentCount, esEntryType* argTypes);
 	void esRegisterMethod(esEnginePtr engine, esEntryType returnType, esFunctionPtr function, const char* nameSpace, const char* name, unsigned int argumentCount, esEntryType* argTypes);
 	esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
 	esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
+
+	esEntryPtr esCreateNumber(double number);
+	esEntryPtr esCreateString(char* string);
+	esEntryPtr esCreateVector(unsigned int size, ...);
+	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
+	esEntryPtr esCreateObject(esObjectReferencePtr reference);
+
+	esEntryPtr esCreateNumberAt(esEntryPtr entry, double number);
+	esEntryPtr esCreateStringAt(esEntryPtr entry, char* string);
+	esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...);
+	esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...);
+	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);
+
+	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry);
 }

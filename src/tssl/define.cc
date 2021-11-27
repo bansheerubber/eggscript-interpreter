@@ -109,8 +109,8 @@ void ts::sl::define(Engine* engine) {
 	entry::EntryType sns[3] = { entry::STRING, entry::NUMBER, entry::STRING };
 	entry::EntryType ons[3] = { entry::OBJECT, entry::NUMBER, entry::STRING };
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &echo, "echo", 1, s));
-	functions.push_back(FUNC_DEF(entry::INVALID, &error, "error", 1, s));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &echo, "echo", 1, s));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &error, "error", 1, s));
 
 	functions.push_back(FUNC_DEF(entry::STRING, &firstWord, "firstWord", 1, s));
 	functions.push_back(FUNC_DEF(entry::STRING, &restWords, "restWords", 1, s));
@@ -166,20 +166,20 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::NUMBER, &mLog, "mLog", 1, n));
 	functions.push_back(FUNC_DEF(entry::STRING, &mFloatLength, "mFloatLength", 2, nn));
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &schedule, "schedule", 2, ns));
-	functions.push_back(FUNC_DEF(entry::INVALID, &SimObject__schedule, "SimObject", "schedule", 3, ons));
-	functions.push_back(FUNC_DEF(entry::INVALID, &SimObject__getId, "SimObject", "getId", 1, o));
-	functions.push_back(FUNC_DEF(entry::INVALID, &SimObject__delete, "SimObject", "delete", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &schedule, "schedule", 2, ns));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__schedule, "SimObject", "schedule", 3, ons));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__getId, "SimObject", "getId", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__delete, "SimObject", "delete", 1, o));
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &SimObject__test, "SimObject", "test", 2, os));
-	functions.push_back(FUNC_DEF(entry::INVALID, &ScriptObject__test, "ScriptObject", "test", 2, os));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__test, "SimObject", "test", 2, os));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &ScriptObject__test, "ScriptObject", "test", 2, os));
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &FileObject__openForRead, "FileObject", "openForRead", 2, os));
-	functions.push_back(FUNC_DEF(entry::INVALID, &FileObject__openForWrite, "FileObject", "openForWrite", 2, os));
-	functions.push_back(FUNC_DEF(entry::INVALID, &FileObject__openForAppend, "FileObject", "openForAppend", 2, os));
-	functions.push_back(FUNC_DEF(entry::INVALID, &FileObject__close, "FileObject", "close", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &FileObject__openForRead, "FileObject", "openForRead", 2, os));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &FileObject__openForWrite, "FileObject", "openForWrite", 2, os));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &FileObject__openForAppend, "FileObject", "openForAppend", 2, os));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &FileObject__close, "FileObject", "close", 1, o));
 	functions.push_back(FUNC_DEF(entry::STRING, &FileObject__readLine, "FileObject", "readLine", 1, o));
-	functions.push_back(FUNC_DEF(entry::INVALID, &FileObject__writeLine, "FileObject", "writeLine", 2, os));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &FileObject__writeLine, "FileObject", "writeLine", 2, os));
 	functions.push_back(FUNC_DEF(entry::NUMBER, &FileObject__isEOF, "FileObject", "isEOF", 1, o));
 
 	functions.push_back(FUNC_DEF(entry::STRING, &fileBase, "fileBase", 1, s));
@@ -187,21 +187,21 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::STRING, &fileName, "fileName", 1, s));
 	functions.push_back(FUNC_DEF(entry::STRING, &filePath, "filePath", 1, s));
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &isObject, "isObject", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &isObject, "isObject", 1, o));
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &getRandom, "getRandom", 2, nn));
-	functions.push_back(FUNC_DEF(entry::INVALID, &setRandomSeed, "setRandomSeed", 1, n));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &getRandom, "getRandom", 2, nn));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &setRandomSeed, "setRandomSeed", 1, n));
 	functions.push_back(FUNC_DEF(entry::NUMBER, &getRandomSeed, "getRandomSeed", 0, nullptr));
 
-	functions.push_back(FUNC_DEF(entry::INVALID, &eval, "eval", 1, s));
-	functions.push_back(FUNC_DEF(entry::INVALID, &exec, "exec", 1, s));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &eval, "eval", 1, s));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &exec, "exec", 1, s));
 
-	// arrays
-	functions.push_back(FUNC_DEF(entry::INVALID, &Array__push, "Array", "push", 1, o));
+	// EMPTY
+	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__push, "Array", "push", 1, o));
 	functions.push_back(FUNC_DEF(entry::NUMBER, &Array__size, "Array", "size", 1, o));
-	functions.push_back(FUNC_DEF(entry::INVALID, &Array__insert, "Array", "insert", 2, on));
-	functions.push_back(FUNC_DEF(entry::INVALID, &Array__remove, "Array", "remove", 2, on));
-	functions.push_back(FUNC_DEF(entry::INVALID, &Array__index, "Array", "index", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__insert, "Array", "insert", 2, on));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__remove, "Array", "remove", 2, on));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__index, "Array", "index", 1, o));
 
 	for(ts::sl::Function* function: functions) {
 		engine->defineTSSLFunction(function);

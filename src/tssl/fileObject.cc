@@ -132,7 +132,7 @@ namespace ts {
 					: strlen(slashLocation);
 				
 				char* newString = new char[length + 1];
-				strncpy(newString, slashLocation, length);
+				memcpy(newString, slashLocation, length);
 				newString[length] = '\0';
 				
 				return new Entry(newString);
@@ -182,7 +182,7 @@ namespace ts {
 
 				size_t length = slashLocation - path;
 				char* newString = new char[length + 1];
-				strncpy(newString, path, length);
+				memcpy(newString, path, length);
 				newString[length] = '\0';
 				
 				return new Entry(newString);

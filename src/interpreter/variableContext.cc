@@ -36,51 +36,34 @@ Entry& VariableContext::getVariableEntry(Instruction &instruction, string &name,
 	if(value == this->variableMap.end()) { // initialize empty string
 		this->interpreter->warning("trying to access unassigned variable/property '%s'\n", name.c_str());
 		
-		VariableContextEntry &entry = this->variableMap[name];
-		copyEntry(this->interpreter->emptyEntry, entry.entry);
-		entry.stackIndex = -1;
-		return entry.entry;
+		Entry &entry = this->variableMap[name];
+		copyEntry(this->interpreter->emptyEntry, entry);
+		return entry;
 	}
 	else {
-		return value.value().entry;
+		return value.value();
 	}
 }
 
 void VariableContext::setVariableEntry(Instruction &instruction, string &name, size_t hash, Entry &entry, bool greedy) {
 	auto value = this->variableMap.find(name, hash);
 	if(value == this->variableMap.end()) { // uninitialized
-		VariableContextEntry &variableEntry = this->variableMap[name];
-		greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
-		variableEntry.stackIndex = -1;
+		Entry &variableEntry = this->variableMap[name];
+		greedy ? greedyCopyEntry(entry, variableEntry) : copyEntry(entry, variableEntry);
 	}
 	else {
-		VariableContextEntry &variableEntry = value.value();
-		if(variableEntry.stackIndex < 0) {
-			greedy ? greedyCopyEntry(entry, variableEntry.entry) : copyEntry(entry, variableEntry.entry);
-		}
-		else {
-			greedy
-				? greedyCopyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer])
-				: copyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer]);
-		}
+		Entry &variableEntry = value.value();
+		greedy ? greedyCopyEntry(entry, variableEntry) : copyEntry(entry, variableEntry);
 	}
 }
 
 void VariableContext::setVariableEntry(string &name, Entry &entry) {
 	auto value = this->variableMap.find(name);
 	if(value == this->variableMap.end()) { // uninitialized
-		VariableContextEntry &variableEntry = this->variableMap[name];
-		copyEntry(entry, variableEntry.entry);
-		variableEntry.stackIndex = -1;
+		copyEntry(entry, this->variableMap[name]);
 	}
 	else {
-		VariableContextEntry &variableEntry = value.value();
-		if(variableEntry.stackIndex < 0) {
-			copyEntry(entry, variableEntry.entry);
-		}
-		else {
-			copyEntry(entry, this->interpreter->stack[variableEntry.stackIndex + this->interpreter->stackFramePointer]);
-		}
+		copyEntry(entry, value.value());
 	}
 }
 
@@ -89,19 +72,12 @@ Entry& VariableContext::getVariableEntry(string &name) {
 	if(value == this->variableMap.end()) { // initialize empty string
 		this->interpreter->warning("trying to access unassigned variable/property '%s'\n", name.c_str());
 		
-		VariableContextEntry &entry = this->variableMap[name];
-		copyEntry(this->interpreter->emptyEntry, entry.entry);
-		entry.stackIndex = -1;
-		return entry.entry;
+		Entry &entry = this->variableMap[name];
+		copyEntry(this->interpreter->emptyEntry, entry);
+		return entry;
 	}
 	else {
-		VariableContextEntry &entry = value.value();
-		if(entry.stackIndex < 0) {
-			return entry.entry;
-		}
-		else {
-			return this->interpreter->stack[entry.stackIndex + this->interpreter->stackFramePointer];
-		}
+		return value.value();
 	}
 }
 
@@ -109,7 +85,7 @@ void VariableContext::print() {
 	printf("-------------------------------\n");
 	for(auto it = this->variableMap.begin(); it != this->variableMap.end(); it++) {
 		printf("\"%s\":\n", it->first.c_str());
-		it->second.entry.print(1);
+		it->second.print(1);
 		printf("-------------------------------\n");
 	}
 }
@@ -122,7 +98,7 @@ void VariableContext::printWithTab(int tabs) {
 	
 	for(auto it = this->variableMap.begin(); it != this->variableMap.end(); it++) {
 		printf("%s\"%s\":\n", space.c_str(), it->first.c_str());
-		it->second.entry.print(tabs + 1);
+		it->second.print(tabs + 1);
 	}
 }
 

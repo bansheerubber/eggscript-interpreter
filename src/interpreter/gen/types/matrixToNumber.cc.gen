@@ -1,0 +1,3 @@
+%%conditional%%((%%entry%%).type == entry::MATRIX) {
+	%%output%% = (%%entry%%).matrixData->rows * (%%entry%%).matrixData->columns;
+}

@@ -10,9 +10,11 @@ additional = sys.argv[5] if len(sys.argv) >= 6 else ""
 interpreter = sys.argv[6] if len(sys.argv) >= 7 else "this"
 
 entry_types = [
+	"EMPTY",
 	"NUMBER",
 	"STRING",
 	"OBJECT",
+	"MATRIX",
 ]
 
 entry_type_conversion = {}
@@ -37,11 +39,19 @@ def get_delete_line(variable_name, output_type, entry_type):
 	if variable_name == None or variable_name == "":
 		return ""
 	
-	value = "true" if output_type == "STRING" and entry_type != "STRING" else "false"
+	value = "false"
+	if output_type == "MATIRX" and entry_type != "MATRIX":
+		value = "true"
+	elif output_type == "STRING" and entry_type != "STRING":
+		value = "true"
+
+	# value = "true" if output_type == "STRING" and entry_type != "STRING" else "false"
 	return f"{variable_name} = {value};"
 
-if "_" in source_type:
-	argument_types = source_type.split("_")
+if "_" in source_type or source_type == "ALL":
+	argument_types = entry_types
+	if "_" in source_type:
+		argument_types = source_type.split("_")
 	
 	conditional = "if"
 	for entry_type in argument_types:

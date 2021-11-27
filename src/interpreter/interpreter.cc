@@ -1,5 +1,6 @@
 #include "interpreter.h"
 
+#include "../util/allocateString.h"
 #include "../tssl/array.h"
 #include "../util/cloneString.h"
 #include "../compiler/compiler.h"
@@ -40,8 +41,6 @@ void ts::initSchedule(Interpreter* interpreter, Schedule** schedule) {
 
 Interpreter::Interpreter(Engine* engine, ParsedArguments args, bool isParallel) {
 	this->engine = engine;
-	
-	this->emptyEntry.setString(getEmptyString());
 
 	if(args.arguments["no-warnings"] != "") {
 		this->warnings = false;
@@ -75,7 +74,8 @@ void Interpreter::pushFunctionFrame(
 	MethodTreeEntry* methodTreeEntry,
 	int methodTreeEntryIndex,
 	size_t argumentCount,
-	size_t popCount
+	size_t popCount,
+	string fileName
 ) {
 	if(this->frames.head == 0) {
 		this->startTime = getMicrosecondsNow();
@@ -91,6 +91,7 @@ void Interpreter::pushFunctionFrame(
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
 	frame.isTSSL = false;
+	ALLOCATE_STRING(fileName, frame.fileName);
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -102,20 +103,21 @@ void Interpreter::pushFunctionFrame(
 void Interpreter::popFunctionFrame() {
 	this->frames.popped();
 
+	for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
+		this->pop();
+	}
+
 	if(this->frames.head == 0) {
 		this->topContainer = nullptr;
 		this->instructionPointer = nullptr;
 		this->stackFramePointer = 0;
+		this->frames[this->frames.head].stackPopCount = 0; // don't pop any extra stuff
 	}
 	else {
 		FunctionFrame &frame = this->frames[this->frames.head - 1];
 		this->topContainer = frame.container;
 		this->instructionPointer = &frame.instructionPointer;
 		this->stackFramePointer = frame.stackPointer;
-
-		for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
-			this->pop();
-		}
 	}
 }
 
@@ -125,7 +127,18 @@ void Interpreter::pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int me
 	frame.stackPopCount = 0;
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
+	ALLOCATE_STRING(string(""), frame.fileName);
 	this->frames.pushed();
+}
+
+string& Interpreter::getTopFileNameFromFrame() {
+	static string empty = "";
+	for(int i = this->frames.head - 1; i >= 0; i--) {
+		if(this->frames[i].fileName != "") {
+			return this->frames[i].fileName;
+		}
+	}
+	return empty;
 }
 
 // push an entry onto the stack
@@ -176,6 +189,17 @@ void Interpreter::push(char* value, instruction::PushType type) {
 	}
 }
 
+// push a matrix onto the stack
+void Interpreter::push(Matrix* value, instruction::PushType type) {
+	if(type < 0) {
+		this->stack[this->stack.head].setMatrix(value);
+		this->stack.pushed();
+	}
+	else {
+		this->returnRegister.setMatrix(value);
+	}
+}
+
 // push an object onto the stack
 void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 	if(type < 0) {
@@ -187,8 +211,19 @@ void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 	}
 }
 
+void Interpreter::pushEmpty(instruction::PushType type) {
+	if(type < 0) {
+		this->stack[this->stack.head].erase();
+		this->stack.pushed();
+	}
+	else {
+		this->returnRegister.erase();
+	}
+}
+
 void Interpreter::pop() {
-	this->stack[this->stack.head - 1].erase();
+	// TODO does this fuck everything??
+	// this->stack[this->stack.head - 1].erase();
 	this->stack.popped();
 }
 
@@ -259,7 +294,7 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 		}
 	}
 
-	return new Entry(getEmptyString());
+	return new Entry();
 }
 
 void Interpreter::warning(const char* format, ...) {
@@ -369,10 +404,7 @@ void Interpreter::interpret() {
 
 		case instruction::JUMP_IF_TRUE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
-			int number = 0;
-			## type_conversion.py entry number NUMBER_STRING_OBJECT NUMBER
-
-			if(number != 0) {
+			if(isEntryTruthy(entry)) {
 				*this->instructionPointer = instruction.jumpIfTrue.index;
 			}
 
@@ -384,10 +416,7 @@ void Interpreter::interpret() {
 
 		case instruction::JUMP_IF_FALSE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
-			int number = 1;
-			## type_conversion.py entry number NUMBER_STRING_OBJECT NUMBER
-
-			if(number == 0) {
+			if(!isEntryTruthy(entry)) {
 				*this->instructionPointer = instruction.jumpIfFalse.index;
 			}
 
@@ -406,11 +435,16 @@ void Interpreter::interpret() {
 				value = &this->stack[instruction.unaryMathematics.stackIndex + this->stackFramePointer];
 			}
 
-			double valueNumber = 0;
+			if(value->type != entry::NUMBER) {
+				this->pushEmpty(instruction.pushType);
+				break;
+			}
 
-			## type_conversion.py *value valueNumber NUMBER_STRING_OBJECT NUMBER
-			
-			this->pop();
+			double valueNumber = value->numberData; // copy number out before doing a pop
+
+			if(instruction.unaryMathematics.stackIndex < 0) {
+				this->pop();
+			}
 
 			double result = 0.0;
 			switch(instruction.unaryMathematics.operation) {
@@ -454,7 +488,7 @@ void Interpreter::interpret() {
 			Entry &objectEntry = this->stack[this->stack.head - 1];
 			ObjectWrapper* objectWrapper = nullptr;
 
-			## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
+			## type_conversion.py objectEntry objectWrapper ALL OBJECT
 
 			// if the object is not alive anymore, push nothing to the stack
 			if(objectWrapper == nullptr) {
@@ -589,7 +623,7 @@ void Interpreter::interpret() {
 			}
 
 			for(int i = 0; i < -number; i++) {
-				this->push(getEmptyString(), instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 			}
 
 			break;
@@ -605,7 +639,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.superClassPropertyCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* superClassPropertyCStr;
-					## type_conversion.py entry superClassPropertyCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry superClassPropertyCStr ALL STRING
 					superClassProperty = string(superClassPropertyCStr);
 					this->pop();
 				}
@@ -614,7 +648,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.classPropertyCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* classPropertyCStr;
-					## type_conversion.py entry classPropertyCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry classPropertyCStr ALL STRING
 					classProperty = string(classPropertyCStr);
 					this->pop();
 				}
@@ -623,7 +657,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.symbolNameCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* symbolNameCStr;
-					## type_conversion.py entry symbolNameCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry symbolNameCStr ALL STRING
 					symbolName = string(symbolNameCStr);
 					this->pop();
 				}
@@ -632,7 +666,7 @@ void Interpreter::interpret() {
 				if(!instruction.createObject.typeNameCached) {
 					Entry &entry = this->stack[this->stack.head - 1];
 					char* typeNameCStr;
-					## type_conversion.py entry typeNameCStr OBJECT_NUMBER_STRING STRING
+					## type_conversion.py entry typeNameCStr ALL STRING
 					typeName = string(typeNameCStr);
 					this->pop();
 				}
@@ -642,7 +676,7 @@ void Interpreter::interpret() {
 				MethodTree* typeCheck = this->engine->getNamespace(typeName);
 				if(typeCheck == nullptr || !typeCheck->isTSSL) {
 					this->warning("could not create object with type '%s'\n", typeName.c_str());
-					this->push(getEmptyString(), instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 
@@ -659,7 +693,7 @@ void Interpreter::interpret() {
 			}
 			else if(!instruction.createObject.canCreate) {
 				this->warning("could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
-				this->push(getEmptyString(), instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 			
@@ -687,9 +721,11 @@ void Interpreter::interpret() {
 			Entry &objectEntry = this->stack[this->stack.head - 1 - argumentCount];
 			ObjectWrapper* objectWrapper = nullptr;
 			Object* object = nullptr;
-			## type_conversion.py objectEntry objectWrapper OBJECT_NUMBER_STRING OBJECT
+			## type_conversion.py objectEntry objectWrapper ALL OBJECT
 
 			if(objectWrapper == nullptr) {
+				this->warning("could not find object for method call\n");
+				
 				// pop arguments that we didn't use
 				Entry &numberOfArguments = this->stack[this->stack.head - 1];
 				int number = (int)numberOfArguments.numberData;
@@ -704,6 +740,7 @@ void Interpreter::interpret() {
 			object = objectWrapper->object;
 
 			// cache the method entry pointer in the instruction
+			// TODO as soon as the namespace type changes, this breaks
 			if(instruction.callObject.isCached == false) {
 				bool found = false;
 				auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(instruction.callObject.name));
@@ -726,14 +763,14 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(getEmptyString(), instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 			}
 
 			// look up the method in the method tree
 			MethodTreeEntry* methodTreeEntry = instruction.callObject.cachedEntry;
-			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod ? 0 : 1;
+			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
 			size_t packagedFunctionListIndex = list->topValidIndex;
 			Function* foundFunction = (*list)[packagedFunctionListIndex];
@@ -803,10 +840,7 @@ void Interpreter::interpret() {
 				Object* object = nullptr;
 
 				if(objectWrapper == nullptr || objectWrapper->object->dataStructure == NO_DATA_STRUCTURE) {
-					this->pop();
-					this->pop();
-					this->push(getEmptyString(), instruction.pushType);
-					break;
+					goto quit_array_access;
 				}
 
 				object = objectWrapper->object;
@@ -815,7 +849,7 @@ void Interpreter::interpret() {
 				switch(object->dataStructure) {
 					case ARRAY: {
 						unsigned int index = 0;
-						## type_conversion.py indexEntry index NUMBER_STRING_OBJECT NUMBER
+						## type_conversion.py indexEntry index ALL NUMBER
 
 						DynamicArray<Entry, sl::Array> &array = ((ts::sl::Array*)objectWrapper->data)->array;
 
@@ -831,17 +865,66 @@ void Interpreter::interpret() {
 				}
 
 				if(failure) {
+					goto quit_array_access;
+				}
+			}
+			else if(objectEntry.type == entry::MATRIX && objectEntry.matrixData != nullptr) {
+				unsigned int index = 0;
+				## type_conversion.py indexEntry index ALL NUMBER
+				if(objectEntry.matrixData->rows == 1) { // treat it like an array (return a scalar)
+					if(index >= objectEntry.matrixData->columns) {
+						goto quit_array_access;
+					}
+
+					copyEntry(objectEntry.matrixData->data[0][index], this->returnRegister);
 					this->pop();
 					this->pop();
-					this->push(getEmptyString(), instruction.pushType);
+					this->push(this->returnRegister, instruction.pushType);
+				}
+				else if(objectEntry.matrixData->columns == 1) { // treat it like an array (return a scalar)
+					if(index >= objectEntry.matrixData->rows) {
+						goto quit_array_access;
+					}
+
+					copyEntry(objectEntry.matrixData->data[index][0], this->returnRegister);
+					this->pop();
+					this->pop();
+					this->push(this->returnRegister, instruction.pushType);
+				}
+				else { // dealing with multiple rows and columns (return a row as a vector)
+					if(index >= objectEntry.matrixData->rows) {
+						goto quit_array_access;
+					}
+
+					Matrix* output = objectEntry.matrixData->cloneRowToVector(index);
+					if(output == nullptr) {
+						goto quit_array_access;
+					}
+					else {
+						this->pop();
+						this->pop();
+						this->push(output, instruction.pushType);
+					}
 				}
 			}
 			else {
+				quit_array_access:
 				this->pop();
 				this->pop();
-				this->push(getEmptyString(), instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 			}
+			break;
+		}
 
+		case instruction::MATRIX_CREATE: {
+			this->push(new Matrix(instruction.matrixCreate.rows, instruction.matrixCreate.columns), instruction.pushType);
+			break;
+		}
+
+		case instruction::MATRIX_SET: {
+			Matrix* matrix = this->stack[this->stack.head - 2].matrixData;
+			copyEntry(this->stack[this->stack.head - 1], matrix->data[instruction.matrixSet.row][instruction.matrixSet.column]);
+			this->pop();
 			break;
 		}
 
@@ -901,7 +984,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	}
 	else {
 		this->warning("could not find function with name '%s'\n", functionName.c_str());
-		return new Entry(getEmptyString());
+		return new Entry();
 	}
 
 	if(foundFunction->isTSSL) { // TODO handle argument type conversion
@@ -911,7 +994,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 		this->popFunctionFrame();
 
 		if(result == nullptr) {
-			return new Entry(getEmptyString());
+			return new Entry();
 		}
 		return result;
 	}
@@ -934,7 +1017,13 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 			foundFunction->variableCount
 		);
 		this->interpret();
-		return new Entry(this->returnRegister);
+
+		if(this->returnRegister.type == entry::EMPTY) {
+			return new Entry();
+		}
+		else {
+			return new Entry(this->returnRegister);
+		}
 	}
 }
 
@@ -949,7 +1038,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	ObjectWrapper* objectWrapper = objectReference->objectWrapper;
 	Object* object = nullptr;
 	if(objectWrapper == nullptr) {
-		return new Entry(getEmptyString());
+		return new Entry();
 	}
 
 	object = objectWrapper->object;
@@ -970,7 +1059,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 
 	if(!found) {
 		this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), methodName.c_str());
-		return new Entry(getEmptyString());
+		return new Entry();
 	}
 
 	if(foundFunction->isTSSL) { // TODO handle argument type conversion
@@ -980,7 +1069,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 		this->popFunctionFrame();
 
 		if(output == nullptr) {
-			return new Entry(getEmptyString());
+			return new Entry();
 		}
 		return output;
 	}
@@ -1004,6 +1093,11 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 		);
 		this->interpret();
 
-		return new Entry(this->returnRegister);
+		if(this->returnRegister.type == entry::EMPTY) {
+			return new Entry();
+		}
+		else {
+			return new Entry(this->returnRegister);
+		}
 	}
 }
