@@ -74,7 +74,17 @@ ts::Matrix* ts::Matrix::subtract(const Matrix* other) {
 			output->data[r][c] = this->data[r][c].numberData - other->data[r][c].numberData;
 		}
 	}
-	return nullptr;
+	return output;
+}
+
+ts::Matrix* ts::Matrix::multiply(double scalar) {
+	Matrix* output = new Matrix(this->rows, this->columns);
+	for(unsigned int r = 0; r < this->rows; r++) {
+		for(unsigned int c = 0; c < this->columns; c++) {
+			output->data[r][c] = this->data[r][c].numberData * scalar;
+		}
+	}
+	return output;
 }
 
 ts::Matrix* ts::Matrix::clone() {

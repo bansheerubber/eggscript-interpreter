@@ -2,28 +2,72 @@ import sys
 sys.path.insert(0, "../../tools")
 from gen import get_generated_code
 
+math_body = """if(type1 != type2) {{
+	{0}
+}}
+else if(type1 == entry::NUMBER) {{
+	{1}
+}}
+else if(type1 == entry::MATRIX) {{
+	{2}
+}}
+else {{
+	{0}
+}}"""
+
+multiplication_body = """if((type1 == entry::NUMBER && type2 == entry::MATRIX) || (type1 == entry::MATRIX && type2 == entry::NUMBER)) {{
+	{2}
+}}
+else if(type1 != type2) {{
+	{0}
+}}
+else if(type1 == entry::NUMBER) {{
+	{1}
+}}
+else {{
+	{0}
+}}"""
+
+division_body = """if(type1 == entry::MATRIX && type2 == entry::NUMBER) {{
+	{2}
+}}
+else if(type1 != type2) {{
+	{0}
+}}
+else if(type1 == entry::NUMBER) {{
+	{1}
+}}
+else {{
+	{0}
+}}"""
+
 math_operations = {
 	"MATH_ADDITION": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push({0} + {1}, instruction.pushType);",
 		"this->push({0}->add({1}), instruction.pushType);",
 	),
 	"MATH_SUBTRACT": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push({0} - {1}, instruction.pushType);",
 		"this->push({0}->subtract({1}), instruction.pushType);",
 	),
 	"MATH_MULTIPLY": (
+		multiplication_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push({0} * {1}, instruction.pushType);",
-		None,
+		"type1 == entry::NUMBER ? this->push({1}->multiply(lvalueNumber), instruction.pushType) : this->push({0}->multiply(rvalueNumber), instruction.pushType);",
 	),
 	"MATH_DIVISION": (
+		division_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push({0} / {1}, instruction.pushType);",
-		None,
+		"this->push({0}->multiply(1.0 / rvalueNumber), instruction.pushType);",
 	),
 	"MATH_MODULUS": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"""if(((int){1}) == 0) {{
 				this->push((double)0, instruction.pushType);
@@ -35,46 +79,55 @@ math_operations = {
 		None,
 	),
 	"MATH_SHIFT_LEFT": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} << (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_SHIFT_RIGHT": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} >> (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_LESS_THAN_EQUAL": (
+		math_body,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} <= {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_GREATER_THAN_EQUAL": (
+		math_body,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} >= {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_LESS_THAN": (
+		math_body,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} < {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_GREATER_THAN": (
+		math_body,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} > {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_BITWISE_AND": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} & (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_BITWISE_OR": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} | (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_BITWISE_XOR": (
+		math_body,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} ^ (int){1}, instruction.pushType);",
 		None,
@@ -143,28 +196,15 @@ string_pop = """if(popLValue) {{
 				this->pop();
 			}}"""
 
-math_body = """if(type1 != type2) {{
-	{0}
-}}
-else if(type1 == entry::NUMBER) {{
-	{1}
-}}
-else if(type1 == entry::MATRIX) {{
-	{2}
-}}
-else {{
-	{0}
-}}"""
-
 NUMBER_MATH_MACRO = get_generated_code("math", "numbers", 3)
 
 # handle number instructions
-for instruction, (failure, number_operation, matrix_operation) in math_operations.items():
+for instruction, (body, failure, number_operation, matrix_operation) in math_operations.items():
 	if matrix_operation == None:
 		matrix_operation = failure
 	
 	formatted = number_operation.format("lvalueNumber", "rvalueNumber")
-	formatted = math_body.format(failure, formatted, matrix_operation.format("lvalueMatrix", "rvalueMatrix"))
+	formatted = body.format(failure, formatted, matrix_operation.format("lvalueMatrix", "rvalueMatrix"))
 
 	print(f"""		case instruction::{instruction}: {{
 {NUMBER_MATH_MACRO}

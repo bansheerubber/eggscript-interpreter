@@ -19,6 +19,7 @@ namespace ts {
 			Matrix* initialize(unsigned int rows, unsigned int columns, bool fillZeros = false);
 			Matrix* add(const Matrix* other);
 			Matrix* subtract(const Matrix* other);
+			Matrix* multiply(double scalar);
 			Matrix* clone();
 			Matrix* cloneRowToVector(unsigned int index);
 			string print();
