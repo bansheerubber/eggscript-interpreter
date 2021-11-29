@@ -35,6 +35,7 @@ else:
 				pass
 		
 		mean, standard_deviation = norm.fit(reject_outliers(np.array(result), 1))
+		print(f"mean: {mean}")
 
 		plt.hist(result, bins="auto", density=True)
 		plt.axvline(mean, color='k', linestyle='dashed', linewidth=1)

@@ -38,7 +38,9 @@ namespace ts {
 			MATH_SPC,
 			MATH_TAB,
 			MATH_NL,
-			UNARY_MATHEMATICS, // apply a unary operator
+			UNARY_BITWISE_NOT,
+			UNARY_LOGICAL_NOT,
+			UNARY_NEGATE,
 			ARGUMENT_ASSIGN, // assign a value from the stack to a local variable, account for argument size
 			LOCAL_ASSIGN_EQUAL,
 			LOCAL_ASSIGN_INCREMENT,
@@ -123,13 +125,6 @@ namespace ts {
 			BITWISE_XOR_EQUALS,
 			BITWISE_OR_EQUALS,
 		};
-
-		enum UnaryOperator {
-			INVALID_UNARY,
-			BITWISE_NOT,
-			LOGICAL_NOT,
-			NEGATE,
-		};
 	}
 	
 	// instructions form a linked list
@@ -175,7 +170,6 @@ namespace ts {
 			} mathematics;
 
 			struct {
-				instruction::UnaryOperator operation; // the operator this instruction will perform
 				int stackIndex;
 			} unaryMathematics;
 

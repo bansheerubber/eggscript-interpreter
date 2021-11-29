@@ -299,6 +299,22 @@ map<TokenType, int> MathExpression::CreatePrecedenceMap() {
 	return output;
 }
 
+ts::instruction::InstructionType MathExpression::TypeToUnaryOperator(SpecialOperator type) {
+	switch(type) {
+		case BITWISE_NOT_OPERATOR:
+			return ts::instruction::UNARY_BITWISE_NOT;
+		
+		case LOGICAL_NOT_OPERATOR:
+			return ts::instruction::UNARY_LOGICAL_NOT;
+
+		case MINUS_OPERATOR:
+			return ts::instruction::UNARY_NEGATE;
+
+		default:
+			return ts::instruction::INVALID_INSTRUCTION;
+	}
+}
+
 ts::instruction::InstructionType MathExpression::TypeToOperator(TokenType type) {
 	switch(type) {
 		case PLUS:
@@ -448,7 +464,7 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 	struct Value {
 		Component* component;
 		ts::Instruction* math;
-		vector<ts::instruction::UnaryOperator> unary;
+		vector<ts::instruction::InstructionType> unary;
 
 		Value(Component* component, ts::Instruction* math) {
 			this->component = component;
@@ -475,27 +491,7 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 			Value* value = new Value(element.element->component, nullptr);
 			
 			for(SpecialOperator unaryOperator: element.unary) {
-				switch(unaryOperator) {
-					case BITWISE_NOT_OPERATOR: {
-						value->unary.push_back(ts::instruction::BITWISE_NOT);
-						break;
-					}
-					
-					case LOGICAL_NOT_OPERATOR: {
-						value->unary.push_back(ts::instruction::LOGICAL_NOT);
-						break;
-					}
-
-					case MINUS_OPERATOR: {
-						value->unary.push_back(ts::instruction::NEGATE);
-						break;
-					}
-
-					default: {
-						value->unary.push_back(ts::instruction::INVALID_UNARY);
-						break;
-					}
-				}
+				value->unary.push_back(MathExpression::TypeToUnaryOperator(unaryOperator));
 			}
 
 			instructionList.push_back(value);
@@ -596,10 +592,9 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 					output.add(value->component->compile(engine, context));
 				}
 				
-				for(ts::instruction::UnaryOperator operation: value->unary) {
+				for(ts::instruction::InstructionType operation: value->unary) {
 					ts::Instruction* unaryInstruction = new ts::Instruction();
-					unaryInstruction->type = ts::instruction::UNARY_MATHEMATICS;
-					unaryInstruction->unaryMathematics.operation = operation;
+					unaryInstruction->type = operation;
 					unaryInstruction->unaryMathematics.stackIndex = stackIndex;
 					output.add(unaryInstruction);
 					stackIndex = -1;

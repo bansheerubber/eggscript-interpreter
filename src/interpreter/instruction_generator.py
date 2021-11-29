@@ -10,7 +10,7 @@ structs = {
 	"jumpIfTrue": ["JUMP_IF_TRUE"],
 	"jumpIfFalse": ["JUMP_IF_FALSE"],
 	"mathematics": get_math_instructions(),
-	"unaryMathematics": ["UNARY_MATHEMATICS"],
+	"unaryMathematics": ["UNARY_BITWISE_NOT", "UNARY_LOGICAL_NOT", "UNARY_NEGATE"],
 	"localAssign": get_assignment_instructions("LOCAL_ASSIGN"),
 	"globalAssign": get_assignment_instructions("GLOBAL_ASSIGN"),
 	"localAccess": ["LOCAL_ACCESS"],

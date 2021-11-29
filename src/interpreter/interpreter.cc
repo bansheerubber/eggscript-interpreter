@@ -426,7 +426,7 @@ void Interpreter::interpret() {
 			break;
 		}
 
-		case instruction::UNARY_MATHEMATICS: {
+		case instruction::UNARY_BITWISE_NOT: {
 			Entry* value;
 			if(instruction.unaryMathematics.stackIndex < 0) {
 				value = &this->stack[this->stack.head - 1];
@@ -440,33 +440,53 @@ void Interpreter::interpret() {
 				break;
 			}
 
-			double valueNumber = value->numberData; // copy number out before doing a pop
+			if(instruction.unaryMathematics.stackIndex < 0) {
+				this->pop();
+			}
+
+			this->push(~((int)value->numberData), instruction.pushType);
+			break;
+		}
+
+		case instruction::UNARY_NEGATE: {
+			Entry* value;
+			if(instruction.unaryMathematics.stackIndex < 0) {
+				value = &this->stack[this->stack.head - 1];
+			}
+			else {
+				value = &this->stack[instruction.unaryMathematics.stackIndex + this->stackFramePointer];
+			}
+
+			if(value->type != entry::NUMBER) {
+				this->pushEmpty(instruction.pushType);
+				break;
+			}
 
 			if(instruction.unaryMathematics.stackIndex < 0) {
 				this->pop();
 			}
 
-			double result = 0.0;
-			switch(instruction.unaryMathematics.operation) {
-				case instruction::BITWISE_NOT: {
-					result = ~((int)valueNumber);
-					break;
-				}
-
-				case instruction::LOGICAL_NOT: {
-					result = !((int)valueNumber);
-					break;
-				}
-
-				case instruction::NEGATE: {
-					result = -((int)valueNumber);
-					break;
-				}
-			}
-			this->push(result, instruction.pushType);
+			this->push(-((int)value->numberData), instruction.pushType);
 			break;
 		}
-		
+
+		case instruction::UNARY_LOGICAL_NOT: {
+			Entry* value;
+			if(instruction.unaryMathematics.stackIndex < 0) {
+				value = &this->stack[this->stack.head - 1];
+			}
+			else {
+				value = &this->stack[instruction.unaryMathematics.stackIndex + this->stackFramePointer];
+			}
+
+			if(instruction.unaryMathematics.stackIndex < 0) {
+				this->pop();
+			}
+
+			this->push(!isEntryTruthy(*value), instruction.pushType);
+			break;
+		}
+
 		case instruction::LOCAL_ACCESS: { // push local variable to stack
 			this->push(this->stack[instruction.localAccess.stackIndex + this->stackFramePointer], instruction.pushType);
 			break;

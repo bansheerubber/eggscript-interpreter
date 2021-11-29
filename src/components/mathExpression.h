@@ -72,6 +72,7 @@ class MathExpression : public Component {
 
 		static map<TokenType, int> CreatePrecedenceMap();
 		static ts::instruction::InstructionType TypeToOperator(TokenType type);
+		static ts::instruction::InstructionType TypeToUnaryOperator(SpecialOperator type);
 		static map<TokenType, int> Precedence;
 
 		ts::InstructionReturn compileList(vector<MathElement*>* list, ts::Engine* engine, ts::CompilationContext context);
