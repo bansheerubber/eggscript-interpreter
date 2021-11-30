@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include "../components/classDeclaration.h"
 #include "../components/sourceFile.h"
 
 Parser::Parser(ts::Engine* engine, ParsedArguments args) {
@@ -22,6 +23,21 @@ void Parser::startParse() {
 	
 	this->sourceFile = new SourceFile(this->engine);
 	Component::ParseBody(this->sourceFile, this->engine);
+
+	for(ClassDeclaration* declaration: this->sourceFile->classDeclarations) {
+		ts::MethodTree* tree = this->engine->getNamespace(declaration->className);
+		if(tree == nullptr) {
+			tree = this->engine->createMethodTreeFromNamespace(declaration->className);
+		}
+
+		ts::MethodTree* inheritedTree = this->engine->getNamespace(declaration->inheritedName);
+		if(declaration->inheritedName != "" && inheritedTree != nullptr) {
+			tree->addParent(inheritedTree);
+		}
+		else if(declaration->inheritedName != "" && inheritedTree == nullptr) {
+			this->error("could not inherit non-declared class '%s'", declaration->inheritedName.c_str());
+		}
+	}
 
 	if(this->args.arguments["json"] != "") {
 		cout << this->printJSON() << endl;

@@ -84,6 +84,8 @@ enum TokenType {
 	COMMENT,
 	MEMBER_CHAIN,
 	EMPTY,
+	CLASS,
+	INHERITS,
 };
 
 struct Token {

@@ -6,6 +6,7 @@
 #include "assignStatement.h"
 #include "booleanLiteral.h"
 #include "breakStatement.h"
+#include "classDeclaration.h"
 #include "comment.h"
 #include "continueStatement.h"
 #include "datablockDeclaration.h"
@@ -43,7 +44,8 @@ bool Component::ShouldParse(Component* parent, ts::Engine* engine) {
 		|| InheritanceStatement::ShouldParse(nullptr, parent, engine)
 		|| Symbol::ShouldParse(engine)
 		|| MatrixExpression::ShouldParse(engine)
-		|| EmptyLiteral::ShouldParse(engine);
+		|| EmptyLiteral::ShouldParse(engine)
+		|| ClassDeclaration::ShouldParse(engine);
 }
 
 // handles member chaining, inline conditionals. basically, any tacked on stuff that we might
@@ -145,6 +147,9 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 	}
 	else if(EmptyLiteral::ShouldParse(engine)) {
 		output = EmptyLiteral::Parse(parent, engine);
+	}
+	else if(ClassDeclaration::ShouldParse(engine)) {
+		output = ClassDeclaration::Parse(parent, engine);
 	}
 	
 	// additional support for edge cases

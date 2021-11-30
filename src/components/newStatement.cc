@@ -262,7 +262,7 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 
 	if(canCacheMethodTree) {
 		ts::MethodTree* typeCheck = engine->getNamespace(this->className->print());
-		if(typeCheck != nullptr && typeCheck->isTSSL) {
+		if(typeCheck != nullptr) {
 			ts::MethodTree* tree = engine->createMethodTreeFromNamespaces(
 				symbolName,
 				classProperty,
@@ -273,7 +273,7 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 			createObject->createObject.isCached = true;
 		}
 		else {
-			createObject->createObject.canCreate = false;
+			createObject->createObject.isCached = false;
 		}
 	}
 	else {

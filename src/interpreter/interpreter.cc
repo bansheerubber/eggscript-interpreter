@@ -694,9 +694,13 @@ void Interpreter::interpret() {
 				// check to make sure that the type name that we're using is defined by the TSSL. if not, we can't
 				// create the object
 				MethodTree* typeCheck = this->engine->getNamespace(typeName);
-				if(typeCheck == nullptr || !typeCheck->isTSSL) {
+				if(typeCheck == nullptr) {
 					this->warning("could not create object with type '%s'\n", typeName.c_str());
 					this->pushEmpty(instruction.pushType);
+
+					// cache this result since we always need a base type name to create a object
+					instruction.createObject.isCached = true;
+					instruction.createObject.canCreate = false;
 					break;
 				}
 
