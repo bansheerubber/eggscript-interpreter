@@ -61,6 +61,7 @@ namespace ts {
 		friend void convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type);
 		friend ObjectWrapper* CreateObject(
 			class ts::Interpreter* interpreter,
+			bool inhibitInterpret,
 			string nameSpace,
 			string inheritedName,
 			MethodTree* methodTree,
@@ -91,7 +92,7 @@ namespace ts {
 			void deleteObjectName(string &name);
 
 			Entry* callFunction(string functionName, Entry* arguments, size_t argumentCount);
-			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount);
+			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount, bool inhibitInterpret = false);
 
 			string& getTopFileNameFromFrame();
 

@@ -170,6 +170,7 @@ void ts::sl::define(Engine* engine) {
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &schedule, "schedule", 2, ns));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__schedule, "SimObject", "schedule", 3, ons));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__onAdd, "SimObject", "onAdd", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__getId, "SimObject", "getId", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__delete, "SimObject", "delete", 1, o));
 
@@ -198,6 +199,7 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &eval, "eval", 1, s));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &exec, "exec", 1, s));
 
+	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__onAdd, "Array", "onAdd", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__push, "Array", "push", 1, o));
 	functions.push_back(FUNC_DEF(entry::NUMBER, &Array__size, "Array", "size", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__insert, "Array", "insert", 2, on));

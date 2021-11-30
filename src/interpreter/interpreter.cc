@@ -723,6 +723,7 @@ void Interpreter::interpret() {
 			
 			ObjectWrapper* object = ts::CreateObject(
 				this,
+				true,
 				typeName,
 				instruction.createObject.inheritedName,
 				instruction.createObject.methodTree,
@@ -1051,7 +1052,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	}
 }
 
-Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount) {
+Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount, bool inhibitInterpret) {
 	// set up function call frame
 	Function* foundFunction;
 	PackagedFunctionList* list;
@@ -1115,7 +1116,10 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			argumentCount + 1,
 			foundFunction->variableCount
 		);
-		this->interpret();
+
+		if(!inhibitInterpret) {
+			this->interpret();
+		}
 
 		if(this->returnRegister.type == entry::EMPTY) {
 			return new Entry();

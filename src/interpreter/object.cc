@@ -5,6 +5,7 @@
 
 ObjectWrapper* ts::CreateObject(
 	class ts::Interpreter* interpreter,
+	bool inhibitInterpret,
 	string nameSpace,
 	string inheritedName,
 	MethodTree* methodTree,
@@ -26,6 +27,10 @@ ObjectWrapper* ts::CreateObject(
 	}
 
 	interpreter->garbageHeap.insert(wrapper);
+
+	ts::ObjectReference* reference = new ObjectReference(wrapper);
+	ts::Entry* entry = new Entry(reference);
+	interpreter->callMethod(reference, "onAdd", entry, 1, inhibitInterpret);
 
 	return wrapper;
 }

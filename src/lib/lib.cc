@@ -87,7 +87,7 @@ esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpa
 	}
 	else {
 		return (esObjectReferencePtr)new ts::ObjectReference(
-			CreateObject(((ts::Engine*)engine)->interpreter, nameSpace, "", methodTree, methodTree, data)
+			CreateObject(((ts::Engine*)engine)->interpreter, false, nameSpace, "", methodTree, methodTree, data)
 		);
 	}
 }

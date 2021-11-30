@@ -16,6 +16,7 @@ namespace ts {
 		void arrayInitEntry(class Array* owner, Entry* entry);
 
 		void Array__constructor(ObjectWrapper* wrapper);
+		Entry* Array__onAdd(Engine* engine, unsigned int argc, Entry* args);
 		Entry* Array__push(Engine* engine, unsigned int argc, Entry* args);
 		Entry* Array__size(Engine* engine, unsigned int argc, Entry* args);
 		Entry* Array__insert(Engine* engine, unsigned int argc, Entry* args);

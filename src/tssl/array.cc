@@ -14,6 +14,10 @@ namespace ts {
 			wrapper->data = new Array();
 		}
 
+		Entry* Array__onAdd(Engine* engine, unsigned int argc, Entry* args) {
+			return nullptr;
+		}
+
 		void Array::push(Entry* entries, long amount) {
 			for(long i = 0; i < amount; i++) {
 				copyEntry(entries[i], this->array[this->array.head]);

@@ -19,6 +19,7 @@ namespace ts {
 
 	struct ObjectWrapper* CreateObject(
 		class ts::Interpreter* interpreter,
+		bool inhibitInterpret,
 		string nameSpace,
 		string inheritedName,
 		class MethodTree* methodTree,
@@ -29,6 +30,7 @@ namespace ts {
 	class Object {
 		friend ObjectWrapper* CreateObject(
 			Interpreter* interpreter,
+			bool inhibitInterpret,
 			string nameSpace,
 			string inheritedName,
 			MethodTree* methodTree,
