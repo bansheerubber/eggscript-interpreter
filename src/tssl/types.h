@@ -7,6 +7,7 @@ namespace ts {
 	class Engine;
 	
 	namespace sl {
-		Entry* number(Engine* engine, unsigned int argc, Entry* args);
+		Entry* toNumber(Engine* engine, unsigned int argc, Entry* args);
+		Entry* toString(Engine* engine, unsigned int argc, Entry* args);
 	};
 };

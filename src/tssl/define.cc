@@ -204,7 +204,8 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__remove, "Array", "remove", 2, on));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__index, "Array", "index", 1, o));
 
-	functions.push_back(FUNC_DEF(entry::EMPTY, &number, "number", 0, e));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &toNumber, "number", 0, e));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &toString, "string", 0, e));
 
 	for(ts::sl::Function* function: functions) {
 		engine->defineTSSLFunction(function);

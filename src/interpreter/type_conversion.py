@@ -30,7 +30,6 @@ for entry_type1 in entry_types:
 
 			if entry_type1 not in entry_type_conversion:
 				entry_type_conversion[entry_type1] = {}
-
 			entry_type_conversion[entry_type1][entry_type2] = code
 		except:
 			pass
@@ -72,7 +71,7 @@ else:
 		.replace("%%conditional%%", "if")\
 		.replace("%%entry%%", entry_name)\
 		.replace("%%output%%", output_name)\
-		.replace("%%delete%%", get_delete_line(additional, output_type, entry_type))\
+		.replace("%%delete%%", get_delete_line(additional, output_type, source_type))\
 		.replace("%%this%%", interpreter)
 	
 	print(code)
