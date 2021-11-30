@@ -19,6 +19,7 @@
 #include "scriptObject.h"
 #include "simObject.h"
 #include "string.h"
+#include "types.h"
 
 using namespace ts::sl;
 
@@ -97,6 +98,7 @@ void ts::sl::define(Engine* engine) {
 	entry::EntryType s[1] = { entry::STRING };
 	entry::EntryType n[1] = { entry::NUMBER };
 	entry::EntryType o[1] = { entry::OBJECT };
+	entry::EntryType e[1] = { entry::EMPTY };
 	entry::EntryType sn[2] = { entry::STRING, entry::NUMBER };
 	entry::EntryType nn[2] = { entry::NUMBER, entry::NUMBER };
 	entry::EntryType os[2] = { entry::OBJECT, entry::STRING };
@@ -196,12 +198,14 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &eval, "eval", 1, s));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &exec, "exec", 1, s));
 
-	// EMPTY
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__push, "Array", "push", 1, o));
 	functions.push_back(FUNC_DEF(entry::NUMBER, &Array__size, "Array", "size", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__insert, "Array", "insert", 2, on));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__remove, "Array", "remove", 2, on));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__index, "Array", "index", 1, o));
+
+	functions.push_back(FUNC_DEF(entry::EMPTY, &toNumber, "number", 0, e));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &toString, "string", 0, e));
 
 	for(ts::sl::Function* function: functions) {
 		engine->defineTSSLFunction(function);

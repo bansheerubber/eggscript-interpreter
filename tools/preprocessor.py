@@ -28,7 +28,7 @@ def preprocess(filename, contents, directory = None):
 
 			command = match.group(1).strip()
 
-			if ".py" in command:
+			if ".py" in command.split(" ")[0]:
 				command = f"cd {directory} && python3 {command}"
 			else:
 				command = f"cd {directory} && {command}"
