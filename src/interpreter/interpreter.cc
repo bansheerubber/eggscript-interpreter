@@ -75,7 +75,8 @@ void Interpreter::pushFunctionFrame(
 	int methodTreeEntryIndex,
 	size_t argumentCount,
 	size_t popCount,
-	string fileName
+	string fileName,
+	bool earlyQuit
 ) {
 	if(this->frames.head == 0) {
 		this->startTime = getMicrosecondsNow();
@@ -90,6 +91,7 @@ void Interpreter::pushFunctionFrame(
 	frame.packagedFunctionListIndex = packagedFunctionListIndex;
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
+	frame.earlyQuit = earlyQuit;
 	frame.isTSSL = false;
 	ALLOCATE_STRING(fileName, frame.fileName);
 
@@ -123,6 +125,7 @@ void Interpreter::popFunctionFrame() {
 
 void Interpreter::pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex) {
 	FunctionFrame &frame = this->frames[this->frames.head];
+	frame.earlyQuit = false;
 	frame.isTSSL = true;
 	frame.stackPopCount = 0;
 	frame.methodTreeEntry = methodTreeEntry;
@@ -219,12 +222,6 @@ void Interpreter::pushEmpty(instruction::PushType type) {
 	else {
 		this->returnRegister.erase();
 	}
-}
-
-void Interpreter::pop() {
-	// TODO does this fuck everything??
-	// this->stack[this->stack.head - 1].erase();
-	this->stack.popped();
 }
 
 void Interpreter::startInterpretation(Instruction* head) {
@@ -513,7 +510,7 @@ void Interpreter::interpret() {
 			// if the object is not alive anymore, push nothing to the stack
 			if(objectWrapper == nullptr) {
 				this->pop(); // pop the object
-				this->push(this->emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 			
@@ -534,7 +531,7 @@ void Interpreter::interpret() {
 			// try to look up the object's name
 			auto objectIterator = this->stringToObject.find(instruction.symbolAccess.source, instruction.symbolAccess.hash);
 			if(objectIterator == this->stringToObject.end()) {
-				this->push(emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 			}
 			else {
 				this->push(new ObjectReference(objectIterator->second), instruction.pushType);
@@ -583,7 +580,7 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(this->emptyEntry, instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 			}
@@ -627,8 +624,13 @@ void Interpreter::interpret() {
 				this->push(this->returnRegister, instruction::STACK, true); // push return register
 			}
 			else {
-				this->push(this->emptyEntry, instruction::STACK);
+				this->pushEmpty(instruction::STACK);
 			}
+
+			if(this->frames[this->frames.head].earlyQuit) {
+				return;
+			}
+
 			break;
 		}
 
@@ -758,7 +760,7 @@ void Interpreter::interpret() {
 					this->pop();
 				}
 
-				this->push(this->emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 
@@ -828,7 +830,7 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(this->emptyEntry, instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 			}
@@ -844,7 +846,7 @@ void Interpreter::interpret() {
 					this->pop();
 				}
 
-				this->push(this->emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 
@@ -1039,16 +1041,13 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 			methodTreeEntry,
 			methodTreeEntryIndex,
 			argumentCount + 1,
-			foundFunction->variableCount
+			foundFunction->variableCount,
+			"",
+			true
 		);
 		this->interpret();
-
-		if(this->returnRegister.type == entry::EMPTY) {
-			return new Entry();
-		}
-		else {
-			return new Entry(this->returnRegister);
-		}
+	
+		return new Entry(this->returnRegister);
 	}
 }
 
@@ -1114,18 +1113,12 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			methodTreeEntry,
 			methodTreeEntryIndex,
 			argumentCount + 1,
-			foundFunction->variableCount
+			foundFunction->variableCount,
+			"",
+			true
 		);
+		this->interpret();
 
-		if(!inhibitInterpret) {
-			this->interpret();
-		}
-
-		if(this->returnRegister.type == entry::EMPTY) {
-			return new Entry();
-		}
-		else {
-			return new Entry(this->returnRegister);
-		}
+		return new Entry(this->returnRegister);
 	}
 }

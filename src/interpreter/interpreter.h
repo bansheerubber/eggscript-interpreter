@@ -39,6 +39,7 @@ namespace ts {
 		int packagedFunctionListIndex;
 		MethodTreeEntry* methodTreeEntry;
 		int methodTreeEntryIndex;
+		bool earlyQuit;
 		bool isTSSL;
 		string fileName;
 	};
@@ -125,7 +126,11 @@ namespace ts {
 			void push(Matrix* matrix, instruction::PushType type) __attribute__((always_inline));
 			void push(ObjectReference* data, instruction::PushType) __attribute__((always_inline));
 			void pushEmpty(instruction::PushType type)  __attribute__((always_inline));
-			void pop() __attribute__((always_inline));
+			void pop() __attribute__((always_inline)) {
+				// TODO does this fuck everything??
+				// this->stack[this->stack.head - 1].erase();
+				this->stack.popped();
+			};
 
 			size_t ranInstructions = 0;
 			unsigned long long startTime = 0;
@@ -147,7 +152,8 @@ namespace ts {
 				int methodTreeEntryIndex = -1,
 				size_t argumentCount = 0,
 				size_t popCount = 0,
-				string fileName = ""
+				string fileName = "",
+				bool earlyQuit = false
 			);
 			void popFunctionFrame() __attribute__((always_inline));
 			void pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex);
