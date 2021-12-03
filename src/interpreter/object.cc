@@ -32,10 +32,6 @@ ObjectWrapper* ts::CreateObject(
 	ts::Entry* entry = new Entry(reference);
 	delete interpreter->callMethod(reference, "onAdd", entry, 1);
 
-	if(!interpreter->frames[interpreter->frames.head].isTSSL) { // only pop if the onAdd method wasn't a TSSL method
-		interpreter->pop();
-	}
-
 	return wrapper;
 }
 

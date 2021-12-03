@@ -609,14 +609,14 @@ void Interpreter::interpret() {
 		case instruction::RETURN: { // return from a function
 			this->popFunctionFrame();
 
-			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
-			// here so the original TSSL method can take over
-			if(this->frames[this->frames.head - 1].isTSSL) {
+			// if we just ran out of instruction containers, just die here
+			if(this->topContainer == nullptr) {
 				return;
 			}
 
-			// if we just ran out of instruction containers, just die here
-			if(this->topContainer == nullptr) {
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL) {
 				return;
 			}
 
@@ -1118,6 +1118,10 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			true
 		);
 		this->interpret();
+
+		if(this->topContainer != nullptr) {
+			this->pop(); // pop the return value from the stack, otherwise its just going to stay there forever
+		}
 
 		return new Entry(this->returnRegister);
 	}
