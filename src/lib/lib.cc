@@ -148,6 +148,10 @@ esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const c
 	return (esEntryPtr)((ts::Engine*)engine)->interpreter->callMethod((ts::ObjectReference*)object, string(functionName), (ts::Entry*)arguments, argumentCount);
 }
 
+void esDeleteEntry(esEntryPtr entry) {
+	delete ((ts::Entry*)entry);
+}
+
 esEntryPtr esCreateNumber(double number) {
 	return (esEntryPtr)(new ts::Entry(number));
 }

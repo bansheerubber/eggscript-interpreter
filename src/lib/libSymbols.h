@@ -80,6 +80,7 @@ extern "C" {
 	esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
 	esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
 
+	void esDeleteEntry(esEntryPtr entry);
 	esEntryPtr esCreateNumber(double number);
 	esEntryPtr esCreateString(char* string);
 	esEntryPtr esCreateVector(unsigned int size, ...);
