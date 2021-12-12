@@ -8,7 +8,8 @@ extern "C" {
 	#define esVPrintFunction(name)		int (*name)(const char* format, va_list args)
 
 	enum esEntryType {
-		ES_ENTRY_INVALID,
+		ES_ENTRY_INVALID = 0,
+		ES_ENTRY_EMPTY,
 		ES_ENTRY_NUMBER,
 		ES_ENTRY_STRING,
 		ES_ENTRY_OBJECT,

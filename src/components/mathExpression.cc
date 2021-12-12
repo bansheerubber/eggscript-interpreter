@@ -479,9 +479,9 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = MathExpression::TypeToOperator(element.element->op.type);
 			instruction->mathematics.lvalueEntry = ts::Entry();
-			instruction->mathematics.lvalueEntry.type = ts::entry::EMPTY;
+			instruction->mathematics.lvalueEntry.type = ts::entry::INVALID;
 			instruction->mathematics.rvalueEntry = ts::Entry();
-			instruction->mathematics.rvalueEntry.type = ts::entry::EMPTY;
+			instruction->mathematics.rvalueEntry.type = ts::entry::INVALID;
 			instruction->mathematics.lvalueStackIndex = -1;
 			instruction->mathematics.rvalueStackIndex = -1;
 

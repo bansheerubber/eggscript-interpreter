@@ -10,6 +10,7 @@ using namespace std;
 namespace ts {
 	namespace entry {
 		enum EntryType {
+			INVALID = 0,
 			EMPTY,
 			NUMBER,
 			STRING,

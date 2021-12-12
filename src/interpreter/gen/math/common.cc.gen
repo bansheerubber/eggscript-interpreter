@@ -19,6 +19,7 @@
 	}
 	else if(instruction.mathematics.rvalueStackIndex < 0) {
 		rvalue = &this->stack[this->stack.head - 1];
+		this->pop();
 	}
 	else {
 		rvalue = &this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer];
