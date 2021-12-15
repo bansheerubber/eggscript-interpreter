@@ -614,17 +614,17 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
-			// here so the original TSSL method can take over
-			if(this->frames[this->frames.head - 1].isTSSL) {
-				return;
-			}
-
 			if(instruction.functionReturn.hasValue) {
 				this->push(this->returnRegister, instruction::STACK, true); // push return register
 			}
 			else {
 				this->pushEmpty(instruction::STACK);
+			}
+
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL) {
+				return;
 			}
 
 			if(this->frames[this->frames.head].earlyQuit) {
