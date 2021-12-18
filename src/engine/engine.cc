@@ -25,6 +25,8 @@ Engine::Engine(ParsedArguments args, bool isParallel) {
 	this->tokenizer = new Tokenizer(this, args);
 	this->parser = new Parser(this, args);
 	this->interpreter = new Interpreter(this, args, isParallel);
+
+	this->setRandomSeed(time(0));
 }
 
 Engine::~Engine() {
