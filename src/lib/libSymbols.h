@@ -94,4 +94,9 @@ extern "C" {
 	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);
 
 	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry);
+
+	void esSetObjectProperty(esObjectReferencePtr object, const char* variable, esEntryPtr property);
+	esEntryPtr esGetObjectProperty(esObjectReferencePtr object, const char* variable);
+
+	double esGetNumberFromEntry(esEntryPtr entry);
 }

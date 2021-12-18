@@ -239,3 +239,35 @@ void esArrayPush(esObjectReferencePtr reference, esEntryPtr entry) {
 		((ts::sl::Array*)array->objectWrapper->data)->push((ts::Entry*)entry, 1);
 	}
 }
+
+void esSetObjectProperty(esObjectReferencePtr object, const char* variable, esEntryPtr property) {
+	ts::ObjectWrapper* wrapper = ((ts::ObjectReference*)object)->objectWrapper;
+	if(wrapper == nullptr) {
+		return;
+	}
+
+	string name(variable);
+	name = toLower(name);
+	wrapper->object->properties.setVariableEntry(name, *((ts::Entry*)property));
+	esDeleteEntry(property); // TODO better way to do this??
+}
+
+esEntryPtr esGetObjectProperty(esObjectReferencePtr object, const char* variable) {
+	ts::ObjectWrapper* wrapper = ((ts::ObjectReference*)object)->objectWrapper;
+	if(wrapper == nullptr) {
+		return nullptr;
+	}
+
+	string name(variable);
+	name = toLower(name);
+	return (esEntryPtr)(&wrapper->object->properties.getVariableEntry(name));
+}
+
+double esGetNumberFromEntry(esEntryPtr entry) {
+	if(entry->type == ES_ENTRY_NUMBER) {
+		return entry->numberData;
+	}
+	else {
+		return 0.0;
+	}
+}
