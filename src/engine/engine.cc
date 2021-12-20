@@ -51,8 +51,13 @@ std::mutex& execLock() {
 
 void Engine::execFile(string fileName, bool forceExecution) {
 	if(!this->interpreter->isParallel || forceExecution) {
-		this->tokenizer->tokenizeFile(fileName);
-		this->parser->startParse();
+		if(!this->tokenizer->tokenizeFile(fileName)) {
+			return;
+		}
+		
+		if(!this->parser->startParse()) {
+			return;
+		}
 
 		// compile
 		InstructionReturn result = parser->getSourceFile()->compile(this, {
@@ -76,8 +81,13 @@ void Engine::execFile(string fileName, bool forceExecution) {
 }
 
 void Engine::execFileContents(string fileName, string contents) {
-	this->tokenizer->tokenizePiped(contents);
-	this->parser->startParse();
+	if(!this->tokenizer->tokenizePiped(contents)) {
+		return;
+	}
+
+	if(!this->parser->startParse()) {
+		return;
+	}
 
 	// compile
 	InstructionReturn result = parser->getSourceFile()->compile(this, {
@@ -89,8 +99,13 @@ void Engine::execFileContents(string fileName, string contents) {
 }
 
 void Engine::execPiped(string piped) {
-	this->tokenizer->tokenizePiped(piped);
-	this->parser->startParse();
+	if(!this->tokenizer->tokenizePiped(piped)) {
+		return;
+	}
+
+	if(!this->parser->startParse()) {
+		return;
+	}
 
 	// compile
 	InstructionReturn result = parser->getSourceFile()->compile(this, {
@@ -103,8 +118,13 @@ void Engine::execPiped(string piped) {
 
 void Engine::execShell(string shell, bool forceExecution) {
 	if(!this->interpreter->isParallel || forceExecution) {
-		this->tokenizer->tokenizePiped(shell);
-		this->parser->startParse();
+		if(!this->tokenizer->tokenizePiped(shell)) {
+			return;
+		}
+
+		if(!this->parser->startParse()) {
+			return;
+		}
 
 		// compile
 		InstructionReturn result = parser->getSourceFile()->compile(this, {

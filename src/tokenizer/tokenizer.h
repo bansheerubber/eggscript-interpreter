@@ -44,8 +44,8 @@ class Tokenizer {
 		ParsedArguments args;
 		void handleArgs(ParsedArguments args);
 
-		void tokenizePiped(string piped);
-		void tokenizeFile(string fileName);
+		bool tokenizePiped(string piped);
+		bool tokenizeFile(string fileName);
 		
 		void tokenize();
 		char getChar();

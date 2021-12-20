@@ -24,7 +24,7 @@ void Parser::error(const char* format, ...) {
 
 	(*this->engine->errorFunction)("\n");
 
-	exit(1);
+	throw 0;
 }
 
 void Parser::warning(const char* format, ...) {

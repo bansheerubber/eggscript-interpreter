@@ -28,7 +28,7 @@ void Tokenizer::reset() {
 	}
 }
 
-void Tokenizer::tokenizePiped(string piped) {
+bool Tokenizer::tokenizePiped(string piped) {
 	this->reset();
 	
 	this->contentSize = piped.size();
@@ -36,10 +36,18 @@ void Tokenizer::tokenizePiped(string piped) {
 	strcpy(this->contents, piped.c_str());
 	this->contents[this->contentSize] = '\0';
 
-	this->tokenize();
+	try {
+		this->tokenize();
+		return true;
+	}
+	catch(...) {
+
+	}
+
+	return false;
 }
 
-void Tokenizer::tokenizeFile(string fileName) {
+bool Tokenizer::tokenizeFile(string fileName) {
 	this->reset();
 	
 	// read the file
@@ -58,7 +66,15 @@ void Tokenizer::tokenizeFile(string fileName) {
 	file.read(this->contents, this->contentSize);
 	file.close();
 
-	this->tokenize();
+	try {
+		this->tokenize();
+		return true;
+	}
+	catch(...) {
+
+	}
+
+	return false;
 }
 
 void Tokenizer::handleArgs(ParsedArguments args) {

@@ -14,7 +14,7 @@ Parser::~Parser() {
 	}
 }
 
-void Parser::startParse() {
+bool Parser::startParse() {
 	for(Component* component: this->components) {
 		delete component;
 	}
@@ -22,26 +22,36 @@ void Parser::startParse() {
 	this->components.clear();
 	
 	this->sourceFile = new SourceFile(this->engine);
-	Component::ParseBody(this->sourceFile, this->engine);
 
-	for(ClassDeclaration* declaration: this->sourceFile->classDeclarations) {
-		ts::MethodTree* tree = this->engine->getNamespace(declaration->className);
-		if(tree == nullptr) {
-			tree = this->engine->createMethodTreeFromNamespace(declaration->className);
+	try {
+		Component::ParseBody(this->sourceFile, this->engine);
+
+		for(ClassDeclaration* declaration: this->sourceFile->classDeclarations) {
+			ts::MethodTree* tree = this->engine->getNamespace(declaration->className);
+			if(tree == nullptr) {
+				tree = this->engine->createMethodTreeFromNamespace(declaration->className);
+			}
+
+			ts::MethodTree* inheritedTree = this->engine->getNamespace(declaration->inheritedName);
+			if(declaration->inheritedName != "" && inheritedTree != nullptr) {
+				tree->addParent(inheritedTree);
+			}
+			else if(declaration->inheritedName != "" && inheritedTree == nullptr) {
+				this->error("could not inherit non-declared class '%s'", declaration->inheritedName.c_str());
+			}
 		}
 
-		ts::MethodTree* inheritedTree = this->engine->getNamespace(declaration->inheritedName);
-		if(declaration->inheritedName != "" && inheritedTree != nullptr) {
-			tree->addParent(inheritedTree);
+		if(this->args.arguments["json"] != "") {
+			cout << this->printJSON() << endl;
 		}
-		else if(declaration->inheritedName != "" && inheritedTree == nullptr) {
-			this->error("could not inherit non-declared class '%s'", declaration->inheritedName.c_str());
-		}
+
+		return true;
+	}
+	catch(...) {
+
 	}
 
-	if(this->args.arguments["json"] != "") {
-		cout << this->printJSON() << endl;
-	}
+	return false;
 }
 
 Token Parser::expectToken(TokenType type1, TokenType type2, TokenType type3, TokenType type4, TokenType type5) {
