@@ -224,26 +224,30 @@ void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType
 	source.type = type;
 }
 
-bool ts::isEntryEqual(const Entry &source, const Entry &destination) {
-	if(source.type != destination.type) {
+bool ts::isEntryEqual(const Entry &left, const Entry &right) {
+	if(left.type != right.type) {
 		return false;
 	}
 
-	switch(source.type) {
+	switch(left.type) {
 		case entry::EMPTY: {
 			return true;
 		}
 
 		case entry::NUMBER: {
-			return source.numberData == destination.numberData;
+			return left.numberData == right.numberData;
 		}
 		
 		case entry::STRING: {
-			return strcmp(source.stringData, destination.stringData) == 0;
+			return strcmp(left.stringData, right.stringData) == 0;
 		}
 
 		case entry::OBJECT: {
-			return source.objectData->objectWrapper == destination.objectData->objectWrapper;
+			return left.objectData->objectWrapper == right.objectData->objectWrapper;
+		}
+
+		case entry::MATRIX: {
+			return left.matrixData->equal(right.matrixData);
 		}
 	}
 

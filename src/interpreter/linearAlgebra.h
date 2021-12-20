@@ -16,6 +16,7 @@ namespace ts {
 			unsigned int rows;
 			unsigned int columns;
 
+			bool equal(const Matrix* other);
 			Matrix* initialize(unsigned int rows, unsigned int columns, bool fillZeros = false);
 			Matrix* add(const Matrix* other);
 			Matrix* subtract(const Matrix* other);
