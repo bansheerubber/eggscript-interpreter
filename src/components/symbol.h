@@ -35,6 +35,5 @@ class Symbol : public Component {
 		static bool ShouldParseAlphabeticToken(ts::Engine* engine);
 		static Symbol* Parse(Component* parent, ts::Engine* engine);
 	
-	private:
 		string value;
 };

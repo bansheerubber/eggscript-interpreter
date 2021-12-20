@@ -14,7 +14,7 @@
 
 using namespace std;
 
-class PackageDeclaration : public Body, public ts::Package {
+class PackageDeclaration : public Body, public ts::PackageContext {
 	public:
 		using Body::Body;
 		

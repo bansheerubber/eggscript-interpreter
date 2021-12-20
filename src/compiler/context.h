@@ -7,7 +7,7 @@
 namespace ts {
 	struct CompilationContext {
 		LoopsContext* loop;
-		Package* package;
+		PackageContext* package;
 		Scope* scope;
 	};
 }

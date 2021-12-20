@@ -234,7 +234,18 @@ void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn out
 	tree->defineInitialMethod(name, index, container);
 }
 
-void Engine::addPackageFunction(Package* package, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+Package* Engine::createPackage(PackageContext* package) {
+	if(this->nameToPackage[package->name] == nullptr) {
+		this->nameToPackage[package->name] = new Package(this);
+	}
+	return this->nameToPackage[package->name];
+}
+
+void Engine::addPackageFunction(PackageContext* packageContext, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+	// create a package if we don't have one
+	Package* package = this->createPackage(packageContext);
+	package->removeFunction(name);
+	
 	// create the function container which we will use to execute the function at runtime
 	Function* container = new Function(output.first, argumentCount, variableCount, name);
 	
@@ -252,10 +263,11 @@ void Engine::addPackageFunction(Package* package, string &name, InstructionRetur
 
 	// create the packaged function list
 	list->addPackageFunction(container);
+	package->addPackageFunction(name, container);
 }
 
 void Engine::addPackageMethod(
-	Package* package,
+	PackageContext* packageContext,
 	string &nameSpace,
 	string &name,
 	InstructionReturn output,
@@ -264,6 +276,9 @@ void Engine::addPackageMethod(
 ) {
 	// create the function container which we will use to execute the function at runtime
 	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
+
+	Package* package = this->createPackage(packageContext);
+	package->removeMethod(nameSpace, name);
 	
 	// define the method tree if we don't have one yet
 	MethodTree* tree;
@@ -288,6 +303,7 @@ void Engine::addPackageMethod(
 	}
 
 	tree->addPackageMethod(name, index, container);
+	package->addPackageMethod(nameSpace, name, container);
 }
 
 MethodTree* Engine::createMethodTreeFromNamespace(string nameSpace) {

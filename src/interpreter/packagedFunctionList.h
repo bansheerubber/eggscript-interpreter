@@ -21,6 +21,7 @@ namespace ts {
 
 			void defineInitialFunction(Function* function);
 			void addPackageFunction(Function* function);
+			void removePackageFunction(Function* function);
 			void deactivateFunction(Function* function);
 			void activateFunction(Function* function);
 

@@ -13,6 +13,7 @@
 #include "../io.h"
 #include "../interpreter/methodTree.h"
 #include "../compiler/package.h"
+#include "../interpreter/package.h"
 #include "../interpreter/packagedFunctionList.h"
 #include "../parser/parser.h"
 #include "../include/robin-map/include/tsl/robin_map.h"
@@ -33,6 +34,7 @@ namespace ts {
 	
 	class Engine {
 		friend Interpreter;
+		friend Package;
 		friend FunctionDeclaration;
 		friend NewStatement;
 		friend void sl::define(Engine* engine);
@@ -92,8 +94,10 @@ namespace ts {
 
 			int randomSeed;
 
-			void addPackageFunction(Package* package, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
-			void addPackageMethod(Package* package, string &nameSpace, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
+			Package* createPackage(PackageContext* package);
+
+			void addPackageFunction(PackageContext* package, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
+			void addPackageMethod(PackageContext* package, string &nameSpace, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
 
 			// function data structures
 			robin_map<string, size_t> nameToFunctionIndex;
@@ -102,6 +106,8 @@ namespace ts {
 
 			robin_map<string, size_t> namespaceToMethodTreeIndex;
 			DynamicArray<MethodTree*, Engine> methodTrees = DynamicArray<MethodTree*, Engine>(this, 1024, initMethodTree, nullptr);
+
+			robin_map<string, Package*> nameToPackage;
 
 			// used to index into a method tree
 			robin_map<string, size_t> methodNameToIndex;

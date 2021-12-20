@@ -49,6 +49,15 @@ void PackagedFunctionList::addPackageFunction(Function* function) {
 	this->functions.pushed();
 }
 
+void PackagedFunctionList::removePackageFunction(Function* function) {
+	if(this->functions.head == 0) {
+		this->functions.head = 1;
+	}
+
+	this->functions.remove(function);
+	this->findValidFunction();
+}
+
 // deactiavtes a function in the list
 void PackagedFunctionList::deactivateFunction(Function* function) {
 	function->isActive = false;
@@ -72,6 +81,7 @@ int PackagedFunctionList::getNextValidIndex(int currentIndex) {
 
 void PackagedFunctionList::findValidFunction() {
 	// find top-most valid index
+	this->topValidIndex = 0;
 	for(int i = this->functions.head - 1; i >= 0; i--) {
 		if(this->functions[i] != nullptr && this->functions[i]->isActive) {
 			this->topValidIndex = i;

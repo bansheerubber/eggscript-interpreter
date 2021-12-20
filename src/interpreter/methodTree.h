@@ -41,6 +41,7 @@ namespace ts {
 
 			void defineInitialMethod(string name, size_t nameIndex, class Function* container);
 			void addPackageMethod(string name, size_t nameIndex, class Function* container);
+			void removePackageMethod(size_t nameIndex, class Function* container);
 
 			void addParent(MethodTree* parent); // add a parent for this method tree, order matters
 			bool hasParent(string nameSpace); // recursively check for parent

@@ -108,6 +108,11 @@ void MethodTree::addPackageMethod(string name, size_t nameIndex, Function* conta
 	entry->list[0]->addPackageFunction(container);
 }
 
+void MethodTree::removePackageMethod(size_t nameIndex, class Function* container) {
+	MethodTreeEntry* entry = this->methodIndexToEntry[nameIndex];
+	entry->list[0]->removePackageFunction(container);
+}
+
 void MethodTree::updateMethodTree(string methodName, size_t methodNameIndex) {
 	if(this->methodIndexToEntry.find(methodNameIndex) == this->methodIndexToEntry.end()) {
 		this->methodIndexToEntry[methodNameIndex] = new MethodTreeEntry(this, methodName);
