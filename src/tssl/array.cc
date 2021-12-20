@@ -27,7 +27,7 @@ namespace ts {
 
 		// TODO: if amount < 0 and |amount| > index(?) then its going to be screwy
 		void Array::shift(long index, long amount, bool fill) {
-			size_t end = this->array.head;
+			long end = (long)this->array.head;
 
 			for(int i = 0; i < amount; i++) {
 				this->array.pushed(); // allocate space
