@@ -63,8 +63,8 @@ extern "C" {
 	void esExecFileFromContents(esEnginePtr, const char* fileName, const char* contents);
 	void esEval(esEnginePtr engine, const char* shell);
 	const char* esGetLastExecFileName(esEnginePtr engine);
-	void esSetPrintFunction(esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
-	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
+	void esSetPrintFunction(esEnginePtr engine, esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
+	void esSetVPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
 	void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper));
 	void esSetNamespaceDeconstructor(esEnginePtr engine, const char* nameSpace, void (*deconstructor)(esObjectWrapperPtr wrapper));

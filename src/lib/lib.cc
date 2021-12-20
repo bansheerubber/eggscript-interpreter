@@ -53,7 +53,7 @@ void esSetPrintFunction(esEnginePtr engine, esPrintFunction(print), esPrintFunct
 	((ts::Engine*)engine)->errorFunction = error;
 }
 
-void esVSetPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error)) {
+void esSetVPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error)) {
 	((ts::Engine*)engine)->vPrintFunction = print;
 	((ts::Engine*)engine)->vWarningFunction = warning;
 	((ts::Engine*)engine)->vErrorFunction = error;

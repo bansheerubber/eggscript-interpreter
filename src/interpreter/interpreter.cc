@@ -298,7 +298,7 @@ void Interpreter::warning(const char* format, ...) {
 	if(this->warnings) {
 		va_list argptr;
 		va_start(argptr, format);
-		printWarning(format, argptr);
+		(*this->engine->vWarningFunction)(format, argptr);
 		va_end(argptr);
 	}
 }
