@@ -208,14 +208,14 @@ void Tokenizer::tokenize() {
 }
 
 Token& Tokenizer::getToken(bool whitespace) {
-	if(this->tokenIndex >= this->tokens.size()) {
+	if((unsigned int)this->tokenIndex >= this->tokens.size()) {
 		return this->emptyToken;
 	}
 
 	if(!whitespace) {
 		Token* token = &this->tokens[this->tokenIndex++];
 		while(token->type == WHITESPACE) {
-			if(this->tokenIndex >= this->tokens.size()) {
+			if((unsigned int)this->tokenIndex >= this->tokens.size()) {
 				return this->emptyToken;
 			}
 			
@@ -252,7 +252,7 @@ Token& Tokenizer::peekToken(int offset, bool whitespace) {
 		Token* token = &this->tokens[this->tokenIndex];
 		int index = 0, count = 0;
 		while(count <= offset) {
-			if(this->tokenIndex + index >= this->tokens.size()) {
+			if((unsigned int)this->tokenIndex + index >= this->tokens.size()) {
 				return this->emptyToken;	
 			}
 
@@ -267,7 +267,7 @@ Token& Tokenizer::peekToken(int offset, bool whitespace) {
 		return *token;
 	}
 	else {
-		if(this->tokenIndex + offset >= this->tokens.size()) {
+		if((unsigned int)this->tokenIndex + offset >= this->tokens.size()) {
 			return this->emptyToken;
 		}
 
@@ -280,7 +280,7 @@ Token& Tokenizer::peekToken(int offset, bool whitespace) {
 }
 
 bool Tokenizer::eof() {
-	if(this->tokenIndex >= this->tokens.size()) {
+	if((unsigned int)this->tokenIndex >= this->tokens.size()) {
 		return true;
 	}
 	return false;

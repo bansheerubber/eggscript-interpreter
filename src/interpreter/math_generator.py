@@ -15,6 +15,16 @@ else {{
 	{0}
 }}"""
 
+math_body_without_matrix = """if(type1 != type2) {{
+	{0}
+}}
+else if(type1 == entry::NUMBER) {{
+	{1}
+}}
+else {{
+	{0}
+}}"""
+
 multiplication_body = """if((type1 == entry::NUMBER && type2 == entry::MATRIX) || (type1 == entry::MATRIX && type2 == entry::NUMBER)) {{
 	{2}
 }}
@@ -67,7 +77,7 @@ math_operations = {
 		"this->push({0}->multiply(1.0 / rvalueNumber), instruction.pushType);",
 	),
 	"MATH_MODULUS": (
-		math_body,
+		math_body_without_matrix,
 		"this->pushEmpty(instruction.pushType);",
 		"""if(((int){1}) == 0) {{
 				this->push((double)0, instruction.pushType);
@@ -79,55 +89,55 @@ math_operations = {
 		None,
 	),
 	"MATH_SHIFT_LEFT": (
-		math_body,
+		math_body_without_matrix,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} << (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_SHIFT_RIGHT": (
-		math_body,
+		math_body_without_matrix,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} >> (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_LESS_THAN_EQUAL": (
-		math_body,
+		math_body_without_matrix,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} <= {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_GREATER_THAN_EQUAL": (
-		math_body,
+		math_body_without_matrix,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} >= {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_LESS_THAN": (
-		math_body,
+		math_body_without_matrix,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} < {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_GREATER_THAN": (
-		math_body,
+		math_body_without_matrix,
 		"this->push(0.0, instruction.pushType);",
 		"this->push({0} > {1}, instruction.pushType);",
 		None,
 	),
 	"MATH_BITWISE_AND": (
-		math_body,
+		math_body_without_matrix,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} & (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_BITWISE_OR": (
-		math_body,
+		math_body_without_matrix,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} | (int){1}, instruction.pushType);",
 		None,
 	),
 	"MATH_BITWISE_XOR": (
-		math_body,
+		math_body_without_matrix,
 		"this->pushEmpty(instruction.pushType);",
 		"this->push((int){0} ^ (int){1}, instruction.pushType);",
 		None,
@@ -191,6 +201,8 @@ string_pop = """if(popLValue) {{
 			}}"""
 
 NUMBER_MATH_MACRO = get_generated_code("math", "numbers", 3)
+NUMBER_WITHOUT_MATRIX_MATH_MACRO = get_generated_code("math", "numbersWithoutMatrix", 3)
+NUMBER_DIVISION_MATH_MACRO = get_generated_code("math", "numbersDivision", 3)
 
 # handle number instructions
 for instruction, (body, failure, number_operation, matrix_operation) in math_operations.items():
@@ -200,8 +212,15 @@ for instruction, (body, failure, number_operation, matrix_operation) in math_ope
 	formatted = number_operation.format("lvalueNumber", "rvalueNumber")
 	formatted = body.format(failure, formatted, matrix_operation.format("lvalueMatrix", "rvalueMatrix"))
 
+	macro = NUMBER_MATH_MACRO
+	if body == math_body_without_matrix:
+		macro = NUMBER_WITHOUT_MATRIX_MATH_MACRO
+	elif body == division_body:
+		macro = NUMBER_DIVISION_MATH_MACRO
+
+
 	print(f"""		case instruction::{instruction}: {{
-{NUMBER_MATH_MACRO}
+{macro}
 
 			{formatted}
 			break;

@@ -362,7 +362,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			c.output.add(instruction);
 
-			if(this->parent->requiresSemicolon(this) && count == this->elements.size() - 1) { // if we do not assign/need the value of the function, just pop it
+			if(this->parent->requiresSemicolon(this) && (unsigned int)count == this->elements.size() - 1) { // if we do not assign/need the value of the function, just pop it
 				ts::Instruction* pop = new ts::Instruction();
 				pop->type = ts::instruction::POP;
 				c.output.add(pop);

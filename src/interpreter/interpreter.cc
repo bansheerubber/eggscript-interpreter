@@ -858,10 +858,6 @@ void Interpreter::interpret() {
 			Entry &indexEntry = this->stack[this->stack.head - 1];
 
 			if(objectEntry.type == entry::OBJECT) {
-				Entry &numberOfArguments = this->stack[this->stack.head - 1];
-				
-				MethodTreeEntry* methodTreeEntry = nullptr;
-				
 				// pull the object from the stack
 				ObjectWrapper* objectWrapper = objectEntry.objectData->objectWrapper;
 				Object* object = nullptr;

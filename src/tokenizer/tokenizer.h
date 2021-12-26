@@ -62,8 +62,8 @@ class Tokenizer {
 
 		bool freezeKeywordTest = false;
 		bool failedKeyword = false;
-		int overrun = 0;
-		int fileIndex = 0;
+		unsigned overrun = 0;
+		unsigned int fileIndex = 0;
 		int tokenIndex = 0;
 		bool showWarnings = true;
 

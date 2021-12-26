@@ -1,8 +1,6 @@
 #if TS_INTERPRETER_PREFIX
 	double lvalueNumber = 0;
 	double rvalueNumber = 0;
-	Matrix* lvalueMatrix = nullptr;
-	Matrix* rvalueMatrix = nullptr;
 	entry::EntryType type1 = (entry::EntryType)500;
 	entry::EntryType type2 = (entry::EntryType)501;
 
@@ -16,10 +14,6 @@
 			lvalueNumber = 0;
 			type1 = entry::NUMBER;
 		}
-		else if(instruction.mathematics.lvalueEntry.type == entry::MATRIX) {
-			lvalueMatrix = instruction.mathematics.lvalueEntry.matrixData;
-			type1 = entry::MATRIX;
-		}
 	}
 	else if(instruction.mathematics.lvalueStackIndex < 0) {
 		if(this->stack[this->stack.head - 1].type == entry::NUMBER) {
@@ -29,10 +23,6 @@
 		else if(this->stack[this->stack.head - 1].type == entry::EMPTY) {
 			lvalueNumber = 0;
 			type1 = entry::NUMBER;
-		}
-		else if(this->stack[this->stack.head - 1].type == entry::MATRIX) {
-			lvalueMatrix = this->stack[this->stack.head - 1].matrixData;
-			type1 = entry::MATRIX;
 		}
 		this->pop();
 	}
@@ -45,10 +35,6 @@
 			lvalueNumber = 0;
 			type1 = entry::NUMBER;
 		}
-		else if(this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].type == entry::MATRIX) {
-			lvalueMatrix = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].matrixData;
-			type1 = entry::MATRIX;
-		}
 	}
 
 	if(instruction.mathematics.rvalueEntry.type) {
@@ -60,10 +46,6 @@
 			rvalueNumber = 0;
 			type2 = entry::NUMBER;
 		}
-		else if(instruction.mathematics.rvalueEntry.type == entry::MATRIX) {
-			rvalueMatrix = instruction.mathematics.rvalueEntry.matrixData;
-			type2 = entry::MATRIX;
-		}
 	}
 	else if(instruction.mathematics.rvalueStackIndex < 0) {
 		if(this->stack[this->stack.head - 1].type == entry::NUMBER) {
@@ -73,10 +55,6 @@
 		else if(this->stack[this->stack.head - 1].type == entry::EMPTY) {
 			rvalueNumber = 0;
 			type2 = entry::NUMBER;
-		}
-		else if(this->stack[this->stack.head - 1].type == entry::MATRIX) {
-			rvalueMatrix = this->stack[this->stack.head - 1].matrixData;
-			type2 = entry::MATRIX;
 		}
 		this->pop();
 	}
@@ -89,16 +67,10 @@
 			rvalueNumber = 0;
 			type2 = entry::NUMBER;
 		}
-		else if(this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].type == entry::MATRIX) {
-			rvalueMatrix = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].matrixData;
-			type2 = entry::MATRIX;
-		}
 	}
 #else
 	double lvalueNumber = 0;
 	double rvalueNumber = 0;
-	Matrix* lvalueMatrix = nullptr;
-	Matrix* rvalueMatrix = nullptr;
 	entry::EntryType type1 = (entry::EntryType)500;
 	entry::EntryType type2 = (entry::EntryType)501;
 	
@@ -112,10 +84,6 @@
 			rvalueNumber = 0;
 			type2 = entry::NUMBER;
 		}
-		else if(instruction.mathematics.rvalueEntry.type == entry::MATRIX) {
-			rvalueMatrix = instruction.mathematics.rvalueEntry.matrixData;
-			type2 = entry::MATRIX;
-		}
 	}
 	else if(instruction.mathematics.rvalueStackIndex < 0) {
 		if(this->stack[this->stack.head - 1].type == entry::NUMBER) {
@@ -125,10 +93,6 @@
 		else if(this->stack[this->stack.head - 1].type == entry::EMPTY) {
 			rvalueNumber = 0;
 			type2 = entry::NUMBER;
-		}
-		else if(this->stack[this->stack.head - 1].type == entry::MATRIX) {
-			rvalueMatrix = this->stack[this->stack.head - 1].matrixData;
-			type2 = entry::MATRIX;
 		}
 		this->pop();
 	}
@@ -141,10 +105,6 @@
 			rvalueNumber = 0;
 			type2 = entry::NUMBER;
 		}
-		else if(this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].type == entry::MATRIX) {
-			rvalueMatrix = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].matrixData;
-			type2 = entry::MATRIX;
-		}
 	}
 
 	if(instruction.mathematics.lvalueEntry.type) {
@@ -156,10 +116,6 @@
 			lvalueNumber = 0;
 			type1 = entry::NUMBER;
 		}
-		else if(instruction.mathematics.lvalueEntry.type == entry::MATRIX) {
-			lvalueMatrix = instruction.mathematics.lvalueEntry.matrixData;
-			type1 = entry::MATRIX;
-		}
 	}
 	else if(instruction.mathematics.lvalueStackIndex < 0) {
 		if(this->stack[this->stack.head - 1].type == entry::NUMBER) {
@@ -169,10 +125,6 @@
 		else if(this->stack[this->stack.head - 1].type == entry::EMPTY) {
 			lvalueNumber = 0;
 			type1 = entry::NUMBER;
-		}
-		else if(this->stack[this->stack.head - 1].type == entry::MATRIX) {
-			lvalueMatrix = this->stack[this->stack.head - 1].matrixData;
-			type1 = entry::MATRIX;
 		}
 		this->pop();
 	}
@@ -184,10 +136,6 @@
 		else if(this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].type == entry::EMPTY) {
 			lvalueNumber = 0;
 			type1 = entry::NUMBER;
-		}
-		else if(this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].type == entry::MATRIX) {
-			lvalueMatrix = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].matrixData;
-			type1 = entry::MATRIX;
 		}
 	}
 #endif

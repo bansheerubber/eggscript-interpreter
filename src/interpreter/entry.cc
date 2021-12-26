@@ -276,6 +276,8 @@ bool ts::isEntryTruthy(const Entry &source) {
 			return source.objectData->objectWrapper != nullptr;
 		}
 	}
+
+	return false;
 }
 
 void ts::initEntry(class Interpreter* interpreter, Entry* location) {;
