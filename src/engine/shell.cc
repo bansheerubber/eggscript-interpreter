@@ -3,7 +3,7 @@
 
 #include <mutex>
 
-#ifndef __switch__
+#if !defined(__switch__) && !defined(_WIN32)
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
@@ -17,7 +17,7 @@ int savedPoint;
 char* savedText;
 
 void saveReadline() {
-	#ifndef __switch__
+	#if !defined(__switch__) && !defined(_WIN32)
 	savedText = rl_copy_text(0, rl_end);
 	savedPoint = rl_point;
 
@@ -28,7 +28,7 @@ void saveReadline() {
 }
 
 void loadReadline() {
-	#ifndef __switch__
+	#if !defined(__switch__) && !defined(_WIN32)
 	rl_restore_prompt();
 	rl_replace_line(savedText, 0);
 	rl_point = savedPoint;
@@ -119,7 +119,7 @@ void Engine::enterShell() {
 	
 	this->interpreter->enterParallel();
 	
-	#ifndef __switch__
+	#if !defined(__switch__) && !defined(_WIN32)
 	rl_bind_key('\t', rl_insert);
 
 	char* shellBuffer;

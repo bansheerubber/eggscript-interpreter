@@ -105,14 +105,14 @@ void Entry::print(int tabs) const {
 		printf("%s   data: %f,\n", space.c_str(), this->numberData);
 	}
 	else if(this->type == entry::OBJECT) {
-		printf("%s   data: 0x%lX,\n", space.c_str(), (long)this->objectData->objectWrapper);
+		printf("%s   data: %p,\n", space.c_str(), this->objectData->objectWrapper);
 		if(this->objectData->objectWrapper != nullptr) {
 			printf("%s   variables:\n", space.c_str());
 			this->objectData->objectWrapper->object->properties.printWithTab(2 + tabs);
 		}
 	}
 	else if(this->type == entry::MATRIX) {
-		printf("%s   data: 0x%lX,\n", space.c_str(), (long)this->matrixData);
+		printf("%s   data: %p,\n", space.c_str(), this->matrixData);
 		if(this->matrixData != nullptr) {
 			printf("%s   rows: %u,\n", space.c_str(), this->matrixData->rows);
 			printf("%s   columns: %u,\n", space.c_str(), this->matrixData->columns);

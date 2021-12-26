@@ -2,7 +2,12 @@ target = eggscript
 library_target = libeggscript.a
 library_include_c_target = include.c/ts.h
 library_include_cpp_target = include.cpp/ts.h
-cclibs = -lpthread -lreadline
+
+cclibs = -lpthread
+ifneq ($(OS),Windows_NT)
+	cclibs += -lreadline
+endif
+
 CC = g++
 CPPFLAGS = -O2 -Wall -Wno-switch -Wno-class-memaccess -Wno-delete-incomplete -Wno-attributes -Bsymbolic -fno-semantic-interposition -std=c++17
 soflags =

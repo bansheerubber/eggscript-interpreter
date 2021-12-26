@@ -24,7 +24,7 @@ def preprocess(filename, contents, directory = None):
 	for line in contents:
 		if match := re.match(pattern, line):
 			if directory == None:
-				directory = pathlib.Path(filename).parent
+				directory = str(pathlib.Path(filename).parent.as_posix())
 
 			command = match.group(1).strip()
 
