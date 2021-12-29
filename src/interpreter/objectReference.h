@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 using namespace std;
 
@@ -12,7 +13,7 @@ namespace ts {
 			~ObjectReference();
 			struct ObjectWrapper* objectWrapper = nullptr;
 
-			unsigned long id = 0;
+			uint64_t id = 0;
 		
 		private:
 			friend class Object;

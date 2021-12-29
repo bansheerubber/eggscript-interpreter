@@ -66,8 +66,8 @@ namespace ts {
 			void setRandomSeed(int seed);
 			int getRandomSeed();
 
-			void defineFunction(string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
-			void defineMethod(string &nameSpace, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
+			void defineFunction(string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount);
+			void defineMethod(string &nameSpace, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount);
 			void defineTSSLFunction(sl::Function* function);
 			void defineTSSLMethodTree(MethodTree* tree);
 
@@ -96,21 +96,21 @@ namespace ts {
 
 			Package* createPackage(PackageContext* package);
 
-			void addPackageFunction(PackageContext* package, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
-			void addPackageMethod(PackageContext* package, string &nameSpace, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount);
+			void addPackageFunction(PackageContext* package, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount);
+			void addPackageMethod(PackageContext* package, string &nameSpace, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount);
 
 			// function data structures
-			robin_map<string, size_t> nameToFunctionIndex;
+			robin_map<string, uint64_t> nameToFunctionIndex;
 			DynamicArray<PackagedFunctionList*, Engine> functions
 				= DynamicArray<PackagedFunctionList*, Engine>(this, 1024, initPackagedFunctionList, nullptr);
 
-			robin_map<string, size_t> namespaceToMethodTreeIndex;
+			robin_map<string, uint64_t> namespaceToMethodTreeIndex;
 			DynamicArray<MethodTree*, Engine> methodTrees = DynamicArray<MethodTree*, Engine>(this, 1024, initMethodTree, nullptr);
 
 			robin_map<string, Package*> nameToPackage;
 
 			// used to index into a method tree
-			robin_map<string, size_t> methodNameToIndex;
-			size_t currentMethodNameIndex = 0;
+			robin_map<string, uint64_t> methodNameToIndex;
+			uint64_t currentMethodNameIndex = 0;
 	};
 }

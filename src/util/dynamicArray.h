@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,15 +12,15 @@
 template <typename T, typename S = void>
 class DynamicArray {
 	public:
-		size_t head;
-		size_t size;
+		uint64_t head;
+		uint64_t size;
 
 		DynamicArray() {
 			this->array = nullptr;
 			this->dontDelete = true;
 		}
 
-		DynamicArray(size_t size) {
+		DynamicArray(uint64_t size) {
 			this->parent = nullptr;
 			this->init = nullptr;
 			this->onRealloc = nullptr;
@@ -32,7 +33,7 @@ class DynamicArray {
 
 		DynamicArray(
 			S* parent,
-			size_t size,
+			uint64_t size,
 			void (*init) (S* parent, T* location),
 			void (*onRealloc) (S* parent)
 		) {
@@ -70,7 +71,7 @@ class DynamicArray {
 			this->head--;
 		}
 
-		void allocate(size_t amount) {
+		void allocate(uint64_t amount) {
 			if(amount * 2 > DYNAMIC_ARRAY_MAX_SIZE) {
 				printf("stack overflow\n");
 				exit(1);
@@ -84,7 +85,7 @@ class DynamicArray {
 			this->array = array;
 
 			if(this->init != nullptr) {
-				for(size_t i = this->size; i < amount; i++) {
+				for(uint64_t i = this->size; i < amount; i++) {
 					(*this->init)(this->parent, &this->array[i]);
 				}
 			}
@@ -96,14 +97,14 @@ class DynamicArray {
 		}
 
 		void remove(T entry) {
-			long index = this->index(entry);
+			int64_t index = this->index(entry);
 			if(index != -1) {
 				this->shift(index + 1, -1);
 			}
 		}
 
-		long index(T entry) {
-			for(unsigned long i = 0; i < this->head; i++) {
+		int64_t index(T entry) {
+			for(uint64_t i = 0; i < this->head; i++) {
 				if(entry == this->array[i]) {
 					return i;
 				}
@@ -111,8 +112,8 @@ class DynamicArray {
 			return -1;
 		}
 
-		void shift(long index, long amount) {
-			long end = (long)this->head;
+		void shift(int64_t index, int64_t amount) {
+			int64_t end = (int64_t)this->head;
 
 			for(int i = 0; i < amount; i++) {
 				this->pushed(); // allocate space
@@ -161,7 +162,7 @@ class DynamicArray {
 			this->array = array;
 
 			if(this->init != nullptr) {
-				for(size_t i = 0; i < this->size; i++) {
+				for(uint64_t i = 0; i < this->size; i++) {
 					(*this->init)(this->parent, &(this->array[i]));
 				}
 			}

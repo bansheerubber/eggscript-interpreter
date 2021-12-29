@@ -32,9 +32,9 @@ using namespace std;
 namespace ts {
 	struct FunctionFrame {
 		InstructionContainer* container;
-		size_t instructionPointer;
-		size_t stackPointer;
-		size_t stackPopCount;
+		uint64_t instructionPointer;
+		uint64_t stackPointer;
+		uint64_t stackPopCount;
 		PackagedFunctionList* packagedFunctionList;
 		int packagedFunctionListIndex;
 		MethodTreeEntry* methodTreeEntry;
@@ -83,23 +83,23 @@ namespace ts {
 			void printStack();
 			void warning(const char* format, ...);
 
-			void addSchedule(unsigned long long time, string functionName, Entry* arguments, size_t argumentCount, ObjectReference* object = nullptr);
+			void addSchedule(uint64_t, string functionName, Entry* arguments, uint64_t argumentCount, ObjectReference* object = nullptr);
 
 			bool tick();
-			void setTickRate(long tickRate);
+			void setTickRate(int64_t tickRate);
 			void garbageCollect(unsigned int amount);
 
 			void setObjectName(string &name, ObjectWrapper* object);
 			void deleteObjectName(string &name);
 
-			Entry* callFunction(string functionName, Entry* arguments, size_t argumentCount);
-			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount, bool inhibitInterpret = false);
+			Entry* callFunction(string functionName, Entry* arguments, uint64_t argumentCount);
+			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, uint64_t argumentCount, bool inhibitInterpret = false);
 
 			string& getTopFileNameFromFrame();
 
 			Entry emptyEntry;
 
-			size_t highestObjectId = 1;
+			uint64_t highestObjectId = 1;
 
 			bool testing = false;
 
@@ -132,15 +132,15 @@ namespace ts {
 				this->stack.popped();
 			};
 
-			size_t ranInstructions = 0;
-			unsigned long long startTime = 0;
+			uint64_t ranInstructions = 0;
+			uint64_t startTime = 0;
 
 			// stacks
 			DynamicArray<Entry, Interpreter> stack = DynamicArray<Entry, Interpreter>(this, 10000, initEntry, nullptr);
 			DynamicArray<FunctionFrame, Interpreter> frames = DynamicArray<FunctionFrame, Interpreter>(this, 100, initFunctionFrame, onFunctionFrameRealloc);
 			InstructionContainer* topContainer; // the current container we're executing code from, taken from frames
-			size_t* instructionPointer; // the current instruction pointer, taken from frames
-			size_t stackFramePointer; // the current frame pointer
+			uint64_t* instructionPointer; // the current instruction pointer, taken from frames
+			uint64_t stackFramePointer; // the current frame pointer
 			Entry returnRegister;
 			VariableContext globalContext;
 
@@ -150,8 +150,8 @@ namespace ts {
 				int packagedFunctionListIndex = -1,
 				MethodTreeEntry* methodTreeEntry = nullptr,
 				int methodTreeEntryIndex = -1,
-				size_t argumentCount = 0,
-				size_t popCount = 0,
+				uint64_t argumentCount = 0,
+				uint64_t popCount = 0,
 				string fileName = "",
 				bool earlyQuit = false
 			);
@@ -161,7 +161,7 @@ namespace ts {
 			Entry* handleTSSLParent(string &name, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes);
 
 			// used to lookup objects
-			robin_map<size_t, ObjectWrapper*> objects;
+			robin_map<uint64_t, ObjectWrapper*> objects;
 			robin_map<string, ObjectWrapper*> stringToObject;
 
 			// keep track of schedules
@@ -170,6 +170,6 @@ namespace ts {
 			// parallel stuff
 			thread tickThread;
 			queue<string> execFilenames;
-			long tickRate = 4;
+			int64_t tickRate = 4;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdarg.h>
+#include <cstdint>
 
 extern "C" {	
 	typedef void* esEnginePtr;
@@ -22,13 +23,13 @@ extern "C" {
 		esObjectPtr object;
 		void* data;
 		int referenceCount;
-		long heapIndex;
+		int64_t heapIndex;
 	} esObjectWrapper;
 	typedef esObjectWrapper* esObjectWrapperPtr;
 
 	typedef struct esObjectReference {
 		esObjectWrapperPtr objectWrapper;
-		unsigned long id = 0;
+		uint64_t id = 0;
 		void* __pad1;
 		void* __pad2;
 	} esObjectReference;
@@ -58,7 +59,7 @@ extern "C" {
 	esEnginePtr esCreateEngine(char isParallel);
 
 	bool esTick(esEnginePtr engine);
-	void esSetTickRate(esEnginePtr engine, long tickRate);
+	void esSetTickRate(esEnginePtr engine, int64_t tickRate);
 	void esExecFile(esEnginePtr engine, const char* filename);
 	void esExecFileFromContents(esEnginePtr, const char* fileName, const char* contents);
 	void esEval(esEnginePtr engine, const char* shell);

@@ -81,12 +81,12 @@ pair<
 	return make_pair(this->elements.begin(), this->elements.end());
 }
 
-CallElement &CallStatement::getElement(size_t index) {
+CallElement &CallStatement::getElement(uint64_t index) {
 	return this->elements[index];
 }
 
-size_t CallStatement::getElementCount() {
-	size_t count = 0;
+uint64_t CallStatement::getElementCount() {
+	uint64_t count = 0;
 	for(CallElement element: this->elements) {
 		if(element.component != nullptr) {
 			count++;

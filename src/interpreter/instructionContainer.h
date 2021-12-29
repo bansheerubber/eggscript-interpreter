@@ -12,7 +12,7 @@ namespace ts {
 		
 		protected:
 			ts::Instruction* array = nullptr; // pointer to flat array in memory
-			size_t size;
+			uint64_t size;
 			friend class Interpreter;
 	};
 }

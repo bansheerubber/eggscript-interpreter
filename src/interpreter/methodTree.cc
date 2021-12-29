@@ -28,7 +28,7 @@ MethodTree::MethodTree() {
 
 }
 
-MethodTree::MethodTree(string name, size_t index) {
+MethodTree::MethodTree(string name, uint64_t index) {
 	this->name = name;
 	this->index = index;
 }
@@ -55,8 +55,8 @@ string MethodTree::GetComplexNamespace(
 	};
 
 	string output; 
-	size_t count = 0;
-	for(size_t i = 0; i < 5; i++) {
+	uint64_t count = 0;
+	for(uint64_t i = 0; i < 5; i++) {
 		if(names[i].length() != 0) {
 			output += names[i] + "->";
 			count++;
@@ -72,7 +72,7 @@ string MethodTree::GetComplexNamespace(
 	return output;
 }
 
-void MethodTree::defineInitialMethod(string name, size_t nameIndex, Function* container) {
+void MethodTree::defineInitialMethod(string name, uint64_t nameIndex, Function* container) {
 	MethodTreeEntry* entry;
 	if(this->methodIndexToEntry.find(nameIndex) == this->methodIndexToEntry.end()) {
 		entry = this->methodIndexToEntry[nameIndex] = new MethodTreeEntry(this, name);
@@ -90,13 +90,13 @@ void MethodTree::defineInitialMethod(string name, size_t nameIndex, Function* co
 	if(!hadInitialMethod) {
 		this->updateMethodTree(name, nameIndex);
 
-		for(size_t i = 0; i < this->children.head; i++) {
+		for(uint64_t i = 0; i < this->children.head; i++) {
 			this->children[i]->updateMethodTree(name, nameIndex);
 		}
 	}
 }
 
-void MethodTree::addPackageMethod(string name, size_t nameIndex, Function* container) {
+void MethodTree::addPackageMethod(string name, uint64_t nameIndex, Function* container) {
 	MethodTreeEntry* entry;
 	if(this->methodIndexToEntry.find(nameIndex) == this->methodIndexToEntry.end()) {
 		entry = this->methodIndexToEntry[nameIndex] = new MethodTreeEntry(this, name);
@@ -108,12 +108,12 @@ void MethodTree::addPackageMethod(string name, size_t nameIndex, Function* conta
 	entry->list[0]->addPackageFunction(container);
 }
 
-void MethodTree::removePackageMethod(size_t nameIndex, class Function* container) {
+void MethodTree::removePackageMethod(uint64_t nameIndex, class Function* container) {
 	MethodTreeEntry* entry = this->methodIndexToEntry[nameIndex];
 	entry->list[0]->removePackageFunction(container);
 }
 
-void MethodTree::updateMethodTree(string methodName, size_t methodNameIndex) {
+void MethodTree::updateMethodTree(string methodName, uint64_t methodNameIndex) {
 	if(this->methodIndexToEntry.find(methodNameIndex) == this->methodIndexToEntry.end()) {
 		this->methodIndexToEntry[methodNameIndex] = new MethodTreeEntry(this, methodName);
 	}
@@ -127,12 +127,12 @@ void MethodTree::updateMethodTree(string methodName, size_t methodNameIndex) {
 	}
 
 	// recursively update the method tree
-	for(size_t i = 0; i < this->children.head; i++) {
+	for(uint64_t i = 0; i < this->children.head; i++) {
 		this->children[i]->updateMethodTree(methodName, methodNameIndex);
 	}
 }
 
-vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string methodName, size_t methodNameIndex, bool addInitial) {
+vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string methodName, uint64_t methodNameIndex, bool addInitial) {
 	MethodTreeEntry* entry;
 	if(this->methodIndexToEntry.find(methodNameIndex) == this->methodIndexToEntry.end()) {
 		return vector<PackagedFunctionList*>();
@@ -146,7 +146,7 @@ vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string 
 		list.push_back(entry->list[0]);
 	}
 
-	for(size_t i = 0; i < this->parents.head; i++) {
+	for(uint64_t i = 0; i < this->parents.head; i++) {
 		vector<PackagedFunctionList*> inheritedList = this->parents[i]->buildMethodTreeEntryForParents(methodName, methodNameIndex);
 		list.insert(list.end(), inheritedList.begin(), inheritedList.end());
 	}
@@ -190,7 +190,7 @@ void MethodTree::print() {
 			printf("      0: no initial method\n");
 		}
 
-		for(size_t i = entry->hasInitialMethod ? 0 : 1; i < entry->list.head; i++) {
+		for(uint64_t i = entry->hasInitialMethod ? 0 : 1; i < entry->list.head; i++) {
 			PackagedFunctionList* list = entry->list[i];
 			printf("      %ld: %s::%s\n", i, list->functionNamespace.c_str(), list->functionName.c_str());
 		}

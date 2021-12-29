@@ -19,7 +19,7 @@ class MinHeap {
 
 		void insert(T value) {
 			// insert at the end
-			size_t iterator = this->array.head;
+			uint64_t iterator = this->array.head;
 			this->array[iterator] = value;
 			this->array.pushed();
 
@@ -51,28 +51,28 @@ class MinHeap {
 		void (*init) (S* parent, T* location);
 		void (*onRealloc) (S* parent);
 
-		size_t parentIndex(size_t index) {
+		uint64_t parentIndex(uint64_t index) {
 			return (index - 1) / 2;
 		}
 
-		size_t leftChildIndex(size_t index) {
+		uint64_t leftChildIndex(uint64_t index) {
 			return (2 * index + 1);
 		}
 
-		size_t rightChildIndex(size_t index) {
+		uint64_t rightChildIndex(uint64_t index) {
 			return (2 * index + 2);
 		}
 
-		void swap(size_t index1, size_t index2) {
+		void swap(uint64_t index1, uint64_t index2) {
 			T temp = this->array[index1];
 			this->array[index1] = this->array[index2];
 			this->array[index2] = temp;
 		}
 
-		void organize(size_t index) {
-			size_t leftIndex = this->leftChildIndex(index);
-			size_t rightIndex = this->rightChildIndex(index);
-			size_t smallestIndex = index;
+		void organize(uint64_t index) {
+			uint64_t leftIndex = this->leftChildIndex(index);
+			uint64_t rightIndex = this->rightChildIndex(index);
+			uint64_t smallestIndex = index;
 
 			if(leftIndex < this->array.head && this->compare(leftIndex, smallestIndex)) {
 				smallestIndex = leftIndex;
@@ -88,7 +88,7 @@ class MinHeap {
 			}
 		}
 
-		bool compare(size_t leftIndex, size_t rightIndex) {
+		bool compare(uint64_t leftIndex, uint64_t rightIndex) {
 			if(std::is_pointer<T>::value) {
 				return *(this->array[leftIndex]) < *(this->array[rightIndex]);
 			}

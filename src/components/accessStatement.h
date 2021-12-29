@@ -65,8 +65,8 @@ class AccessStatement : public Component {
 		bool hasChain();
 		bool hasArray();
 		bool hasCall();
-		size_t chainSize();
-		size_t getStackIndex(ts::Scope* scope);
+		uint64_t chainSize();
+		uint64_t getStackIndex(ts::Scope* scope);
 
 		bool isValidLValue();
 

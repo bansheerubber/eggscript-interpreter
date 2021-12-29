@@ -27,7 +27,7 @@ bool esTick(esEnginePtr engine) {
 	return false;
 }
 
-void esSetTickRate(esEnginePtr engine, long tickRate) {
+void esSetTickRate(esEnginePtr engine, int64_t tickRate) {
 	((ts::Engine*)engine)->interpreter->setTickRate(tickRate);
 }
 

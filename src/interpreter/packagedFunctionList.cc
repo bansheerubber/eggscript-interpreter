@@ -17,7 +17,7 @@ PackagedFunctionList::PackagedFunctionList(string functionName, string functionN
 }
 
 PackagedFunctionList::~PackagedFunctionList() {
-	for(size_t i = 0; i < this->functions.head; i++) {
+	for(uint64_t i = 0; i < this->functions.head; i++) {
 		if(this->functions[i] != nullptr) {
 			delete this->functions[i];
 			this->functions[i] = nullptr;

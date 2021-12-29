@@ -124,7 +124,7 @@ elif sys.argv[1] == "debug.cc":
 	}}""")
 			elif variable_type == "string": # handle strings
 				print(f'	printf("   {variable_name}: %s,\\n", instruction.{struct}.{variable_name}.c_str());')
-			elif "long" in variable_type or "size_t" in variable_type: # handle longs
+			elif "long" in variable_type or "uint64_t" in variable_type: # handle longs
 				print(f'	printf("   {variable_name}: %ld,\\n", instruction.{struct}.{variable_name});')
 			elif variable_type == "Entry": # handle entries
 				print(f"""	if(instruction.{struct}.{variable_name}.type != entry::EMPTY) {{
@@ -143,7 +143,7 @@ elif sys.argv[1] == "debug.cc":
 	else {{
 		printf("   {variable_name}: invalid entry,\\n");
 	}}""")
-			elif variable_type == "size_t" or variable_type == "relative_stack_location" or variable_type == "stack_location": # handle size_t
+			elif variable_type == "uint64_t" or variable_type == "relative_stack_location" or variable_type == "stack_location": # handle uint64_t
 				print(f'	printf("   {variable_name}: %ld,\\n", instruction.{struct}.{variable_name});')
 			elif variable_type[-1] == "*": # handle pointers
 				print(f'	printf("   {variable_name}: %p,\\n", instruction.{struct}.{variable_name});')

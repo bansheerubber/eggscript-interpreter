@@ -11,7 +11,7 @@ void Tokenizer::initializeKeywords() {
 		this->partialKeywordCharacters.insert(pair<char, string>(argument[0], argument));
 		
 		string output;
-		for(size_t i = 0; i < argument.length(); i++) {
+		for(uint64_t i = 0; i < argument.length(); i++) {
 			output += tolower(argument[i]);
 			this->partialKeywords.insert(pair<string, string>(output, argument));
 
@@ -27,7 +27,7 @@ bool Tokenizer::isPartialKeyword(char partial) {
 }
 
 bool Tokenizer::isPartialKeyword(string &partial) {
-	size_t length = partial.length();
+	uint64_t length = partial.length();
 	if(length > this->largestPartial) {
 		return false;
 	}
@@ -136,8 +136,8 @@ void Tokenizer::readKeyword() {
 		}
 		
 		// give back the characters we read
-		size_t size = argumentBuffer.length();
-		for(size_t i = 0; i < size; i++) {
+		uint64_t size = argumentBuffer.length();
+		for(uint64_t i = 0; i < size; i++) {
 			this->prevChar();
 		}
 

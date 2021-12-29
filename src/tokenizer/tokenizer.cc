@@ -60,7 +60,7 @@ bool Tokenizer::tokenizeFile(string fileName) {
 
 	// TODO this is probably insecure
 	// TODO test for directories here, or ensure that we test for directory somewhere along the exec path
-	contentSize = file.tellg();
+	contentSize = (uint64_t)file.tellg();
 	this->contents = new char[this->contentSize];
 	file.seekg(0);
 	file.read(this->contents, this->contentSize);

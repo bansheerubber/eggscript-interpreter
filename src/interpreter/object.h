@@ -44,14 +44,14 @@ namespace ts {
 
 			DataStructure dataStructure = NO_DATA_STRUCTURE;
 			VariableContext properties;
-			size_t id = 0;
+			uint64_t id = 0;
 
 			void addReference(ObjectReference* reference);
 			void removeReference(ObjectReference* reference);
 
 			void setName(string &name);
 
-			size_t referenceCount = 0;
+			uint64_t referenceCount = 0;
 			string nameSpace;
 			class MethodTree* methodTree;
 			class MethodTree* typeMethodTree;
@@ -68,7 +68,7 @@ namespace ts {
 		Object* object;
 		void* data; // programmer-defined data for lib
 		int referenceCount = 0;
-		long heapIndex = -1;
+		int64_t heapIndex = -1;
 
 		friend class Object;
 

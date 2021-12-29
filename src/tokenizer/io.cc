@@ -63,11 +63,11 @@ void Tokenizer::prevChar() {
 	}
 }
 
-size_t Tokenizer::getTotalLineCount() {
+uint64_t Tokenizer::getTotalLineCount() {
 	return this->lineNumber;
 }
 
-size_t Tokenizer::getTotalCharacterCount() {
+uint64_t Tokenizer::getTotalCharacterCount() {
 	return this->contentSize;
 }
 

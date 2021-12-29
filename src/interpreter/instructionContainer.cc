@@ -65,7 +65,7 @@ InstructionContainer::InstructionContainer(Instruction* head) {
 }
 
 void InstructionContainer::print() {
-	for(size_t i = 0; i < this->size; i++) {
+	for(uint64_t i = 0; i < this->size; i++) {
 		PrintInstruction(this->array[i]);
 	}
 	printf("-----------------------------------------------------------------\n");

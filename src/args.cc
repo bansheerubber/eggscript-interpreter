@@ -80,7 +80,7 @@ void printHelp(vector<Argument> &arguments, string argumentName) {
 		
 		cout << "    ";
 		cout << parameters;
-		for(size_t i = 0; i < helpPosition - parameters.length(); i++) {
+		for(uint64_t i = 0; i < helpPosition - parameters.length(); i++) {
 			cout << " ";
 		}
 		cout << argument.help << endl;

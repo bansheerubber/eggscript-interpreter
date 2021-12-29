@@ -151,7 +151,7 @@ common_operations = {
 }
 
 string_operations = {
-	"MATH_APPEND": """size_t firstSize = strlen({0}), secondSize = strlen({1});
+	"MATH_APPEND": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 1];
 			memcpy(stringResult, {0}, firstSize);
 			memcpy(&stringResult[firstSize], {1}, secondSize);
@@ -160,7 +160,7 @@ string_operations = {
 			%%popStrings%%
 
 			this->push(stringResult, instruction.pushType);""",
-	"MATH_SPC": """size_t firstSize = strlen({0}), secondSize = strlen({1});
+	"MATH_SPC": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 2];
 			memcpy(stringResult, {0}, firstSize);
 			stringResult[firstSize] = ' ';
@@ -170,7 +170,7 @@ string_operations = {
 			%%popStrings%%
 			
 			this->push(stringResult, instruction.pushType);""",
-	"MATH_TAB": """size_t firstSize = strlen({0}), secondSize = strlen({1});
+	"MATH_TAB": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 2];
 			memcpy(stringResult, {0}, firstSize);
 			stringResult[firstSize] = '\\t';
@@ -180,7 +180,7 @@ string_operations = {
 			%%popStrings%%
 
 			this->push(stringResult, instruction.pushType);""",
-	"MATH_NL": """size_t firstSize = strlen({0}), secondSize = strlen({1});
+	"MATH_NL": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
 			char* stringResult = new char[firstSize + secondSize + 2];
 			memcpy(stringResult, {0}, firstSize);
 			stringResult[firstSize] = '\\n';

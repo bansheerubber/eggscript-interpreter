@@ -91,6 +91,6 @@ enum TokenType {
 struct Token {
 	string lexeme;
 	TokenType type;
-	size_t lineNumber;
-	size_t characterNumber;
+	uint64_t lineNumber;
+	uint64_t characterNumber;
 };

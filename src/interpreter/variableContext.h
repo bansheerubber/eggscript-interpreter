@@ -22,9 +22,9 @@ namespace ts {
 			VariableContext();
 			VariableContext(class Interpreter* interpreter);
 			
-			Entry& getVariableEntry(class Instruction &instruction, string &variable, size_t hash);
+			Entry& getVariableEntry(class Instruction &instruction, string &variable, uint64_t hash);
 			Entry& getVariableEntry(string &name);
-			void setVariableEntry(class Instruction &instruction, string &name, size_t hash, Entry &entry, bool greedy);
+			void setVariableEntry(class Instruction &instruction, string &name, uint64_t hash, Entry &entry, bool greedy);
 			void setVariableEntry(string &name, Entry &entry);
 			string computeVariableString(class Instruction &instruction, string &variable);
 			void print();

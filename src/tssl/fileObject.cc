@@ -127,7 +127,7 @@ namespace ts {
 
 				const char* dotLocation = strrchr(path, '.');
 				
-				size_t length = dotLocation
+				uint64_t length = dotLocation
 					? dotLocation - slashLocation
 					: strlen(slashLocation);
 				
@@ -180,7 +180,7 @@ namespace ts {
 					return new Entry(cloneString(path));
 				}
 
-				size_t length = slashLocation - path;
+				uint64_t length = slashLocation - path;
 				char* newString = new char[length + 1];
 				memcpy(newString, path, length);
 				newString[length] = '\0';

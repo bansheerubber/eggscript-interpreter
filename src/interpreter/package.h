@@ -10,8 +10,8 @@ using namespace std;
 namespace std {
 	template<>
 	struct hash<pair<string, string>> {
-		size_t operator()(pair<string, string> const& source) const noexcept {
-			size_t result = hash<string>{}(source.first);
+		uint64_t operator()(pair<string, string> const& source) const noexcept {
+			uint64_t result = hash<string>{}(source.first);
 			return result ^ (hash<string>{}(source.second) + 0x9e3779b9 + (result << 6) + (result >> 2));
     }
 	};

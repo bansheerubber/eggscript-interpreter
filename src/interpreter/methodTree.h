@@ -28,7 +28,7 @@ namespace ts {
 	class MethodTree {
 		public:
 			MethodTree();
-			MethodTree(string name, size_t index);
+			MethodTree(string name, uint64_t index);
 			~MethodTree();
 
 			static string GetComplexNamespace(
@@ -39,9 +39,9 @@ namespace ts {
 				string name5 = string()
 			);
 
-			void defineInitialMethod(string name, size_t nameIndex, class Function* container);
-			void addPackageMethod(string name, size_t nameIndex, class Function* container);
-			void removePackageMethod(size_t nameIndex, class Function* container);
+			void defineInitialMethod(string name, uint64_t nameIndex, class Function* container);
+			void addPackageMethod(string name, uint64_t nameIndex, class Function* container);
+			void removePackageMethod(uint64_t nameIndex, class Function* container);
 
 			void addParent(MethodTree* parent); // add a parent for this method tree, order matters
 			bool hasParent(string nameSpace); // recursively check for parent
@@ -49,17 +49,17 @@ namespace ts {
 			// adds a child to this method tree, order doesn't matter
 			void addChild(MethodTree* child);
 
-			void updateMethodTree(string methodName, size_t methodNameIndex);
+			void updateMethodTree(string methodName, uint64_t methodNameIndex);
 
 			// each method gets its own index assigned to it by the interpreter. the method's index is based on its name,
 			// so we can have a method with the same name that is defined in several unrelated namespaces but that method
 			// still gets the same index as the rest of the methods with the same name
-			robin_map<size_t, MethodTreeEntry*> methodIndexToEntry;
+			robin_map<uint64_t, MethodTreeEntry*> methodIndexToEntry;
 			string name;
 
 			void print();
 
-			size_t index;
+			uint64_t index;
 
 			bool isTSSL = false;
 
@@ -67,7 +67,7 @@ namespace ts {
 			TS_OBJECT_DECONSTRUCTOR(tsslDeconstructor) = nullptr;
 		
 		private:
-			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, size_t methodNameIndex, bool addInitial = true);
+			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, uint64_t methodNameIndex, bool addInitial = true);
 			DynamicArray<MethodTree*, MethodTree> parents = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
 			DynamicArray<MethodTree*, MethodTree> children = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
 	};

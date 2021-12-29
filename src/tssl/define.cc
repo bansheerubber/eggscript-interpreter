@@ -24,10 +24,10 @@
 using namespace ts::sl;
 
 vector<ts::sl::Function*> ts::sl::functions;
-unordered_map<string, size_t> ts::sl::nameToIndex;
+unordered_map<string, uint64_t> ts::sl::nameToIndex;
 
 vector<MethodTree*> ts::sl::methodTrees;
-unordered_map<string, size_t> ts::sl::methodTreeNameToIndex;
+unordered_map<string, uint64_t> ts::sl::methodTreeNameToIndex;
 
 ts::sl::Function* ts::sl::FUNC_DEF(entry::EntryType returnType, ts_func functionPointer, const char* name, unsigned int argumentCount, entry::EntryType* argumentTypes) {
 	ts::sl::Function* function = new ts::sl::Function;
@@ -37,7 +37,7 @@ ts::sl::Function* ts::sl::FUNC_DEF(entry::EntryType returnType, ts_func function
 	function->function = functionPointer;
 
 	function->argumentTypes = new entry::EntryType[argumentCount];
-	for(size_t i = 0; i < argumentCount; i++) {
+	for(uint64_t i = 0; i < argumentCount; i++) {
 		function->argumentTypes[i] = argumentTypes[i];
 	}
 
@@ -53,7 +53,7 @@ ts::sl::Function* ts::sl::FUNC_DEF(entry::EntryType returnType, ts_func function
 	function->function = functionPointer;
 	
 	function->argumentTypes = new entry::EntryType[argumentCount];
-	for(size_t i = 0; i < argumentCount; i++) {
+	for(uint64_t i = 0; i < argumentCount; i++) {
 		function->argumentTypes[i] = argumentTypes[i];
 	}
 	

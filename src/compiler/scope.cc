@@ -16,6 +16,6 @@ BoundVariable& Scope::allocateVariable(string &variableName, bool isArgument) {
 	return this->variables[toLower(variableName)];
 }
 
-size_t Scope::allocatedSize() {
+uint64_t Scope::allocatedSize() {
 	return this->variables.size();
 }

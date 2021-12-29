@@ -195,7 +195,7 @@ bool AccessStatement::hasCall() {
 	return false;
 }
 
-size_t AccessStatement::chainSize() {
+uint64_t AccessStatement::chainSize() {
 	return this->elements.size();
 }
 
@@ -210,7 +210,7 @@ bool AccessStatement::isValidLValue() {
 	return true;
 }
 
-size_t AccessStatement::getStackIndex(ts::Scope* scope) {
+uint64_t AccessStatement::getStackIndex(ts::Scope* scope) {
 	if(!this->isLocalVariable() || this->chainSize() != 1) {
 		return -1;
 	}

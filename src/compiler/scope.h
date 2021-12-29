@@ -12,7 +12,7 @@ namespace ts {
 	class Engine;
 
 	struct BoundVariable {
-		size_t stackIndex; // index relative to start of stack frame
+		uint64_t stackIndex; // index relative to start of stack frame
 		string name;
 		bool isArgument;
 	};
@@ -20,10 +20,10 @@ namespace ts {
 	class Scope {
 		public:
 			BoundVariable& allocateVariable(string &variableName, bool isArgument = false);
-			size_t allocatedSize();
+			uint64_t allocatedSize();
 		
 		protected:
-			size_t stackIndex = 0;
+			uint64_t stackIndex = 0;
 			robin_map<string, BoundVariable> variables;
 	};
 }

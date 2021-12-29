@@ -2,7 +2,7 @@
 
 using namespace ts;
 
-Function::Function(Instruction* head, size_t argumentCount, size_t variableCount, string functionName, string namespaceName)
+Function::Function(Instruction* head, uint64_t argumentCount, uint64_t variableCount, string functionName, string namespaceName)
 	: InstructionContainer(head)
 {
 	this->functionName = functionName;

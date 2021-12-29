@@ -1,3 +1,5 @@
 #pragma once
 
-unsigned long long getMicrosecondsNow();
+#include <cstdint>
+
+uint64_t getMicrosecondsNow();

@@ -73,8 +73,8 @@ void Interpreter::pushFunctionFrame(
 	int packagedFunctionListIndex,
 	MethodTreeEntry* methodTreeEntry,
 	int methodTreeEntryIndex,
-	size_t argumentCount,
-	size_t popCount,
+	uint64_t argumentCount,
+	uint64_t popCount,
 	string fileName,
 	bool earlyQuit
 ) {
@@ -105,7 +105,7 @@ void Interpreter::pushFunctionFrame(
 void Interpreter::popFunctionFrame() {
 	this->frames.popped();
 
-	for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
+	for(uint64_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
 		this->pop();
 	}
 
@@ -256,7 +256,7 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 	PackagedFunctionList* list;
 	int packagedFunctionListIndex;
 
-	if((size_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
+	if((uint64_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
 		list = methodTreeEntry->list[methodTreeEntryIndex];
 		packagedFunctionListIndex = list->topValidIndex;
 
@@ -270,7 +270,7 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 		}
 		else {
 			// push arguments onto the stack
-			for(size_t i = 0; i < argc; i++) {
+			for(uint64_t i = 0; i < argc; i++) {
 				this->push(argv[i], instruction::STACK);
 			}
 
@@ -306,7 +306,7 @@ void Interpreter::warning(const char* format, ...) {
 bool Interpreter::tick() {
 	start_tick:
 	
-	unsigned long long time = getMicrosecondsNow();
+	uint64_t time = getMicrosecondsNow();
 
 	Schedule* schedule = this->schedules.top();
 	while(this->schedules.array.head > 0 && time > schedule->end) {
@@ -345,12 +345,12 @@ bool Interpreter::tick() {
 	return this->schedules.array.head == 0;
 }
 
-void Interpreter::setTickRate(long tickRate) {
+void Interpreter::setTickRate(int64_t tickRate) {
 	this->tickRate = tickRate;
 }
 
 void Interpreter::garbageCollect(unsigned int amount) {
-	for(size_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {		
+	for(uint64_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {		
 		delete this->garbageHeap.array[0];
 		this->garbageHeap.pop();
 	}
@@ -547,7 +547,7 @@ void Interpreter::interpret() {
 					instruction.callFunction.nameSpace.length() != 0
 					&& this->engine->namespaceToMethodTreeIndex.find(toLower(instruction.callFunction.nameSpace)) != this->engine->namespaceToMethodTreeIndex.end()
 				) {
-					size_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[toLower(instruction.callFunction.nameSpace)];
+					uint64_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[toLower(instruction.callFunction.nameSpace)];
 					auto methodIndex = this->engine->methodNameToIndex.find(toLower(instruction.callFunction.name));
 
 					if(methodIndex != this->engine->methodNameToIndex.end()) {
@@ -636,7 +636,7 @@ void Interpreter::interpret() {
 
 		case instruction::POP_ARGUMENTS: {
 			Entry &numberOfArguments = this->stack[this->stack.head - 1];
-			size_t realNumberOfArguments = instruction.popArguments.argumentCount;
+			uint64_t realNumberOfArguments = instruction.popArguments.argumentCount;
 			int number = (int)numberOfArguments.numberData - realNumberOfArguments;
 
 			this->pop(); // pop argument count
@@ -799,7 +799,7 @@ void Interpreter::interpret() {
 			MethodTreeEntry* methodTreeEntry = instruction.callObject.cachedEntry;
 			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
-			size_t packagedFunctionListIndex = list->topValidIndex;
+			uint64_t packagedFunctionListIndex = list->topValidIndex;
 			Function* foundFunction = (*list)[packagedFunctionListIndex];
 			## call_generator.py
 			
@@ -815,7 +815,7 @@ void Interpreter::interpret() {
 
 			if(packagedFunctionListIndex == -1 && methodTreeEntry != nullptr) { // walk the method tree
 				methodTreeEntryIndex++;
-				if((size_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
+				if((uint64_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
 					list = methodTreeEntry->list[methodTreeEntryIndex];
 					packagedFunctionListIndex = list->topValidIndex;
 
@@ -963,7 +963,7 @@ void Interpreter::interpret() {
 
 void Interpreter::printStack() {
 	printf("\nSTACK: %ld\n", this->stack.head);
-	for(size_t i = 0; i < this->stack.head; i++) {
+	for(uint64_t i = 0; i < this->stack.head; i++) {
 		Entry &entry = this->stack[i];
 
 		printf("#%ld ", i);
@@ -972,7 +972,7 @@ void Interpreter::printStack() {
 	printf("\n");
 }
 
-void Interpreter::addSchedule(unsigned long long time, string functionName, Entry* arguments, size_t argumentCount, ObjectReference* object) {
+void Interpreter::addSchedule(uint64_t time, string functionName, Entry* arguments, uint64_t argumentCount, ObjectReference* object) {
 	this->schedules.insert(new Schedule(
 		time,
 		getMicrosecondsNow(),
@@ -992,7 +992,7 @@ void Interpreter::deleteObjectName(string &name) {
 	this->stringToObject.erase(name);
 }
 
-Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t argumentCount) {
+Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t argumentCount) {
 	// set up function call frame
 	Function* foundFunction;
 	PackagedFunctionList* list;
@@ -1023,7 +1023,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	}
 	else {
 		// push arguments onto the stack
-		for(size_t i = 0; i < argumentCount; i++) {
+		for(uint64_t i = 0; i < argumentCount; i++) {
 			this->push(arguments[i], instruction::STACK);
 		}
 
@@ -1047,7 +1047,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	}
 }
 
-Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount, bool inhibitInterpret) {
+Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, uint64_t argumentCount, bool inhibitInterpret) {
 	// set up function call frame
 	Function* foundFunction;
 	PackagedFunctionList* list;
@@ -1095,7 +1095,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	}
 	else {
 		// push arguments onto the stack
-		for(size_t i = 0; i < argumentCount; i++) {
+		for(uint64_t i = 0; i < argumentCount; i++) {
 			this->push(arguments[i], instruction::STACK);
 		}
 

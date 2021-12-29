@@ -131,7 +131,7 @@ namespace ts {
 	struct Instruction {
 		instruction::InstructionType type;
 		Instruction* next; // next instruction in linked list
-		size_t index; // instruction's index in flat array
+		uint64_t index; // instruction's index in flat array
 		instruction::PushType pushType;
 
 		union {
@@ -142,14 +142,14 @@ namespace ts {
 			struct {
 				union {
 					Instruction* instruction;
-					size_t index;
+					uint64_t index;
 				};
 			} jump;
 
 			struct {
 				union {
 					Instruction* instruction;
-					size_t index;
+					uint64_t index;
 				};
 				bool pop;
 			} jumpIfTrue;
@@ -157,7 +157,7 @@ namespace ts {
 			struct {
 				union {
 					Instruction* instruction;
-					size_t index;
+					uint64_t index;
 				};
 				bool pop;
 			} jumpIfFalse;
@@ -175,7 +175,7 @@ namespace ts {
 
 			struct {
 				string destination;
-				size_t hash;
+				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
@@ -184,7 +184,7 @@ namespace ts {
 
 			struct {
 				string destination;
-				size_t hash;
+				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
@@ -192,7 +192,7 @@ namespace ts {
 
 			struct {
 				string destination;
-				size_t hash;
+				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
@@ -201,7 +201,7 @@ namespace ts {
 
 			struct {
 				string blank1; // TODO fix this so we don't need blank entries https://stackoverflow.com/questions/3521914/why-compiler-doesnt-allow-stdstring-inside-union
-				size_t blank2;
+				uint64_t blank2;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
@@ -209,23 +209,23 @@ namespace ts {
 
 			struct {
 				string source;
-				size_t hash;
+				uint64_t hash;
 				int stackIndex;
 			} localAccess;
 
 			struct {
 				string source;
-				size_t hash;
+				uint64_t hash;
 			} globalAccess;
 
 			struct {
 				string source;
-				size_t hash;
+				uint64_t hash;
 			} objectAccess;
 
 			struct {
 				string source;
-				size_t hash;
+				uint64_t hash;
 			} symbolAccess;
 
 			struct {
@@ -259,12 +259,12 @@ namespace ts {
 			}	createObject;
 
 			struct {
-				size_t argumentCount;
+				uint64_t argumentCount;
 			} popArguments;
 
 			struct {
 				string name;
-				size_t cachedIndex;
+				uint64_t cachedIndex;
 				bool isCached;
 			} callParent;
 

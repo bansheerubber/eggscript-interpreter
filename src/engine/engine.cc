@@ -34,11 +34,11 @@ Engine::~Engine() {
 	delete this->parser;
 	delete this->interpreter;
 
-	for(size_t i = 0; i < this->functions.head; i++) {
+	for(uint64_t i = 0; i < this->functions.head; i++) {
 		delete this->functions[i];
 	}
 
-	for(size_t i = 0; i < this->methodTrees.head; i++) {
+	for(uint64_t i = 0; i < this->methodTrees.head; i++) {
 		delete this->methodTrees[i];
 	}
 }
@@ -173,7 +173,7 @@ void Engine::defineTSSLFunction(sl::Function* function) {
 		MethodTree* tree = this->methodTrees[this->namespaceToMethodTreeIndex[toLower(function->nameSpace)]];
 
 		// associate the method name with an index
-		size_t index = 0;
+		uint64_t index = 0;
 		if(this->methodNameToIndex.find(toLower(function->name)) == this->methodNameToIndex.end()) {
 			this->methodNameToIndex[toLower(function->name)] = index = this->currentMethodNameIndex;
 			this->currentMethodNameIndex++;
@@ -186,7 +186,7 @@ void Engine::defineTSSLFunction(sl::Function* function) {
 	}
 }
 
-void Engine::defineFunction(string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+void Engine::defineFunction(string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
 	// create the function container which we will use to execute the function at runtime
 	Function* container = new Function(output.first, argumentCount, variableCount, name);
 	
@@ -206,7 +206,7 @@ void Engine::defineFunction(string &name, InstructionReturn output, size_t argum
 	list->defineInitialFunction(container);
 }
 
-void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
 	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
 
 	// define the method tree if we don't have one yet
@@ -222,7 +222,7 @@ void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn out
 	}
 
 	// associate the method name with an index
-	size_t index = 0;
+	uint64_t index = 0;
 	if(this->methodNameToIndex.find(toLower(name)) == this->methodNameToIndex.end()) {
 		this->methodNameToIndex[toLower(name)] = index = this->currentMethodNameIndex;
 		this->currentMethodNameIndex++;
@@ -241,7 +241,7 @@ Package* Engine::createPackage(PackageContext* package) {
 	return this->nameToPackage[package->name];
 }
 
-void Engine::addPackageFunction(PackageContext* packageContext, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+void Engine::addPackageFunction(PackageContext* packageContext, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
 	// create a package if we don't have one
 	Package* package = this->createPackage(packageContext);
 	package->removeFunction(name);
@@ -271,8 +271,8 @@ void Engine::addPackageMethod(
 	string &nameSpace,
 	string &name,
 	InstructionReturn output,
-	size_t argumentCount,
-	size_t variableCount
+	uint64_t argumentCount,
+	uint64_t variableCount
 ) {
 	// create the function container which we will use to execute the function at runtime
 	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
@@ -293,7 +293,7 @@ void Engine::addPackageMethod(
 	}
 
 	// associate the method name with an index
-	size_t index = 0;
+	uint64_t index = 0;
 	if(this->methodNameToIndex.find(toLower(name)) == this->methodNameToIndex.end()) {
 		this->methodNameToIndex[toLower(name)] = index = this->currentMethodNameIndex;
 		this->currentMethodNameIndex++;
@@ -359,7 +359,7 @@ MethodTree* Engine::createMethodTreeFromNamespaces(
 	auto iterator = this->namespaceToMethodTreeIndex.find(toLower(nameSpace));
 	if(iterator == this->namespaceToMethodTreeIndex.end()) {
 		tree = this->createMethodTreeFromNamespace(nameSpace);
-		for(size_t i = 0; i < 5; i++) {
+		for(uint64_t i = 0; i < 5; i++) {
 			if(names[i].length() != 0 && names[i] != nameSpace) {
 				MethodTree* tree2 = this->createMethodTreeFromNamespace(names[i]);
 				tree->addParent(tree2);
