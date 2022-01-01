@@ -768,36 +768,36 @@ void Interpreter::interpret() {
 
 			// cache the method entry pointer in the instruction
 			// TODO as soon as the namespace type changes, this breaks
+			bool found = instruction.callObject.isCached;
 			if(instruction.callObject.isCached == false) {
-				bool found = false;
 				auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(instruction.callObject.name));
 				if(methodNameIndex != this->engine->methodNameToIndex.end()) {
-					auto methodEntry = object->methodTree->methodIndexToEntry.find(methodNameIndex->second);
-					if(methodEntry != object->methodTree->methodIndexToEntry.end()) {
-						instruction.callObject.cachedEntry = methodEntry->second;
-						instruction.callObject.isCached = true;
-						found = true;
-					}
+					instruction.callObject.cachedIndex = methodNameIndex->second;
+					found = true;
 				}
-				
-				if(!found) {
-					this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callFunction.name.c_str());
-
-					// pop arguments that we didn't use
-					Entry &numberOfArguments = this->stack[this->stack.head - 1];
-					int number = (int)numberOfArguments.numberData;
-					for(int i = 0; i < number + 1; i++) {
-						this->pop();
-					}
-
-					this->pushEmpty(instruction.pushType);
-					break;
+				else {
+					found = false;
 				}
 			}
 
+			auto methodEntry = object->methodTree->methodIndexToEntry.find(instruction.callObject.cachedIndex);
+			if(!found || methodEntry == object->methodTree->methodIndexToEntry.end()) {
+				this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callFunction.name.c_str());
+
+				// pop arguments that we didn't use
+				Entry &numberOfArguments = this->stack[this->stack.head - 1];
+				int number = (int)numberOfArguments.numberData;
+				for(int i = 0; i < number + 1; i++) {
+					this->pop();
+				}
+
+				this->pushEmpty(instruction.pushType);
+				break;
+			}
+
 			// look up the method in the method tree
-			MethodTreeEntry* methodTreeEntry = instruction.callObject.cachedEntry;
-			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
+			MethodTreeEntry* methodTreeEntry = methodEntry->second;
+			int methodTreeEntryIndex = methodTreeEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
 			uint64_t packagedFunctionListIndex = list->topValidIndex;
 			Function* foundFunction = (*list)[packagedFunctionListIndex];

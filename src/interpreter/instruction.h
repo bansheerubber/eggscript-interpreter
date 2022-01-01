@@ -238,7 +238,7 @@ namespace ts {
 
 			struct {
 				string name;
-				class MethodTreeEntry* cachedEntry;
+				uint64_t cachedIndex;
 				bool isCached;
 			} callObject;
 

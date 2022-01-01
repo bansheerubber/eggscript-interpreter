@@ -357,7 +357,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::CALL_OBJECT;
 			ALLOCATE_STRING(lastInstruction->objectAccess.source, instruction->callObject.name);
-			instruction->callObject.cachedEntry = nullptr;
+			instruction->callObject.cachedIndex = ~((uint64_t)0);
 			instruction->callObject.isCached = false;
 
 			c.output.add(instruction);
