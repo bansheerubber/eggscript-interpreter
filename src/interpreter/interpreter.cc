@@ -13,6 +13,7 @@
 #include "object.h"
 #include "../util/numberToString.h"
 #include "../parser/parser.h"
+#include "../tssl/map.h"
 #include "stack.h"
 #include "../util/stringCompare.h"
 #include "../util/stringToNumber.h"
@@ -884,6 +885,29 @@ void Interpreter::interpret() {
 							this->pop();
 							this->push(array[index], instruction.pushType);
 						}
+						break;
+					}
+
+					case MAP: {
+						const char* key = nullptr;
+						bool deleteString = false;
+						## type_conversion.py indexEntry key ALL STRING deleteString
+
+						auto map = &(((ts::sl::Map*)objectWrapper->data)->map);
+						auto iter = map->find(string(key));
+						if(iter == map->end()) {
+							failure = true;
+						}
+						else {
+							this->pop();
+							this->pop();
+							this->push(iter.value(), instruction.pushType);
+						}
+
+						if(deleteString && key != nullptr) {
+							delete[] key;
+						}
+						break;
 					}
 				}
 

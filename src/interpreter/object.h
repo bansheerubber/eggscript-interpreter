@@ -12,6 +12,7 @@ namespace ts {
 	enum DataStructure {
 		NO_DATA_STRUCTURE = 0,
 		ARRAY,
+		MAP,
 	};
 	
 	#define TS_OBJECT_CONSTRUCTOR(name)		void (*name)(ObjectWrapper* wrapper)

@@ -13,6 +13,7 @@
 #include "getWord.h"
 #include "../interpreter/interpreter.h"
 #include "isObject.h"
+#include "map.h"
 #include "math.h"
 #include "../interpreter/methodTree.h"
 #include "schedule.h"
@@ -88,6 +89,11 @@ void ts::sl::define(Engine* engine) {
 	Array->isTSSL = true;
 	methodTrees.push_back(Array);
 	Array->tsslConstructor = &Array__constructor;
+
+	MethodTree* Map = engine->createMethodTreeFromNamespace("Map");
+	Map->isTSSL = true;
+	methodTrees.push_back(Map);
+	Map->tsslConstructor = &Map__constructor;
 
 	for(MethodTree* tree: methodTrees) {
 		engine->defineTSSLMethodTree(tree);
@@ -205,6 +211,8 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__insert, "Array", "insert", 2, on));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__remove, "Array", "remove", 2, on));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__index, "Array", "index", 1, o));
+
+	functions.push_back(FUNC_DEF(entry::EMPTY, &Map__onAdd, "Map", "onAdd", 1, o));
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &toNumber, "number", 0, e));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &toString, "string", 0, e));
