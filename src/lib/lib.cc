@@ -9,6 +9,7 @@
 #include "../tssl/define.h"
 #include "../engine/engine.h"
 #include "../interpreter/interpreter.h"
+#include "../tssl/map.h"
 #include "../parser/parser.h"
 #include "../tokenizer/tokenizer.h"
 
@@ -190,6 +191,10 @@ esEntryPtr esCreateObject(esObjectReferencePtr reference) {
 	return (esEntryPtr)(new ts::Entry(new ts::ObjectReference((ts::ObjectReference*)reference)));
 }
 
+esObjectReferencePtr esCreateMap(esEnginePtr engine) {
+	return esInstantiateObject(engine, "Map", nullptr);
+}
+
 esEntryPtr esCreateNumberAt(esEntryPtr entry, double number) {
 	return (esEntryPtr)new((void*)entry) Entry(number);
 }
@@ -270,4 +275,22 @@ double esGetNumberFromEntry(esEntryPtr entry) {
 	else {
 		return 0.0;
 	}
+}
+
+void esMapInsert(esObjectReferencePtr map, const char* key, esEntryPtr entry) {
+	if(esCompareNamespaceToObject(map, "Map")) {
+		greedyCopyEntry(*(ts::Entry*)entry, ((ts::sl::Map*)((ts::ObjectReference*)map)->objectWrapper->data)->map[string(key)]);
+	}
+	esDeleteEntry(entry);
+}
+
+const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key) {
+	if(esCompareNamespaceToObject(map, "Map")) {
+		auto hashmap = ((ts::sl::Map*)((ts::ObjectReference*)map)->objectWrapper->data)->map;
+		if(hashmap.find(string(key)) == hashmap.end()) {
+			return nullptr;
+		}
+		return (esEntryPtr)(&hashmap[key]);
+	}
+	return nullptr;
 }

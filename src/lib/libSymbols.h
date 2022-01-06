@@ -87,6 +87,7 @@ extern "C" {
 	esEntryPtr esCreateVector(unsigned int size, ...);
 	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObject(esObjectReferencePtr reference);
+	esObjectReferencePtr esCreateMap(esEnginePtr engine);
 
 	esEntryPtr esCreateNumberAt(esEntryPtr entry, double number);
 	esEntryPtr esCreateStringAt(esEntryPtr entry, char* string);
@@ -100,4 +101,7 @@ extern "C" {
 	esEntryPtr esGetObjectProperty(esObjectReferencePtr object, const char* variable);
 
 	double esGetNumberFromEntry(esEntryPtr entry);
+
+	void esMapInsert(esObjectReferencePtr map, const char* key, esEntryPtr entry); // greedy copies entry and deletes it
+	const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key);
 }
