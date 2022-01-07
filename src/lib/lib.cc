@@ -191,6 +191,10 @@ esEntryPtr esCreateObject(esObjectReferencePtr reference) {
 	return (esEntryPtr)(new ts::Entry(new ts::ObjectReference((ts::ObjectReference*)reference)));
 }
 
+esObjectReferencePtr esCreateArray(esEnginePtr engine) {
+	return esInstantiateObject(engine, "Array", nullptr);
+}
+
 esObjectReferencePtr esCreateMap(esEnginePtr engine) {
 	return esInstantiateObject(engine, "Map", nullptr);
 }
@@ -233,18 +237,6 @@ esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference) {
 	return (esEntryPtr)new((void*)entry) Entry(new ts::ObjectReference((ts::ObjectReference*)reference));
 }
 
-void esArrayPush(esObjectReferencePtr reference, esEntryPtr entry) {
-	if(reference->objectWrapper != nullptr) {
-		ObjectReference* array = (ObjectReference*)reference;
-		if(array->objectWrapper->object->dataStructure != ARRAY) {
-			printf("not an array\n");
-			return;
-		}
-
-		((ts::sl::Array*)array->objectWrapper->data)->push((ts::Entry*)entry, 1);
-	}
-}
-
 void esSetObjectProperty(esObjectReferencePtr object, const char* variable, esEntryPtr property) {
 	ts::ObjectWrapper* wrapper = ((ts::ObjectReference*)object)->objectWrapper;
 	if(wrapper == nullptr) {
@@ -277,11 +269,16 @@ double esGetNumberFromEntry(esEntryPtr entry) {
 	}
 }
 
+void esArrayPush(esObjectReferencePtr array, esEntryPtr entry) {
+	if(esCompareNamespaceToObject(array, "Array")) {
+		((ts::sl::Array*)((ts::ObjectReference*)array)->objectWrapper->data)->push((ts::Entry*)entry, 1);
+	}
+}
+
 void esMapInsert(esObjectReferencePtr map, const char* key, esEntryPtr entry) {
 	if(esCompareNamespaceToObject(map, "Map")) {
-		greedyCopyEntry(*(ts::Entry*)entry, ((ts::sl::Map*)((ts::ObjectReference*)map)->objectWrapper->data)->map[string(key)]);
+		copyEntry(*(ts::Entry*)entry, ((ts::sl::Map*)((ts::ObjectReference*)map)->objectWrapper->data)->map[string(key)]);
 	}
-	esDeleteEntry(entry);
 }
 
 const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key) {

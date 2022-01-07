@@ -25,6 +25,13 @@ namespace ts {
 			}
 		}
 
+		void Array::pushGreedy(Entry* entries, int64_t amount) {
+			for(int64_t i = 0; i < amount; i++) {
+				greedyCopyEntry(entries[i], this->array[this->array.head]);
+				this->array.pushed();
+			}
+		}
+
 		// TODO: if amount < 0 and |amount| > index(?) then its going to be screwy
 		void Array::shift(int64_t index, int64_t amount, bool fill) {
 			int64_t end = (int64_t)this->array.head;

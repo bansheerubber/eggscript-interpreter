@@ -30,6 +30,7 @@ namespace ts {
 			public:
 				DynamicArray<Entry, Array> array = DynamicArray<Entry, Array>(this, 16, arrayInitEntry, nullptr);
 				void push(Entry* entries, int64_t amount);
+				void pushGreedy(Entry* entries, int64_t amount);
 			
 			protected:
 				void shift(int64_t index, int64_t amount, bool fill = false); // shifts the whole array over to the right by n starting from a index
