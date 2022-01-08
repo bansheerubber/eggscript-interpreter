@@ -88,6 +88,7 @@ namespace ts {
 			bool tick();
 			void setTickRate(int64_t tickRate);
 			void garbageCollect(unsigned int amount);
+			unsigned int probeGarbage(string className);
 
 			void setObjectName(string &name, ObjectWrapper* object);
 			void deleteObjectName(string &name);

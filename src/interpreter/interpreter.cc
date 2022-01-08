@@ -342,6 +342,8 @@ bool Interpreter::tick() {
 		goto start_tick;
 	}
 
+	this->garbageCollect(10000);
+
 	// return false if we have schedules left, return true if there's none left
 	return this->schedules.array.head == 0;
 }
@@ -351,10 +353,20 @@ void Interpreter::setTickRate(int64_t tickRate) {
 }
 
 void Interpreter::garbageCollect(unsigned int amount) {
-	for(uint64_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {		
+	for(uint64_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {
 		delete this->garbageHeap.array[0];
 		this->garbageHeap.pop();
 	}
+}
+
+unsigned int Interpreter::probeGarbage(string className) {
+	unsigned int count = 0;
+	for(uint64_t i = 0; i < this->garbageHeap.array.head; i++) {
+		if(toLower(this->garbageHeap.array[i]->object->typeMethodTree->name) == toLower(className)) {
+			count++;
+		}
+	}
+	return count;
 }
 
 void Interpreter::interpret() {

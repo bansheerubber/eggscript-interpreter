@@ -29,8 +29,8 @@ ObjectWrapper* ts::CreateObject(
 	interpreter->garbageHeap.insert(wrapper);
 
 	ts::ObjectReference* reference = new ObjectReference(wrapper);
-	ts::Entry* entry = new Entry(reference);
-	delete interpreter->callMethod(reference, "onAdd", entry, 1);
+	ts::Entry entry(reference);
+	delete interpreter->callMethod(reference, "onAdd", &entry, 1);
 
 	return wrapper;
 }

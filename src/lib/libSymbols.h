@@ -104,4 +104,6 @@ extern "C" {
 	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry); // greedy copies entry and deletes it
 	void esMapInsert(esObjectReferencePtr map, const char* key, esEntryPtr entry); // greedy copies entry and deletes it
 	const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key);
+
+	unsigned int esProbeGarbage(esEnginePtr engine, const char* className);
 }

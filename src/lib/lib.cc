@@ -291,3 +291,7 @@ const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key) {
 	}
 	return nullptr;
 }
+
+unsigned int esProbeGarbage(esEnginePtr engine, const char* className) {
+	return ((ts::Engine*)engine)->interpreter->probeGarbage(string(className));
+}
