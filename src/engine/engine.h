@@ -29,6 +29,16 @@ extern struct termios originalTerminalAttributes;
 void disableRawMode();
 
 namespace ts {
+	struct InstructionSource {
+		string fileName;
+	};
+
+	struct InstructionDebug {
+		InstructionSource* commonSource = nullptr;
+		unsigned short character;
+		unsigned int line;
+	};
+	
 	void initPackagedFunctionList(class Engine* engine, PackagedFunctionList** list);
 	void initMethodTree(class Engine* engine, MethodTree** tree);
 	
@@ -37,7 +47,9 @@ namespace ts {
 		friend Package;
 		friend FunctionDeclaration;
 		friend NewStatement;
+		friend Instruction;
 		friend void sl::define(Engine* engine);
+		friend void copyInstruction(Engine* engine, Instruction &source, Instruction &destination);
 
 		public:
 			Engine(ParsedArguments args, bool isParallel = false);
@@ -48,7 +60,7 @@ namespace ts {
 			Interpreter* interpreter;
 
 			void execFile(string fileName, bool forceExecution = false);
-			void execFileContents(string fileName, string shell);
+			void execVirtualFile(string fileName, string shell);
 			void execPiped(string piped);
 			void execShell(string shell, bool forceExecution = false);
 
@@ -81,6 +93,8 @@ namespace ts {
 				string namespace4 = string(),
 				string namespace5 = string()
 			);
+
+			const InstructionDebug& getInstructionDebug(Instruction* instruction);
 		
 		private:
 			ParsedArguments args;
@@ -112,5 +126,12 @@ namespace ts {
 			// used to index into a method tree
 			robin_map<string, uint64_t> methodNameToIndex;
 			uint64_t currentMethodNameIndex = 0;
+
+			// debug data structures
+			robin_map<string, InstructionSource*> fileNameToSource;
+			robin_map<Instruction*, InstructionDebug> instructionDebug;
+
+			void swapInstructionDebug(Instruction* source, Instruction* destination);
+			void addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line);
 	};
 }

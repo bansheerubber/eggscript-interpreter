@@ -8,7 +8,7 @@ bool ReturnStatement::ShouldParse(ts::Engine* engine) {
 ReturnStatement* ReturnStatement::Parse(Component* parent, ts::Engine* engine) {
 	ReturnStatement* output = new ReturnStatement(engine);
 	output->parent = parent;
-	engine->parser->expectToken(RETURN);
+	output->token = engine->parser->expectToken(RETURN);
 
 	// parse an expression
 	if(engine->tokenizer->peekToken().type != SEMICOLON) {
@@ -48,7 +48,11 @@ ts::InstructionReturn ReturnStatement::compile(ts::Engine* engine, ts::Compilati
 	ts::InstructionReturn output;
 
 	// add a return statement that exits out from our function
-	ts::Instruction* returnInstruction = new ts::Instruction();
+	ts::Instruction* returnInstruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	returnInstruction->type = ts::instruction::RETURN;
 	returnInstruction->functionReturn.hasValue = false;
 

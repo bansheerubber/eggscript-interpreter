@@ -69,7 +69,7 @@ void Engine::execFile(string fileName, bool forceExecution) {
 			this->interpreter->startInterpretation(result.first);
 		}
 		else {
-			InstructionContainer* container = new InstructionContainer(result.first);
+			InstructionContainer* container = new InstructionContainer(this, result.first);
 			this->interpreter->pushFunctionFrame(container);
 			this->interpreter->interpret();
 			delete container;
@@ -80,8 +80,8 @@ void Engine::execFile(string fileName, bool forceExecution) {
 	}
 }
 
-void Engine::execFileContents(string fileName, string contents) {
-	if(!this->tokenizer->tokenizePiped(contents)) {
+void Engine::execVirtualFile(string fileName, string contents) {
+	if(!this->tokenizer->tokeinzeVirtualFile(fileName, contents)) {
 		return;
 	}
 
@@ -94,7 +94,7 @@ void Engine::execFileContents(string fileName, string contents) {
 		loop: nullptr,
 		scope: nullptr,
 	});
-	this->interpreter->pushFunctionFrame(new InstructionContainer(result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
+	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
 	this->interpreter->interpret();
 }
 
@@ -131,7 +131,7 @@ void Engine::execShell(string shell, bool forceExecution) {
 			loop: nullptr,
 			scope: nullptr,
 		});
-		this->interpreter->pushFunctionFrame(new InstructionContainer(result.first));
+		this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first));
 		this->interpreter->interpret();
 	}
 	else {
@@ -150,7 +150,7 @@ void Engine::defineTSSLMethodTree(MethodTree* tree) {
 }
 
 void Engine::defineTSSLFunction(sl::Function* function) {
-	Function* container = new Function(function);
+	Function* container = new Function(this, function);
 	
 	if(function->nameSpace.length() == 0) {
 		PackagedFunctionList* list;
@@ -188,7 +188,7 @@ void Engine::defineTSSLFunction(sl::Function* function) {
 
 void Engine::defineFunction(string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
 	// create the function container which we will use to execute the function at runtime
-	Function* container = new Function(output.first, argumentCount, variableCount, name);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name);
 	
 	PackagedFunctionList* list;
 	if(this->nameToFunctionIndex.find(name) == this->nameToFunctionIndex.end()) {
@@ -207,7 +207,7 @@ void Engine::defineFunction(string &name, InstructionReturn output, uint64_t arg
 }
 
 void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
-	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name, nameSpace);
 
 	// define the method tree if we don't have one yet
 	MethodTree* tree;
@@ -247,7 +247,7 @@ void Engine::addPackageFunction(PackageContext* packageContext, string &name, In
 	package->removeFunction(name);
 	
 	// create the function container which we will use to execute the function at runtime
-	Function* container = new Function(output.first, argumentCount, variableCount, name);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name);
 	
 	PackagedFunctionList* list;
 	if(this->nameToFunctionIndex.find(name) == this->nameToFunctionIndex.end()) {
@@ -275,7 +275,7 @@ void Engine::addPackageMethod(
 	uint64_t variableCount
 ) {
 	// create the function container which we will use to execute the function at runtime
-	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name, nameSpace);
 
 	Package* package = this->createPackage(packageContext);
 	package->removeMethod(nameSpace, name);
@@ -371,4 +371,32 @@ MethodTree* Engine::createMethodTreeFromNamespaces(
 	}
 
 	return tree;
+}
+
+const ts::InstructionDebug& ts::Engine::getInstructionDebug(Instruction* instruction) {
+	return this->instructionDebug[instruction];
+}
+
+void ts::Engine::swapInstructionDebug(Instruction* source, Instruction* destination) {
+	this->instructionDebug[destination] = this->instructionDebug[source];
+	this->instructionDebug.erase(source);
+}
+
+void ts::Engine::addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line) {
+	InstructionSource* commonSource = nullptr;
+	if(this->fileNameToSource.find(symbolicFileName) == this->fileNameToSource.end()) {
+		commonSource = new InstructionSource {
+			fileName: symbolicFileName,
+		};
+		this->fileNameToSource[symbolicFileName] = commonSource;
+	}
+	else {
+		commonSource = this->fileNameToSource[symbolicFileName];
+	}
+	
+	this->instructionDebug[source] = InstructionDebug {
+		commonSource: commonSource,
+		character: character,
+		line: line,
+	};
 }

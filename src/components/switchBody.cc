@@ -71,7 +71,11 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 		}
 	}
 	
-	ts::Instruction* noop = new ts::Instruction();
+	ts::Instruction* noop = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	noop->type = ts::instruction::NOOP;
 
 	ts::InstructionReturn lastConditionals;
@@ -90,7 +94,11 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 			// should be a value that was also pushed onto the stack
 			ts::InstructionReturn switchConditional = this->conditional->compile(engine, context);
 
-			ts::Instruction* comparison = new ts::Instruction();
+			ts::Instruction* comparison = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
 			comparison->type = ts::instruction::MATH_EQUAL;
 			comparison->mathematics.lvalueEntry = ts::Entry();
 			comparison->mathematics.lvalueEntry.type = ts::entry::INVALID;
@@ -109,7 +117,11 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 			conditionals.add(switchConditional);
 			conditionals.add(comparison);
 
-			ts::Instruction* jumpIfFalse = new ts::Instruction();
+			ts::Instruction* jumpIfFalse = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
 			jumpIfFalse->type = ts::instruction::JUMP_IF_FALSE;
 			jumpIfFalse->jumpIfFalse.pop = true;
 			jumpIfFalse->jumpIfFalse.instruction = nullptr;
@@ -120,7 +132,11 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 		output.add(conditionals);
 		output.add(compiledBody);
 
-		ts::Instruction* jumpToEnd = new ts::Instruction();
+		ts::Instruction* jumpToEnd = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		jumpToEnd->type = ts::instruction::JUMP;
 		jumpToEnd->jump.instruction = noop;
 		output.add(jumpToEnd);

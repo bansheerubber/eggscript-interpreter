@@ -1,4 +1,4 @@
-	#pragma once
+#pragma once
 
 #include <string>
 
@@ -35,6 +35,14 @@ class WhileBody : public Body, public ts::LoopsContext {
 				return true;
 			}
 			return false;
+		}
+
+		unsigned short getCharacterNumber() {
+			return this->conditional->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->conditional->getLineNumber();
 		}
 
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);

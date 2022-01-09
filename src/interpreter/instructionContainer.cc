@@ -3,11 +3,13 @@
 
 using namespace ts;
 
-InstructionContainer::InstructionContainer() {
-	
+InstructionContainer::InstructionContainer(Engine* engine) {
+	this->engine = engine;
 }
 
-InstructionContainer::InstructionContainer(Instruction* head) {
+InstructionContainer::InstructionContainer(Engine* engine, Instruction* head) {
+	this->engine = engine;
+	
 	// flatten instructions into array so CPU can cache instruction data types (improves performance by 20%)
 	int count = 0;
 	Instruction* instruction = head;
@@ -25,7 +27,7 @@ InstructionContainer::InstructionContainer(Instruction* head) {
 	instruction = head;
 	count = 0;
 	while(instruction != nullptr) {
-		copyInstruction(*instruction, this->array[count]);
+		copyInstruction(this->engine, *instruction, this->array[count]);
 		
 		// convert jump instruction pointers to indices for flat array
 		switch(instruction->type) {

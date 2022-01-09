@@ -62,6 +62,11 @@ ts::InstructionReturn PostfixStatement::compile(ts::Engine* engine, ts::Compilat
 	// copy access instruction to assign instruction
 	instruction->localAssign.fromStack = false;
 	instruction->localAssign.pushResult = this->parent->shouldPushToStack(this);
-	instruction->localAssign.stackIndex = context.scope->allocateVariable(instruction->localAssign.destination).stackIndex;
+	instruction->localAssign.stackIndex = context.scope->allocateVariable(
+		instruction->localAssign.destination,
+		false,
+		engine->getInstructionDebug(instruction).character,
+		engine->getInstructionDebug(instruction).line
+	).stackIndex;
 	return compiled.output;
 }

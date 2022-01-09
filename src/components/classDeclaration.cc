@@ -13,7 +13,7 @@ ClassDeclaration* ClassDeclaration::Parse(Component* parent, ts::Engine* engine)
 	
 	ClassDeclaration* output = new ClassDeclaration(engine);
 
-	engine->parser->expectToken(CLASS);
+	output->token = engine->parser->expectToken(CLASS);
 	
 	Token symbol = engine->parser->expectToken(SYMBOL);
 	output->className = symbol.lexeme;

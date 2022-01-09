@@ -34,7 +34,7 @@ void VariableContext::inherit(VariableContext &parent) {
 Entry& VariableContext::getVariableEntry(Instruction &instruction, string &name, uint64_t hash) {
 	auto value = this->variableMap.find(name, hash);
 	if(value == this->variableMap.end()) { // initialize empty string
-		this->interpreter->warning("trying to access unassigned variable/property '%s'\n", name.c_str());
+		this->interpreter->warning(&instruction, "trying to access unassigned variable/property '%s'\n", name.c_str());
 		
 		Entry &entry = this->variableMap[name];
 		copyEntry(this->interpreter->emptyEntry, entry);
@@ -70,7 +70,7 @@ void VariableContext::setVariableEntry(string &name, Entry &entry) {
 Entry& VariableContext::getVariableEntry(string &name) {
 	auto value = this->variableMap.find(name);
 	if(value == this->variableMap.end()) { // initialize empty string
-		this->interpreter->warning("trying to access unassigned variable/property '%s'\n", name.c_str());
+		this->interpreter->warning(nullptr, "trying to access unassigned variable/property '%s'\n", name.c_str());
 		
 		Entry &entry = this->variableMap[name];
 		copyEntry(this->interpreter->emptyEntry, entry);

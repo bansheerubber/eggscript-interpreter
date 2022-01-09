@@ -47,7 +47,11 @@ ts::InstructionReturn WhileBody::compile(ts::Engine* engine, ts::CompilationCont
 	ts::InstructionReturn output;
 	
 	// final NOOP statement in while statement
-	ts::Instruction* noop = new ts::Instruction();
+	ts::Instruction* noop = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	noop->type = ts::instruction::NOOP;
 
 	// add conditional
@@ -55,7 +59,11 @@ ts::InstructionReturn WhileBody::compile(ts::Engine* engine, ts::CompilationCont
 	output.add(compiledConditional);
 
 	// add conditional jump
-	ts::Instruction* conditionalJump = new ts::Instruction();
+	ts::Instruction* conditionalJump = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	conditionalJump->type = ts::instruction::JUMP_IF_FALSE;
 	conditionalJump->jumpIfFalse.instruction = noop;
 	conditionalJump->jumpIfFalse.pop = true;
@@ -79,7 +87,11 @@ ts::InstructionReturn WhileBody::compile(ts::Engine* engine, ts::CompilationCont
 	}
 
 	// add jump to conditional
-	ts::Instruction* jump = new ts::Instruction();
+	ts::Instruction* jump = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	jump->type = ts::instruction::JUMP;
 	jump->jump.instruction = compiledConditional.first;
 	output.add(jump);

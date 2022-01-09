@@ -47,12 +47,18 @@ bool Tokenizer::tokenizePiped(string piped) {
 	return false;
 }
 
+bool Tokenizer::tokeinzeVirtualFile(string fileName, string contents) {
+	this->symbolicFileName = fileName;
+	return this->tokenizePiped(contents);
+}
+
 bool Tokenizer::tokenizeFile(string fileName) {
 	this->reset();
 	
 	// read the file
 	ifstream file = ifstream(fileName, ios::binary | ios::ate);
 	this->fileName = fileName;
+	this->symbolicFileName = fileName;
 
 	if((file.rdstate() & ifstream::failbit) != 0) {
 		printError("failed to read file %s\n", fileName.c_str());

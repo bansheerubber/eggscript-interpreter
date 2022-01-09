@@ -15,11 +15,15 @@ namespace ts {
 		uint64_t stackIndex; // index relative to start of stack frame
 		string name;
 		bool isArgument;
+
+		// character & line number of where the variable was defined
+		unsigned short character;
+		unsigned int line;
 	};
 	
 	class Scope {
 		public:
-			BoundVariable& allocateVariable(string &variableName, bool isArgument = false);
+			BoundVariable& allocateVariable(string &variableName, bool isArgument, unsigned short character, unsigned int line);
 			uint64_t allocatedSize();
 		
 		protected:

@@ -289,12 +289,14 @@ namespace ts {
 			this->next = nullptr;
 		}
 
+		Instruction(class Engine* engine, unsigned short character, unsigned int line);
+
 		~Instruction() {
 			
 		}
 	};
 
-	void copyInstruction(Instruction &source, Instruction &destination);
+	void copyInstruction(class Engine* engine, Instruction &source, Instruction &destination);
 
 	struct InstructionReturn {
 		Instruction* first; // first instruction in mini linked list

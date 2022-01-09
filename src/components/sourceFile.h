@@ -27,6 +27,14 @@ class SourceFile : public Body, public ts::Scope {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return 0;
+		}
+
+		unsigned int getLineNumber() {
+			return 0;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

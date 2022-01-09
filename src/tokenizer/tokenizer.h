@@ -37,6 +37,7 @@ class Tokenizer {
 		string& getKeywordLexeme(TokenType type);
 
 		string fileName;
+		string symbolicFileName = "shell"; // the filename that is used for debug information. can be anything, not just a file on disk
 	
 	private:
 		void reset();
@@ -45,6 +46,7 @@ class Tokenizer {
 		void handleArgs(ParsedArguments args);
 
 		bool tokenizePiped(string piped);
+		bool tokeinzeVirtualFile(string fileName, string contents);
 		bool tokenizeFile(string fileName);
 		
 		void tokenize();

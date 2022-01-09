@@ -152,7 +152,11 @@ string NewStatement::printJSON() {
 ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationContext context) {
 	ts::InstructionReturn output;
 
-	ts::Instruction* createObject = new ts::Instruction();
+	ts::Instruction* createObject = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	createObject->type = ts::instruction::CREATE_OBJECT;
 	createObject->createObject.canCreate = true;
 	createObject->createObject.symbolNameCached = false;
@@ -327,7 +331,11 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 
 	// pop from stack if needed
 	if(!this->parent->shouldPushToStack(this)) {
-		ts::Instruction* pop = new ts::Instruction();
+		ts::Instruction* pop = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		pop->type = ts::instruction::POP;
 		output.add(pop);
 	}

@@ -81,7 +81,7 @@ namespace ts {
 			void execFile(string filename);
 			
 			void printStack();
-			void warning(const char* format, ...);
+			void warning(Instruction* instruction, const char* format, ...);
 
 			void addSchedule(uint64_t, string functionName, Entry* arguments, uint64_t argumentCount, ObjectReference* object = nullptr);
 

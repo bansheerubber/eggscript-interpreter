@@ -225,7 +225,7 @@ void Interpreter::pushEmpty(instruction::PushType type) {
 }
 
 void Interpreter::startInterpretation(Instruction* head) {
-	InstructionContainer* container = new InstructionContainer(head);
+	InstructionContainer* container = new InstructionContainer(this->engine, head);
 	this->pushFunctionFrame(container); // create the instructions
 	this->startTime = getMicrosecondsNow();
 	this->interpret();
@@ -294,11 +294,20 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 	return new Entry();
 }
 
-void Interpreter::warning(const char* format, ...) {
+void Interpreter::warning(Instruction* instruction, const char* format, ...) {
 	if(this->warnings) {
+		string formatString(format);
+
+		if(instruction != nullptr) {
+			InstructionDebug debug = this->engine->getInstructionDebug(instruction);
+			if(debug.commonSource != nullptr) {
+				formatString = debug.commonSource->fileName + ":" + to_string(debug.line) + ":" + to_string(debug.character) + ": " + formatString;
+			}
+		}
+		
 		va_list argptr;
 		va_start(argptr, format);
-		(*this->engine->vWarningFunction)(format, argptr);
+		(*this->engine->vWarningFunction)(formatString.c_str(), argptr);
 		va_end(argptr);
 	}
 }
@@ -583,7 +592,7 @@ void Interpreter::interpret() {
 
 				// print warning if function was not defined
 				if(found == false) {
-					this->warning("could not find function with name '%s'\n", instruction.callFunction.name.c_str());
+					this->warning(&instruction, "could not find function with name '%s'\n", instruction.callFunction.name.c_str());
 				
 					// pop arguments that we didn't use
 					Entry &numberOfArguments = this->stack[this->stack.head - 1];
@@ -709,7 +718,7 @@ void Interpreter::interpret() {
 				// create the object
 				MethodTree* typeCheck = this->engine->getNamespace(typeName);
 				if(typeCheck == nullptr) {
-					this->warning("could not create object with type '%s'\n", typeName.c_str());
+					this->warning(&instruction, "could not create object with type '%s'\n", typeName.c_str());
 					this->pushEmpty(instruction.pushType);
 
 					// cache this result since we always need a base type name to create a object
@@ -730,7 +739,7 @@ void Interpreter::interpret() {
 				instruction.createObject.methodTree = tree;
 			}
 			else if(!instruction.createObject.canCreate) {
-				this->warning("could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
+				this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
 				this->pushEmpty(instruction.pushType);
 				break;
 			}
@@ -763,7 +772,7 @@ void Interpreter::interpret() {
 			## type_conversion.py objectEntry objectWrapper ALL OBJECT
 
 			if(objectWrapper == nullptr) {
-				this->warning("could not find object for method call\n");
+				this->warning(&instruction, "could not find object for method call\n");
 				
 				// pop arguments that we didn't use
 				Entry &numberOfArguments = this->stack[this->stack.head - 1];
@@ -794,7 +803,7 @@ void Interpreter::interpret() {
 
 			auto methodEntry = object->methodTree->methodIndexToEntry.find(instruction.callObject.cachedIndex);
 			if(!found || methodEntry == object->methodTree->methodIndexToEntry.end()) {
-				this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callFunction.name.c_str());
+				this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callFunction.name.c_str());
 
 				// pop arguments that we didn't use
 				Entry &numberOfArguments = this->stack[this->stack.head - 1];
@@ -1041,7 +1050,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t
 		foundFunction = (*list)[packagedFunctionListIndex];
 	}
 	else {
-		this->warning("could not find function with name '%s'\n", functionName.c_str());
+		this->warning(nullptr, "could not find function with name '%s'\n", functionName.c_str());
 		return new Entry();
 	}
 
@@ -1113,7 +1122,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	}
 
 	if(!found) {
-		this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), methodName.c_str());
+		this->warning(nullptr, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), methodName.c_str());
 		return new Entry();
 	}
 

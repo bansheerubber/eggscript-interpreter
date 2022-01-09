@@ -27,6 +27,14 @@ class Symbol : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
@@ -36,4 +44,7 @@ class Symbol : public Component {
 		static Symbol* Parse(Component* parent, ts::Engine* engine);
 	
 		string value;
+	
+	private:
+		Token token;
 };

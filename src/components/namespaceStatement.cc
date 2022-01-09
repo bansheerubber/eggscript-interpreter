@@ -18,7 +18,7 @@ NamespaceStatement* NamespaceStatement::Parse(Component* parent, ts::Engine* eng
 	output->parent = parent;
 
 	if(engine->tokenizer->peekToken().type == PARENT) {
-		engine->parser->expectToken(PARENT);
+		output->parentToken = engine->parser->expectToken(PARENT);
 	}
 	else {
 		// parse a symbol
@@ -74,7 +74,11 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 		output.add(this->call->compile(engine, context)); // push arguments
 
 		// push the amount of arguments we just found
-		ts::Instruction* instruction = new ts::Instruction();
+		ts::Instruction* instruction = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		instruction->type = ts::instruction::PUSH;
 		instruction->push.entry = ts::Entry();
 		instruction->push.entry.type = ts::entry::NUMBER;
@@ -82,7 +86,11 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 		output.add(instruction);
 
 		// build call instruction
-		ts::Instruction* callFunction = new ts::Instruction();
+		ts::Instruction* callFunction = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		callFunction->type = ts::instruction::CALL_FUNCTION;
 		ALLOCATE_STRING(this->operation->print(), callFunction->callFunction.name);
 		ALLOCATE_STRING(this->name->print(), callFunction->callFunction.nameSpace);
@@ -92,7 +100,11 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 		output.add(callFunction);
 
 		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
-			ts::Instruction* pop = new ts::Instruction();
+			ts::Instruction* pop = new ts::Instruction(
+				engine,
+				this->getCharacterNumber(),
+				this->getLineNumber()
+			);
 			pop->type = ts::instruction::POP;
 			output.add(pop);
 		}
@@ -101,7 +113,11 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 		output.add(this->call->compile(engine, context)); // push arguments
 
 		// push the amount of arguments we just found
-		ts::Instruction* instruction = new ts::Instruction();
+		ts::Instruction* instruction = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		instruction->type = ts::instruction::PUSH;
 		instruction->push.entry = ts::Entry();
 		instruction->push.entry.type = ts::entry::NUMBER;
@@ -109,7 +125,11 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 		output.add(instruction);
 
 		// build call instruction
-		ts::Instruction* callParent = new ts::Instruction();
+		ts::Instruction* callParent = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		callParent->type = ts::instruction::CALL_PARENT;
 		ALLOCATE_STRING(this->operation->print(), callParent->callParent.name);
 		callParent->callParent.cachedIndex = 0;
@@ -117,7 +137,11 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 		output.add(callParent);
 
 		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
-			ts::Instruction* pop = new ts::Instruction();
+			ts::Instruction* pop = new ts::Instruction(
+				engine,
+				this->getCharacterNumber(),
+				this->getLineNumber()
+			);
 			pop->type = ts::instruction::POP;
 			output.add(pop);
 		}

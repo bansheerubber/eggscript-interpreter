@@ -36,6 +36,14 @@ class IfBody : public Body {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->conditional->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->conditional->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

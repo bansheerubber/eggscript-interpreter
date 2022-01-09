@@ -43,8 +43,12 @@ ts::InstructionReturn SourceFile::compile(ts::Engine* engine, ts::CompilationCon
 		}
 	}
 
-	for(unsigned int i = 0; i < this->variables.size(); i++) {
-		ts::Instruction* push = new ts::Instruction();
+	for(auto &[_, value]: this->variables) {
+		ts::Instruction* push = new ts::Instruction(
+			engine,
+			value.character,
+			value.line
+		);
 		push->type = ts::instruction::PUSH;
 		push->push.entry = ts::Entry();
 		output.addFirst(push);

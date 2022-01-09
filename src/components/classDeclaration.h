@@ -25,6 +25,14 @@ class ClassDeclaration : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
@@ -33,6 +41,7 @@ class ClassDeclaration : public Component {
 		static ClassDeclaration* Parse(Component* parent, ts::Engine* engine);
 	
 	private:
+		Token token;
 		string className;
 		string inheritedName = "";
 };

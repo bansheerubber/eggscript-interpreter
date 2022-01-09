@@ -9,7 +9,7 @@ CallStatement* CallStatement::Parse(Component* parent, ts::Engine* engine) {
 	CallStatement* output = new CallStatement(engine);
 	output->parent = parent;
 	
-	engine->parser->expectToken(LEFT_PARENTHESIS);
+	output->token = engine->parser->expectToken(LEFT_PARENTHESIS);
 
 	bool expectingComma = false;
 	while(!engine->tokenizer->eof()) {

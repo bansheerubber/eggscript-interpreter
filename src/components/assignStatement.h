@@ -9,6 +9,8 @@
 #include "../tokenizer/tokenizer.h"
 #include "../tokenizer/token.h"
 
+#include "accessStatement.h"
+
 using namespace std;
 
 class AssignStatement : public Component {
@@ -25,6 +27,14 @@ class AssignStatement : public Component {
 
 		bool shouldPushToStack(Component* child) {
 			return true;
+		}
+
+		unsigned short getCharacterNumber() {
+			return this->lvalue->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->lvalue->getLineNumber();
 		}
 
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);

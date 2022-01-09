@@ -4,15 +4,17 @@
 
 namespace ts {
 	class InstructionContainer {
+		friend class Interpreter;
+		
 		public:
-			InstructionContainer();
-			InstructionContainer(ts::Instruction* head);
+			InstructionContainer(class Engine* engine);
+			InstructionContainer(class Engine* engine, ts::Instruction* head);
 			~InstructionContainer();
 			void print(); // print all the instructions in this container
 		
 		protected:
 			ts::Instruction* array = nullptr; // pointer to flat array in memory
 			uint64_t size;
-			friend class Interpreter;
+			class Engine* engine;
 	};
 }

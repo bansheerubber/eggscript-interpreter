@@ -114,11 +114,19 @@ ts::InstructionReturn IfBody::compile(ts::Engine* engine, ts::CompilationContext
 	ts::InstructionReturn output;
 
 	// final NOOP statement in if statement
-	ts::Instruction* noop = new ts::Instruction();
+	ts::Instruction* noop = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	noop->type = ts::instruction::NOOP;
 
 	// conditional statement for if statement
-	ts::Instruction* conditionalJump = new ts::Instruction();
+	ts::Instruction* conditionalJump = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	conditionalJump->type = ts::instruction::JUMP_IF_FALSE;
 	conditionalJump->jumpIfFalse.instruction = noop;
 	conditionalJump->jumpIfFalse.pop = true;
@@ -132,7 +140,11 @@ ts::InstructionReturn IfBody::compile(ts::Engine* engine, ts::CompilationContext
 
 	if(this->next != nullptr) {
 		// jump at the end of the if statement, prevents else/else if
-		ts::Instruction* jump = new ts::Instruction();
+		ts::Instruction* jump = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		jump->type = ts::instruction::JUMP;
 		jump->jump.instruction = noop;
 		output.add(jump);

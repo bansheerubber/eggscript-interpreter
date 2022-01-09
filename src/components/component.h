@@ -21,6 +21,8 @@ class Component {
 		virtual bool requiresSemicolon(Component* child) = 0; // whether or not a child of this component needs a semicolon
 		virtual bool shouldPushToStack(Component* child) = 0; // whether or not a child should push its value to the stack
 		virtual ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context) = 0; // compile to bytecode
+		virtual unsigned short getCharacterNumber() = 0;
+		virtual unsigned int getLineNumber() = 0;
 
 		static bool ShouldParse(Component* parent, ts::Engine* engine);
 		static Component* AfterParse(Component* lvalue, Component* parent, ts::Engine* engine);

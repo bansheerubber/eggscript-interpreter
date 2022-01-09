@@ -32,6 +32,14 @@ class DatablockDeclaration : public Body {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->typeName->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->typeName->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

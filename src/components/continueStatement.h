@@ -23,10 +23,21 @@ class ContinueStatement : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
 		string printJSON();
 		static bool ShouldParse(ts::Engine* engine);
 		static ContinueStatement* Parse(Component* parent, ts::Engine* engine);
+	
+	private:
+		Token token;
 };

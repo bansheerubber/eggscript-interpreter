@@ -35,6 +35,14 @@ class ForBody : public Body, public ts::LoopsContext {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->initialization->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->initialization->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

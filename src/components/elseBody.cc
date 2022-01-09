@@ -9,7 +9,7 @@ ElseBody* ElseBody::Parse(Body* body, ts::Engine* engine) {
 	ElseBody* output = new ElseBody(engine);
 	output->parent = body;
 
-	engine->parser->expectToken(ELSE);
+	output->token = engine->parser->expectToken(ELSE);
 
 	// handle one line else statements
 	if(engine->tokenizer->peekToken().type != LEFT_BRACKET) {
@@ -38,7 +38,11 @@ string ElseBody::printJSON() {
 ts::InstructionReturn ElseBody::compile(ts::Engine* engine, ts::CompilationContext context) {
 	ts::InstructionReturn output;
 	if(this->children.size() == 0) {
-		ts::Instruction* noop = new ts::Instruction();
+		ts::Instruction* noop = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		noop->type = ts::instruction::NOOP;	
 		output.add(noop);
 	}

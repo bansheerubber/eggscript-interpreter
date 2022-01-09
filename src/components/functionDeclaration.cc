@@ -95,7 +95,12 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 		if(component != nullptr) {
 			// allocate the variable in our scope
 			string name = component->getVariableName();
-			this->allocateVariable(name, true);
+			this->allocateVariable(
+				name,
+				true,
+				component->getCharacterNumber(),
+				component->getLineNumber()
+			);
 		}
 	}
 
@@ -111,7 +116,11 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 	// push variables
 	for(auto const& [key, value]: this->variables) {
 		if(!value.isArgument) {
-			ts::Instruction* push = new ts::Instruction();
+			ts::Instruction* push = new ts::Instruction(
+				engine,
+				this->getCharacterNumber(),
+				this->getLineNumber()
+			);
 			push->type = ts::instruction::PUSH;
 			push->push.entry = ts::Entry();
 			output.addFirst(push);
@@ -119,13 +128,21 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 	}
 
 	// tell the interpreter to pop values from the stack that were pushed as arguments
-	ts::Instruction* instruction = new ts::Instruction();
+	ts::Instruction* instruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = ts::instruction::POP_ARGUMENTS;
 	instruction->popArguments.argumentCount = argumentCount;
 	output.addFirst(instruction);
 
 	// add a return statement that exits out from our function
-	ts::Instruction* returnInstruction = new ts::Instruction();
+	ts::Instruction* returnInstruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	returnInstruction->type = ts::instruction::RETURN;
 	returnInstruction->functionReturn.hasValue = false;
 	output.add(returnInstruction);

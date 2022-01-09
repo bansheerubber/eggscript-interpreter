@@ -36,8 +36,8 @@ void esExecFile(esEnginePtr engine, const char* filename) {
 	((ts::Engine*)engine)->execFile(string(filename));
 }
 
-void esExecFileFromContents(esEnginePtr engine, const char* fileName, const char* contents) {
-	((ts::Engine*)engine)->execFileContents(string(fileName), string(contents));
+void esExecVirtualFile(esEnginePtr engine, const char* fileName, const char* contents) {
+	((ts::Engine*)engine)->execVirtualFile(string(fileName), string(contents));
 }
 
 void esEval(esEnginePtr engine, const char* shell) {

@@ -42,7 +42,11 @@ ts::InstructionReturn InlineConditional::compile(ts::Engine* engine, ts::Compila
 	ts::InstructionReturn output;
 
 	// final NOOP statement in inline statement
-	ts::Instruction* noop = new ts::Instruction();
+	ts::Instruction* noop = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	noop->type = ts::instruction::NOOP;
 
 	// compile if true statement
@@ -52,7 +56,11 @@ ts::InstructionReturn InlineConditional::compile(ts::Engine* engine, ts::Compila
 	ts::InstructionReturn ifFalse = this->ifFalse->compile(engine, context);
 
 	// conditional statement for inline statement
-	ts::Instruction* conditionalJump = new ts::Instruction();
+	ts::Instruction* conditionalJump = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	conditionalJump->type = ts::instruction::JUMP_IF_FALSE;
 	conditionalJump->jumpIfFalse.instruction = ifFalse.first;
 	conditionalJump->jumpIfFalse.pop = true;
@@ -63,7 +71,11 @@ ts::InstructionReturn InlineConditional::compile(ts::Engine* engine, ts::Compila
 	output.add(ifTrue);
 
 	// add jump to end once we're done with true
-	ts::Instruction* jumpToEnd = new ts::Instruction();
+	ts::Instruction* jumpToEnd = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	jumpToEnd->type = ts::instruction::JUMP;
 	jumpToEnd->jump.instruction = noop;
 	output.add(jumpToEnd);

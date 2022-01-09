@@ -31,6 +31,14 @@ class NewStatement : public Body {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->className->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->className->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

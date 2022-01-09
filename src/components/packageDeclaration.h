@@ -30,6 +30,14 @@ class PackageDeclaration : public Body, public ts::PackageContext {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->packageName->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->packageName->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
