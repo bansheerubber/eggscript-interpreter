@@ -11,6 +11,7 @@
 #include "numberLiteral.h"
 #include "stringLiteral.h"
 #include "../util/stringToChars.h"
+#include "../util/toLower.h"
 #include "symbol.h"
 
 bool NewStatement::ShouldParse(ts::Engine* engine) {

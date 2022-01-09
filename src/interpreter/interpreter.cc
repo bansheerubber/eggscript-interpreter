@@ -19,7 +19,6 @@
 #include "../util/stringToNumber.h"
 #include "../util/time.h"
 #include "../tokenizer/tokenizer.h"
-#include "../util/toLower.h"
 
 using namespace ts;
 
@@ -362,7 +361,7 @@ void Interpreter::garbageCollect(unsigned int amount) {
 unsigned int Interpreter::probeGarbage(string className) {
 	unsigned int count = 0;
 	for(uint64_t i = 0; i < this->garbageHeap.array.head; i++) {
-		if(toLower(this->garbageHeap.array[i]->object->typeMethodTree->name) == toLower(className)) {
+		if(this->garbageHeap.array[i]->object->typeMethodTree->name == className) {
 			count++;
 		}
 	}
@@ -558,10 +557,10 @@ void Interpreter::interpret() {
 				bool found = false;
 				if(
 					instruction.callFunction.nameSpace.length() != 0
-					&& this->engine->namespaceToMethodTreeIndex.find(toLower(instruction.callFunction.nameSpace)) != this->engine->namespaceToMethodTreeIndex.end()
+					&& this->engine->namespaceToMethodTreeIndex.find(instruction.callFunction.nameSpace) != this->engine->namespaceToMethodTreeIndex.end()
 				) {
-					uint64_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[toLower(instruction.callFunction.nameSpace)];
-					auto methodIndex = this->engine->methodNameToIndex.find(toLower(instruction.callFunction.name));
+					uint64_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[instruction.callFunction.nameSpace];
+					auto methodIndex = this->engine->methodNameToIndex.find(instruction.callFunction.name);
 
 					if(methodIndex != this->engine->methodNameToIndex.end()) {
 						auto methodEntry = this->engine->methodTrees[namespaceIndex]->methodIndexToEntry.find(methodIndex->second);
@@ -573,9 +572,9 @@ void Interpreter::interpret() {
 					}
 				}
 				else { // find non-namespace function
-					if(this->engine->nameToFunctionIndex.find(toLower(instruction.callFunction.name)) != this->engine->nameToFunctionIndex.end()) {
+					if(this->engine->nameToFunctionIndex.find(instruction.callFunction.name) != this->engine->nameToFunctionIndex.end()) {
 						instruction.callFunction.cachedFunctionList
-							= this->engine->functions[this->engine->nameToFunctionIndex[toLower(instruction.callFunction.name)]];
+							= this->engine->functions[this->engine->nameToFunctionIndex[instruction.callFunction.name]];
 
 						instruction.callFunction.isCached = true;
 						found = true;
@@ -783,7 +782,7 @@ void Interpreter::interpret() {
 			// TODO as soon as the namespace type changes, this breaks
 			bool found = instruction.callObject.isCached;
 			if(instruction.callObject.isCached == false) {
-				auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(instruction.callObject.name));
+				auto methodNameIndex = this->engine->methodNameToIndex.find(instruction.callObject.name);
 				if(methodNameIndex != this->engine->methodNameToIndex.end()) {
 					instruction.callObject.cachedIndex = methodNameIndex->second;
 					found = true;
@@ -1036,8 +1035,8 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t
 	MethodTreeEntry* methodTreeEntry = nullptr;
 	int methodTreeEntryIndex = -1;
 
-	if(this->engine->nameToFunctionIndex.find(toLower(functionName)) != this->engine->nameToFunctionIndex.end()) {
-		list = this->engine->functions[this->engine->nameToFunctionIndex[toLower(functionName)]];
+	if(this->engine->nameToFunctionIndex.find(functionName) != this->engine->nameToFunctionIndex.end()) {
+		list = this->engine->functions[this->engine->nameToFunctionIndex[functionName]];
 		packagedFunctionListIndex = list->topValidIndex;
 		foundFunction = (*list)[packagedFunctionListIndex];
 	}
@@ -1100,7 +1099,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	object = objectWrapper->object;
 	
 	bool found = false;
-	auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(methodName));
+	auto methodNameIndex = this->engine->methodNameToIndex.find(methodName);
 	if(methodNameIndex != this->engine->methodNameToIndex.end()) {
 		auto methodEntry = object->methodTree->methodIndexToEntry.find(methodNameIndex->second);
 		if(methodEntry != object->methodTree->methodIndexToEntry.end()) {

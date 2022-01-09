@@ -276,8 +276,8 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		if(element.token.type == LOCAL_VARIABLE) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::LOCAL_ACCESS;
-			instruction->localAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->localAccess.source);
+			instruction->localAccess.hash = hash<string>{}(element.token.lexeme);
+			ALLOCATE_STRING(element.token.lexeme, instruction->localAccess.source);
 			instruction->localAccess.stackIndex = -1;
 
 			c.lastAccess = instruction;
@@ -287,8 +287,8 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == GLOBAL_VARIABLE) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::GLOBAL_ACCESS;
-			instruction->globalAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->globalAccess.source);
+			instruction->globalAccess.hash = hash<string>{}(element.token.lexeme);
+			ALLOCATE_STRING(element.token.lexeme, instruction->globalAccess.source);
 
 			c.lastAccess = instruction;
 
@@ -297,8 +297,8 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == SYMBOL) {
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::SYMBOL_ACCESS;
-			instruction->symbolAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->symbolAccess.source);
+			instruction->symbolAccess.hash = hash<string>{}(element.token.lexeme);
+			ALLOCATE_STRING(element.token.lexeme, instruction->symbolAccess.source);
 
 			c.lastAccess = instruction;
 
@@ -330,8 +330,8 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			ts::Instruction* instruction = new ts::Instruction();
 			instruction->type = ts::instruction::OBJECT_ACCESS;
-			instruction->objectAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->objectAccess.source);
+			instruction->objectAccess.hash = hash<string>{}(element.token.lexeme);
+			ALLOCATE_STRING(element.token.lexeme, instruction->objectAccess.source);
 
 			c.lastAccess = instruction;
 

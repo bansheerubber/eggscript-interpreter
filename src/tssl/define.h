@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "../interpreter/entry.h"
-#include "../util/toLower.h"
 
 using namespace std;
 

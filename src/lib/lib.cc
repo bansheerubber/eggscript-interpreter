@@ -244,7 +244,6 @@ void esSetObjectProperty(esObjectReferencePtr object, const char* variable, esEn
 	}
 
 	string name(variable);
-	name = toLower(name);
 	wrapper->object->properties.setVariableEntry(name, *((ts::Entry*)property));
 	esDeleteEntry(property); // TODO better way to do this??
 }
@@ -256,7 +255,6 @@ esEntryPtr esGetObjectProperty(esObjectReferencePtr object, const char* variable
 	}
 
 	string name(variable);
-	name = toLower(name);
 	return (esEntryPtr)(&wrapper->object->properties.getVariableEntry(name));
 }
 
