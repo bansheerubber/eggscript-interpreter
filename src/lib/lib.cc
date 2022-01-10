@@ -60,6 +60,10 @@ void esSetVPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFu
 	((ts::Engine*)engine)->vErrorFunction = error;
 }
 
+void esSetInstructionDebug(esEnginePtr engine, bool enabled) {
+	((ts::Engine*)engine)->setInstructionDebugEnabled(enabled);
+}
+
 void esRegisterNamespace(esEnginePtr engine, const char* nameSpace) {
 	ts::MethodTree* methodTree = ((ts::Engine*)engine)->createMethodTreeFromNamespace(nameSpace);
 	methodTree->isTSSL = true;

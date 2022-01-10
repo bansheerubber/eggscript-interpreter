@@ -95,6 +95,7 @@ namespace ts {
 			);
 
 			const InstructionDebug& getInstructionDebug(Instruction* instruction);
+			void setInstructionDebugEnabled(bool instructionDebugEnabled);
 		
 		private:
 			ParsedArguments args;
@@ -130,6 +131,7 @@ namespace ts {
 			// debug data structures
 			robin_map<string, InstructionSource*> fileNameToSource;
 			robin_map<Instruction*, InstructionDebug> instructionDebug;
+			bool instructionDebugEnabled = false;
 
 			void swapInstructionDebug(Instruction* source, Instruction* destination);
 			void addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line);

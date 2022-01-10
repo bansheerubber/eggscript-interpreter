@@ -377,12 +377,24 @@ const ts::InstructionDebug& ts::Engine::getInstructionDebug(Instruction* instruc
 	return this->instructionDebug[instruction];
 }
 
+void ts::Engine::setInstructionDebugEnabled(bool instructionDebugEnabled) {
+	this->instructionDebugEnabled = instructionDebugEnabled;
+}
+
 void ts::Engine::swapInstructionDebug(Instruction* source, Instruction* destination) {
+	if(!this->instructionDebugEnabled) {
+		return;
+	}
+	
 	this->instructionDebug[destination] = this->instructionDebug[source];
 	this->instructionDebug.erase(source);
 }
 
 void ts::Engine::addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line) {
+	if(!this->instructionDebugEnabled) {
+		return;
+	}
+	
 	InstructionSource* commonSource = nullptr;
 	if(this->fileNameToSource.find(symbolicFileName) == this->fileNameToSource.end()) {
 		commonSource = new InstructionSource {
