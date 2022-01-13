@@ -7,19 +7,17 @@ ObjectWrapper* ts::CreateObject(
 	class ts::Interpreter* interpreter,
 	bool inhibitInterpret,
 	string nameSpace,
-	string inheritedName,
 	MethodTree* methodTree,
-	MethodTree* typeMethodTree,
 	void* data
 ) {
-	Object* object = new Object(interpreter, nameSpace, inheritedName, methodTree, typeMethodTree);
+	Object* object = new Object(interpreter, nameSpace, methodTree);
 	ObjectWrapper* wrapper = new ObjectWrapper(object, data);
 	object->wrapper = wrapper;
 	interpreter->objects[object->id] = wrapper;
 
 	if(data == nullptr) {
-		if(typeMethodTree->tsslConstructor) {
-			(*typeMethodTree->tsslConstructor)(wrapper);
+		if(methodTree->tsslConstructor) {
+			(*methodTree->tsslConstructor)(wrapper);
 		}
 	}
 	else {
@@ -52,16 +50,8 @@ ObjectWrapper::~ObjectWrapper() {
 	delete this->object;
 }
 
-Object::Object(ts::Interpreter* interpreter, string nameSpace, string inheritedName, MethodTree* methodTree, MethodTree* typeMethodTree) {
+Object::Object(ts::Interpreter* interpreter, string nameSpace, MethodTree* methodTree) {
 	this->properties.interpreter = interpreter;
-
-	if(inheritedName.length() != 0) {
-		// TODO hash
-		auto objectIterator = interpreter->stringToObject.find(inheritedName);
-		if(objectIterator != interpreter->stringToObject.end()) {
-			this->inherit(objectIterator->second->object);
-		}
-	}
 
 	this->id = interpreter->highestObjectId++;
 
@@ -72,7 +62,6 @@ Object::Object(ts::Interpreter* interpreter, string nameSpace, string inheritedN
 
 	this->nameSpace = nameSpace;
 	this->methodTree = methodTree;
-	this->typeMethodTree = typeMethodTree;
 }
 
 Object::~Object() {
@@ -82,7 +71,6 @@ Object::~Object() {
 		reference = reference->next;
 	}
 	
-	this->properties.interpreter->deleteObjectName(this->name);
 	this->properties.interpreter->objects.erase(this->id);
 }
 

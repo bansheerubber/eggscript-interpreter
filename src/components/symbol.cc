@@ -50,13 +50,5 @@ string Symbol::printJSON() {
 }
 
 ts::InstructionReturn Symbol::compile(ts::Engine* engine, ts::CompilationContext context) {
-	ts::Instruction* instruction = new ts::Instruction(
-		engine,
-		this->getCharacterNumber(),
-		this->getLineNumber()
-	);
-	instruction->type = ts::instruction::SYMBOL_ACCESS;
-	instruction->symbolAccess.hash = hash<string>{}(this->value);
-	ALLOCATE_STRING(this->value, instruction->symbolAccess.source);
-	return ts::InstructionReturn(instruction, instruction);
+	return {};
 }

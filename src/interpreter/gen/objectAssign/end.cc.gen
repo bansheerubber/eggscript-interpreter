@@ -6,6 +6,7 @@ if(instruction.objectAssign.fromStack && !instruction.objectAssign.pushResult) {
 	this->pop(); // pop value from the stack
 }
 
+// TODO this is probably faulty
 if(instruction.objectAssign.pushResult && entry != nullptr && !instruction.objectAssign.fromStack) {
 	this->push(*entry, instruction.pushType);
 }

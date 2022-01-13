@@ -49,7 +49,4 @@ class NewStatement : public Body {
 	private:
 		Component* className = nullptr;
 		CallStatement* arguments = nullptr;
-
-		Component* classProperty = nullptr;
-		Component* superClassProperty = nullptr;
 };

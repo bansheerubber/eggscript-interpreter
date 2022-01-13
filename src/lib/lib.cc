@@ -92,7 +92,7 @@ esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpa
 	}
 	else {
 		return (esObjectReferencePtr)new ts::ObjectReference(
-			CreateObject(((ts::Engine*)engine)->interpreter, false, nameSpace, "", methodTree, methodTree, data)
+			CreateObject(((ts::Engine*)engine)->interpreter, false, nameSpace, methodTree, data)
 		);
 	}
 }
@@ -109,7 +109,7 @@ void esDeleteObject(esObjectReferencePtr objectReference) {
 }
 
 const char* esGetNamespaceFromObject(esObjectReferencePtr object) {
-	return ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name.c_str();
+	return ((ts::ObjectWrapper*)object->objectWrapper)->object->methodTree->name.c_str();
 }
 
 int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace) {
@@ -117,7 +117,7 @@ int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpac
 		return 0;
 	}
 	
-	return ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name == string(nameSpace);
+	return ((ts::ObjectWrapper*)object->objectWrapper)->object->methodTree->name == string(nameSpace);
 }
 
 int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* nameSpace) {
@@ -125,7 +125,7 @@ int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* n
 		return 0;
 	}
 
-	ts::MethodTree* tree = ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree;
+	ts::MethodTree* tree = ((ts::ObjectWrapper*)object->objectWrapper)->object->methodTree;
 	if(tree->name == string(nameSpace)) {
 		return 1;
 	}

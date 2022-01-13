@@ -9,7 +9,6 @@
 #include "classDeclaration.h"
 #include "comment.h"
 #include "continueStatement.h"
-#include "datablockDeclaration.h"
 #include "emptyLiteral.h"
 #include "forBody.h"
 #include "functionDeclaration.h"
@@ -41,7 +40,6 @@ bool Component::ShouldParse(Component* parent, ts::Engine* engine) {
 		|| BooleanLiteral::ShouldParse(engine)
 		|| NewStatement::ShouldParse(engine)
 		|| NamespaceStatement::ShouldParse(engine)
-		|| InheritanceStatement::ShouldParse(nullptr, parent, engine)
 		|| Symbol::ShouldParse(engine)
 		|| MatrixExpression::ShouldParse(engine)
 		|| EmptyLiteral::ShouldParse(engine)
@@ -71,10 +69,7 @@ Component* Component::AfterParse(Component* lvalue, Component* parent, ts::Engin
 		}
 	}
 
-	if(lvalue != nullptr && InheritanceStatement::ShouldParse(lvalue, parent, engine)) {
-		lvalue = InheritanceStatement::Parse(lvalue, parent, engine);
-	}
-	else if(InlineConditional::ShouldParse(engine) && lvalue != nullptr && parent->getType() != MATH_EXPRESSION) {
+	if(InlineConditional::ShouldParse(engine) && lvalue != nullptr && parent->getType() != MATH_EXPRESSION) {
 		lvalue = InlineConditional::Parse(lvalue, parent, engine);
 	}
 
@@ -129,9 +124,6 @@ Component* Component::Parse(Component* parent, ts::Engine* engine) {
 	}
 	else if(NewStatement::ShouldParse(engine)) {
 		output = NewStatement::Parse(parent, engine);
-	}
-	else if(InheritanceStatement::ShouldParse(nullptr, parent, engine)) {
-		output = InheritanceStatement::Parse(nullptr, parent, engine);
 	}
 	else if(Symbol::ShouldParse(engine)) {
 		output = Symbol::Parse(parent, engine);
@@ -193,9 +185,6 @@ void Component::ParseBody(Body* body, ts::Engine* engine, bool oneLine) {
 		}
 		else if(ReturnStatement::ShouldParse(engine)) {
 			body->addChild(ReturnStatement::Parse(body, engine));
-		}
-		else if(DatablockDeclaration::ShouldParse(engine)) {
-			body->addChild(DatablockDeclaration::Parse(body, engine));
 		}
 		else if(ForBody::ShouldParse(engine)) {
 			body->addChild(ForBody::Parse(body, engine));

@@ -22,9 +22,7 @@ namespace ts {
 		class ts::Interpreter* interpreter,
 		bool inhibitInterpret,
 		string nameSpace,
-		string inheritedName,
 		class MethodTree* methodTree,
-		class MethodTree* typeMethodTree,
 		void* data = nullptr
 	);
 	
@@ -33,14 +31,12 @@ namespace ts {
 			Interpreter* interpreter,
 			bool inhibitInterpret,
 			string nameSpace,
-			string inheritedName,
 			MethodTree* methodTree,
-			MethodTree* typeMethodTree,
 			void* data
 		);
 		
 		public:
-			Object(class ts::Interpreter* interpreter, string nameSpace, string inheritedName, class MethodTree* methodTree, class MethodTree* typeMethodTree);
+			Object(class ts::Interpreter* interpreter, string nameSpace, class MethodTree* methodTree);
 			~Object();
 
 			DataStructure dataStructure = NO_DATA_STRUCTURE;
@@ -55,7 +51,6 @@ namespace ts {
 			uint64_t referenceCount = 0;
 			string nameSpace;
 			class MethodTree* methodTree;
-			class MethodTree* typeMethodTree;
 		
 		private:
 			void inherit(Object* parent);

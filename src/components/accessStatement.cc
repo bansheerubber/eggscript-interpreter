@@ -5,6 +5,7 @@
 #include "arrayStatement.h"
 #include "callStatement.h"
 #include "../util/stringToChars.h"
+#include "symbol.h"
 
 bool AccessStatement::DatablockAsSymbol = false;
 
@@ -314,20 +315,6 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 
 			lastInstruction = instruction;
 		}
-		else if(element.token.type == SYMBOL) {
-			ts::Instruction* instruction = new ts::Instruction(
-				engine,
-				element.token.characterNumber,
-				element.token.lineNumber
-			);
-			instruction->type = ts::instruction::SYMBOL_ACCESS;
-			instruction->symbolAccess.hash = hash<string>{}(element.token.lexeme);
-			ALLOCATE_STRING(element.token.lexeme, instruction->symbolAccess.source);
-
-			c.lastAccess = instruction;
-
-			lastInstruction = instruction;
-		}
 		else if(element.isArray) {
 			if(lastInstruction != nullptr) {
 				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
@@ -426,9 +413,22 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			lastInstruction = nullptr;
 		}
 		else if(element.component != nullptr && element.component->getType() == SYMBOL_STATEMENT) {
-			ts::InstructionReturn symbol = element.component->compile(engine, context);
-			c.lastAccess = symbol.first;
-			lastInstruction = symbol.first;
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
+			instruction->type = ts::instruction::OBJECT_ASSIGN_EQUAL;
+			instruction->objectAssign.entry = ts::Entry(); // initialize memory to avoid crash
+
+			instruction->objectAssign.hash = hash<string>{}(((Symbol*)element.component)->value);
+			ALLOCATE_STRING(((Symbol*)element.component)->value, instruction->objectAssign.destination);
+			instruction->objectAssign.fromStack = false;
+			instruction->objectAssign.pushResult = false;
+			instruction->objectAssign.popObject = false;
+			
+			c.lastAccess = instruction;
+			lastInstruction = instruction;
 		}
 		count++;
 	}

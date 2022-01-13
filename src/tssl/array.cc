@@ -66,7 +66,7 @@ namespace ts {
 		}
 
 		Entry* Array__push(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc < 1 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc < 1 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 
@@ -77,7 +77,7 @@ namespace ts {
 		}
 
 		Entry* Array__size(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 1 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 1 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 			
@@ -85,7 +85,7 @@ namespace ts {
 		}
 
 		Entry* Array__insert(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 3 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 3 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 
@@ -97,7 +97,7 @@ namespace ts {
 		}
 
 		Entry* Array__remove(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 2 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 2 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 
@@ -107,7 +107,7 @@ namespace ts {
 		}
 
 		Entry* Array__index(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 2 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 2 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return new Entry(-1);
 			}
 

@@ -64,9 +64,7 @@ namespace ts {
 			class ts::Interpreter* interpreter,
 			bool inhibitInterpret,
 			string nameSpace,
-			string inheritedName,
 			MethodTree* methodTree,
-			MethodTree* typeMethodTree,
 			void* data
 		);
 		friend Entry* ts::sl::PARENT(Engine* engine, const char* methodName, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes);
@@ -89,9 +87,6 @@ namespace ts {
 			void setTickRate(int64_t tickRate);
 			void garbageCollect(unsigned int amount);
 			unsigned int probeGarbage(string className);
-
-			void setObjectName(string &name, ObjectWrapper* object);
-			void deleteObjectName(string &name);
 
 			Entry* callFunction(string functionName, Entry* arguments, uint64_t argumentCount);
 			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, uint64_t argumentCount, bool inhibitInterpret = false);
@@ -163,7 +158,6 @@ namespace ts {
 
 			// used to lookup objects
 			robin_map<uint64_t, ObjectWrapper*> objects;
-			robin_map<string, ObjectWrapper*> stringToObject;
 
 			// keep track of schedules
 			MinHeap<Schedule*, Interpreter> schedules = MinHeap<Schedule*, Interpreter>(this, initSchedule, nullptr);

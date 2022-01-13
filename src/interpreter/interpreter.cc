@@ -370,7 +370,7 @@ void Interpreter::garbageCollect(unsigned int amount) {
 unsigned int Interpreter::probeGarbage(string className) {
 	unsigned int count = 0;
 	for(uint64_t i = 0; i < this->garbageHeap.array.head; i++) {
-		if(this->garbageHeap.array[i]->object->typeMethodTree->name == className) {
+		if(this->garbageHeap.array[i]->object->methodTree->name == className) {
 			count++;
 		}
 	}
@@ -548,19 +548,6 @@ void Interpreter::interpret() {
 			break;
 		}
 
-		case instruction::SYMBOL_ACCESS: { // lookup object by name and push it to stack if it exists
-			// try to look up the object's name
-			auto objectIterator = this->stringToObject.find(instruction.symbolAccess.source, instruction.symbolAccess.hash);
-			if(objectIterator == this->stringToObject.end()) {
-				this->pushEmpty(instruction.pushType);
-			}
-			else {
-				this->push(new ObjectReference(objectIterator->second), instruction.pushType);
-			}
-			
-			break;
-		}
-
 		case instruction::CALL_FUNCTION: { // jump to a new instruction container
 			if(!instruction.callFunction.isCached) {
 				bool found = false;
@@ -644,11 +631,7 @@ void Interpreter::interpret() {
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over
-			if(this->frames[this->frames.head - 1].isTSSL) {
-				return;
-			}
-
-			if(this->frames[this->frames.head].earlyQuit) {
+			if(this->frames[this->frames.head - 1].isTSSL || this->frames[this->frames.head].earlyQuit) {
 				return;
 			}
 
@@ -674,46 +657,7 @@ void Interpreter::interpret() {
 
 		case instruction::CREATE_OBJECT: {
 			string typeName = instruction.createObject.typeName;
-			string symbolName = instruction.createObject.symbolName;
-			string classProperty = instruction.createObject.classProperty;
-			string superClassProperty = instruction.createObject.superClassProperty;
 			if(!instruction.createObject.isCached) {
-				// handle super class property stuff
-				if(!instruction.createObject.superClassPropertyCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* superClassPropertyCStr;
-					## type_conversion.py entry superClassPropertyCStr ALL STRING
-					superClassProperty = string(superClassPropertyCStr);
-					this->pop();
-				}
-
-				// handle class property stuff
-				if(!instruction.createObject.classPropertyCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* classPropertyCStr;
-					## type_conversion.py entry classPropertyCStr ALL STRING
-					classProperty = string(classPropertyCStr);
-					this->pop();
-				}
-				
-				// handle symbol name stuff
-				if(!instruction.createObject.symbolNameCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* symbolNameCStr;
-					## type_conversion.py entry symbolNameCStr ALL STRING
-					symbolName = string(symbolNameCStr);
-					this->pop();
-				}
-
-				// handle type name stuff
-				if(!instruction.createObject.typeNameCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* typeNameCStr;
-					## type_conversion.py entry typeNameCStr ALL STRING
-					typeName = string(typeNameCStr);
-					this->pop();
-				}
-
 				// check to make sure that the type name that we're using is defined by the TSSL. if not, we can't
 				// create the object
 				MethodTree* typeCheck = this->engine->getNamespace(typeName);
@@ -727,16 +671,7 @@ void Interpreter::interpret() {
 					break;
 				}
 
-				instruction.createObject.typeMethodTree = typeCheck;
-
-				MethodTree* tree = this->engine->createMethodTreeFromNamespaces(
-					symbolName,
-					classProperty,
-					superClassProperty,
-					typeName
-				);
-
-				instruction.createObject.methodTree = tree;
+				instruction.createObject.methodTree = typeCheck;
 			}
 			else if(!instruction.createObject.canCreate) {
 				this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
@@ -748,14 +683,8 @@ void Interpreter::interpret() {
 				this,
 				true,
 				typeName,
-				instruction.createObject.inheritedName,
-				instruction.createObject.methodTree,
-				instruction.createObject.typeMethodTree
+				instruction.createObject.methodTree
 			);
-
-			if(symbolName.length() != 0) {
-				this->setObjectName(symbolName, object);
-			}
 
 			this->push(new ObjectReference(object), instruction.pushType);
 			break;
@@ -1025,15 +954,6 @@ void Interpreter::addSchedule(uint64_t time, string functionName, Entry* argumen
 		argumentCount,
 		object
 	));
-}
-
-void Interpreter::setObjectName(string &name, ObjectWrapper* object) {
-	this->stringToObject[name] = object;
-	object->object->setName(name);
-}
-
-void Interpreter::deleteObjectName(string &name) {
-	this->stringToObject.erase(name);
 }
 
 Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t argumentCount) {

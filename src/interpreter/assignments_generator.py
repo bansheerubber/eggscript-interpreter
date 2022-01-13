@@ -30,17 +30,17 @@ specific_operations = {
 			}}""",
 	"OBJECT_ASSIGN_EQUAL": """object->properties.setVariableEntry(
 				instruction,
-				instruction.localAssign.destination,
-				instruction.localAssign.hash,
+				instruction.objectAssign.destination,
+				instruction.objectAssign.hash,
 				*entry,
-				instruction.localAssign.fromStack
+				instruction.objectAssign.fromStack
 			);""",
 	"GLOBAL_ASSIGN_EQUAL": """this->globalContext.setVariableEntry(
 				instruction,
 				instruction.globalAssign.destination,
 				instruction.globalAssign.hash,
 				*entry,
-				instruction.localAssign.fromStack
+				instruction.globalAssign.fromStack
 			);""",
 }
 

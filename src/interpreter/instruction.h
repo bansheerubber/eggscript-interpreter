@@ -5,12 +5,12 @@
 
 namespace ts {
 	namespace instruction {
-		enum PushType {
+		enum PushType : short {
 			STACK = -1,
 			RETURN_REGISTER,
 		};
 		
-		enum InstructionType {
+		enum InstructionType : unsigned short {
 			INVALID_INSTRUCTION, // an instruction with an invalid type will cause the interpreter to stop
 			NOOP,
 			PUSH, // push a literal value onto the stack, specifies type
@@ -90,7 +90,6 @@ namespace ts {
 			OBJECT_ASSIGN_BITWISE_XOR,
 			OBJECT_ASSIGN_BITWISE_OR,
 			OBJECT_ACCESS,
-			SYMBOL_ACCESS,
 			ARRAY_ACCESS,
 			ARRAY_ASSIGN_EQUAL,
 			ARRAY_ASSIGN_INCREMENT,
@@ -109,7 +108,7 @@ namespace ts {
 			MATRIX_SET,
 		};
 
-		enum AssignOperations {
+		enum AssignOperations : unsigned short {
 			INVALID_ASSIGN,
 			EQUALS,
 			INCREMENT,
@@ -130,9 +129,9 @@ namespace ts {
 	// instructions form a linked list
 	struct Instruction {
 		instruction::InstructionType type;
+		instruction::PushType pushType;
 		Instruction* next; // next instruction in linked list
 		uint64_t index; // instruction's index in flat array
-		instruction::PushType pushType;
 
 		union {
 			struct {
@@ -224,11 +223,6 @@ namespace ts {
 			} objectAccess;
 
 			struct {
-				string source;
-				uint64_t hash;
-			} symbolAccess;
-
-			struct {
 				string name;
 				string nameSpace;
 				class PackagedFunctionList* cachedFunctionList;
@@ -243,18 +237,10 @@ namespace ts {
 			} callObject;
 
 			struct {
-				string inheritedName;
 				string typeName;
 				bool typeNameCached;
-				class MethodTree* typeMethodTree;
 				class MethodTree* methodTree;
 				bool isCached; // whether or not namespaceIndex has been cached yet
-				string symbolName;
-				bool symbolNameCached;
-				string classProperty;
-				bool classPropertyCached;
-				string superClassProperty;
-				bool superClassPropertyCached;
 				bool canCreate;
 			}	createObject;
 

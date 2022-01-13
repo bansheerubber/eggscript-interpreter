@@ -6,7 +6,6 @@
 #include "assignStatement.h"
 #include "booleanLiteral.h"
 #include "callStatement.h"
-#include "inheritanceStatement.h"
 #include "mathExpression.h"
 #include "numberLiteral.h"
 #include "stringLiteral.h"
@@ -34,9 +33,6 @@ NewStatement* NewStatement::Parse(Component* parent, ts::Engine* engine) {
 	if(Symbol::ShouldParse(engine)) {
 		output->className = Symbol::Parse(output, engine);
 	}
-	else if(MathExpression::ShouldParse(nullptr, engine)) {
-		output->className = MathExpression::Parse(nullptr, output, engine);
-	}
 	else {
 		engine->parser->error("invalid new object name");
 	}
@@ -49,20 +45,10 @@ NewStatement* NewStatement::Parse(Component* parent, ts::Engine* engine) {
 	}
 
 	if(output->arguments->getElementCount() > 0) {
-		// make sure we got a valid name for the object
-		Component* firstComponent = output->arguments->getElement(0).component;
-		if(
-			firstComponent->getType() != INHERITANCE_STATEMENT
-			&& firstComponent->getType() != STRING_LITERAL
-			&& firstComponent->getType() != SYMBOL_STATEMENT
-			&& firstComponent->getType() != ACCESS_STATEMENT
-			&& firstComponent->getType() != MATH_EXPRESSION
-		) {
-			engine->parser->error("got invalid name for new object");
-		}
+		engine->parser->error("arguments not supported for new object creation yet"); // TODO support this
 	}
 
-	// expect something not a left bracket if we got no arguments in the body of the new object statement
+	// expect something that is not a left bracket if we got no arguments in the body of the new object statement
 	if(engine->tokenizer->peekToken().type != LEFT_BRACKET) {
 		return output;
 	}
@@ -100,17 +86,6 @@ NewStatement* NewStatement::Parse(Component* parent, ts::Engine* engine) {
 
 			AssignStatement* assign = AssignStatement::Parse(access, output, engine);
 			output->children.push_back(assign);
-
-			if(access->elements[0].component->getType() == SYMBOL_STATEMENT) {
-				string variableName = ((Symbol*)access->elements[0].component)->print();
-				if(toLower(variableName) == "class") {
-					output->classProperty = assign->getRValue();
-				}
-				else if(toLower(variableName) == "superclass") {
-					output->superClassProperty = assign->getRValue();
-				}
-			}
-
 			engine->parser->expectToken(SEMICOLON);
 		}
 		else if(engine->tokenizer->peekToken().type == RIGHT_BRACKET) {
@@ -159,130 +134,16 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 	);
 	createObject->type = ts::instruction::CREATE_OBJECT;
 	createObject->createObject.canCreate = true;
-	createObject->createObject.symbolNameCached = false;
-	ALLOCATE_STRING(string(""), createObject->createObject.inheritedName);
 
-	if(this->className->getType() == SYMBOL_STATEMENT) {
-		ALLOCATE_STRING(this->className->print(), createObject->createObject.typeName);
-		createObject->createObject.typeNameCached = true;
-		createObject->createObject.typeMethodTree = engine->getNamespace(createObject->createObject.typeName);
+	ALLOCATE_STRING(this->className->print(), createObject->createObject.typeName);
+
+	ts::MethodTree* typeCheck = engine->getNamespace(this->className->print());
+	if(typeCheck != nullptr) {
+		ts::MethodTree* tree = engine->createMethodTreeFromNamespaces(this->className->print());
+		createObject->createObject.methodTree = tree;
+		createObject->createObject.isCached = true;
 	}
 	else {
-		ALLOCATE_STRING(string(""), createObject->createObject.typeName);
-		createObject->createObject.typeNameCached = false;
-		createObject->createObject.typeMethodTree = nullptr;
-		
-		output.add(this->className->compile(engine, context));
-	}
-
-	string symbolName;
-	if(this->arguments->getElementCount() == 0) { // no name case
-		ALLOCATE_STRING(string(""), createObject->createObject.symbolName);
-		createObject->createObject.symbolNameCached = true;
-	}
-	else {
-		Component* firstComponent = this->arguments->getElement(0).component;
-		if(firstComponent->getType() == INHERITANCE_STATEMENT) {
-			ALLOCATE_STRING(((InheritanceStatement*)firstComponent)->parentClass->print(), createObject->createObject.inheritedName);	
-			firstComponent = ((InheritanceStatement*)firstComponent)->className;
-		}
-		
-		if(firstComponent != nullptr) {
-			if(firstComponent->getType() == SYMBOL_STATEMENT) { // handle first literal type
-				symbolName = ((Symbol*)firstComponent)->print();
-				ALLOCATE_STRING(symbolName, createObject->createObject.symbolName);
-				createObject->createObject.symbolNameCached = true;
-			}
-			else if(firstComponent->getType() == STRING_LITERAL) { // handle second literal type
-				symbolName = ((StringLiteral*)firstComponent)->getString();
-				ALLOCATE_STRING(symbolName, createObject->createObject.symbolName);
-				createObject->createObject.symbolNameCached = true;
-			}
-		}
-
-		if(!createObject->createObject.symbolNameCached) {
-			ALLOCATE_STRING(string(""), createObject->createObject.symbolName);
-
-			if(firstComponent) {
-				output.add(firstComponent->compile(engine, context));
-			}
-			else {
-				createObject->createObject.symbolNameCached = true;
-			}
-		}
-	}
-
-	string classProperty;
-	if(this->classProperty) {
-		if(this->classProperty->getType() == SYMBOL_STATEMENT) {
-			classProperty = ((Symbol*)this->classProperty)->print();
-			ALLOCATE_STRING(classProperty, createObject->createObject.classProperty);
-			createObject->createObject.classPropertyCached = true;
-		}
-		else if(this->classProperty->getType() == STRING_LITERAL) {
-			classProperty = ((StringLiteral*)this->classProperty)->getString();
-			ALLOCATE_STRING(classProperty, createObject->createObject.classProperty);
-			createObject->createObject.classPropertyCached = true;
-		}
-		else {
-			ALLOCATE_STRING(string(""), createObject->createObject.classProperty);
-			createObject->createObject.classPropertyCached = false;
-			
-			output.add(this->classProperty->compile(engine, context));
-		}
-	}
-	else {
-		ALLOCATE_STRING(string(""), createObject->createObject.classProperty);
-		createObject->createObject.classPropertyCached = true;
-	}
-
-	string superClassProperty;
-	if(this->superClassProperty) {
-		if(this->superClassProperty->getType() == SYMBOL_STATEMENT) {
-			superClassProperty = ((Symbol*)this->superClassProperty)->print();
-			ALLOCATE_STRING(superClassProperty, createObject->createObject.superClassProperty);
-			createObject->createObject.superClassPropertyCached = true;
-		}
-		else if(this->classProperty->getType() == STRING_LITERAL) {
-			superClassProperty = ((StringLiteral*)this->superClassProperty)->getString();
-			ALLOCATE_STRING(superClassProperty, createObject->createObject.superClassProperty);
-			createObject->createObject.superClassPropertyCached = true;
-		}
-		else {
-			ALLOCATE_STRING(string(""), createObject->createObject.superClassProperty);
-			createObject->createObject.superClassPropertyCached = false;
-			
-			output.add(this->superClassProperty->compile(engine, context));
-		}
-	}
-	else {
-		ALLOCATE_STRING(string(""), createObject->createObject.superClassProperty);
-		createObject->createObject.superClassPropertyCached = true;
-	}
-
-	bool canCacheMethodTree = createObject->createObject.typeNameCached
-		&& createObject->createObject.symbolNameCached
-		&& createObject->createObject.classPropertyCached
-		&& createObject->createObject.superClassPropertyCached;
-
-	if(canCacheMethodTree) {
-		ts::MethodTree* typeCheck = engine->getNamespace(this->className->print());
-		if(typeCheck != nullptr) {
-			ts::MethodTree* tree = engine->createMethodTreeFromNamespaces(
-				symbolName,
-				classProperty,
-				superClassProperty,
-				this->className->print()
-			);
-			createObject->createObject.methodTree = tree;
-			createObject->createObject.isCached = true;
-		}
-		else {
-			createObject->createObject.isCached = false;
-		}
-	}
-	else {
-		createObject->createObject.methodTree = nullptr;
 		createObject->createObject.isCached = false;
 	}
 
@@ -294,15 +155,6 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 
 			AccessStatementCompiled c = assignStatement->getLValue()->compileAccess(engine, context);
 			ts::Instruction* instruction = c.lastAccess;
-			
-			instruction->type = ts::instruction::OBJECT_ASSIGN_EQUAL;
-			instruction->objectAssign.entry = ts::Entry(); // initialize memory to avoid crash
-
-			ALLOCATE_STRING(instruction->symbolAccess.source, instruction->objectAssign.destination);
-			instruction->objectAssign.hash = hash<string>{}(instruction->symbolAccess.source);
-			instruction->objectAssign.fromStack = false;
-			instruction->objectAssign.pushResult = false;
-			instruction->objectAssign.popObject = false;
 
 			if(assignStatement->getRValue()->getType() == NUMBER_LITERAL) {
 				instruction->objectAssign.entry.setNumber(((NumberLiteral*)assignStatement->getRValue())->getNumber());
@@ -315,13 +167,18 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 				instruction->objectAssign.entry = ts::Entry();
 				instruction->objectAssign.entry.setString(stringToChars(literal));
 			}
+			else if(assignStatement->getRValue()->getType() == EMPTY_LITERAL) {
+				instruction->objectAssign.entry = ts::Entry();
+			}
 			else if(
 				assignStatement->getRValue()->getType() == MATH_EXPRESSION
 				|| assignStatement->getRValue()->getType() == ACCESS_STATEMENT
 				|| assignStatement->getRValue()->getType() == ASSIGN_STATEMENT
 				|| assignStatement->getRValue()->getType() == NEW_STATEMENT
+				|| assignStatement->getRValue()->getType() == INLINE_CONDITIONAL
+				|| assignStatement->getRValue()->getType() == MATRIX_CREATION_STATEMENT
 			) {
-				output.add(assignStatement->getRValue()->compile(engine, context));
+				output.add(assignStatement->getRValue()->compile(engine, context)); // TODO this is bugged out
 				instruction->objectAssign.fromStack = true;
 			}
 

@@ -59,7 +59,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__openForRead(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 2 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 2 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				((FileObject*)args[0].objectData->objectWrapper->data)->open(args[1].stringData, READ);
 			}
 			
@@ -67,7 +67,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__openForWrite(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 2 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 2 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				((FileObject*)args[0].objectData->objectWrapper->data)->open(args[1].stringData, WRITE);
 			}
 			
@@ -75,7 +75,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__openForAppend(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 2 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 2 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				((FileObject*)args[0].objectData->objectWrapper->data)->open(args[1].stringData, APPEND);
 			}
 			
@@ -83,7 +83,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__close(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 1 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 1 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				((FileObject*)args[0].objectData->objectWrapper->data)->close();
 			}
 			
@@ -91,7 +91,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__readLine(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 1 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 1 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				return new Entry(((FileObject*)args[0].objectData->objectWrapper->data)->readLine());
 			}
 			
@@ -99,7 +99,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__writeLine(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 2 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 2 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				((FileObject*)args[0].objectData->objectWrapper->data)->writeLine(args[1].stringData);
 			}
 			
@@ -107,7 +107,7 @@ namespace ts {
 		}
 
 		Entry* FileObject__isEOF(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc == 1 && args[0].objectData->objectWrapper->object->typeMethodTree->name == "FileObject") {
+			if(argc == 1 && args[0].objectData->objectWrapper->object->methodTree->name == "FileObject") {
 				return new Entry((double)((FileObject*)args[0].objectData->objectWrapper->data)->isEOF());
 			}
 			

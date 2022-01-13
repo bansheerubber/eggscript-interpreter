@@ -9,7 +9,7 @@ using namespace std;
 
 namespace ts {
 	namespace entry {
-		enum EntryType {
+		enum EntryType : unsigned short {
 			INVALID = 0,
 			EMPTY,
 			NUMBER,
@@ -20,7 +20,6 @@ namespace ts {
 	}
 	
 	struct Entry {
-		entry::EntryType type;
 		union {
 			double numberData;
 
@@ -38,6 +37,7 @@ namespace ts {
 			ObjectReference* objectData;
 			Matrix* matrixData;
 		};
+		entry::EntryType type;
 
 		Entry();
 		Entry(const Entry &entry);

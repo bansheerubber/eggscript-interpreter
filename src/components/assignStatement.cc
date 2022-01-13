@@ -227,6 +227,9 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 		instruction->localAssign.entry = ts::Entry();
 		instruction->localAssign.entry.setString(stringToChars(literal));
 	}
+	else if(this->rvalue->getType() == EMPTY_LITERAL) {
+		instruction->objectAssign.entry = ts::Entry();
+	}
 	else if(
 		this->rvalue->getType() == MATH_EXPRESSION
 		|| this->rvalue->getType() == ACCESS_STATEMENT

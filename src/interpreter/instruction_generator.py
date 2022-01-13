@@ -22,7 +22,6 @@ structs = {
 	"objectAssign": get_assignment_instructions("OBJECT_ASSIGN"),
 	"objectAccess": ["OBJECT_ACCESS"],
 	"popArguments": ["POP_ARGUMENTS"],
-	"symbolAccess": ["SYMBOL_ACCESS"],
 	"functionReturn": ["RETURN"],
 	"arrayAssign": get_assignment_instructions("ARRAY_ASSIGN"),
 	"matrixCreate": ["MATRIX_CREATE"],
