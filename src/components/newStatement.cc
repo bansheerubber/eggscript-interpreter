@@ -6,6 +6,7 @@
 #include "assignStatement.h"
 #include "booleanLiteral.h"
 #include "callStatement.h"
+#include "../util/cloneString.h"
 #include "mathExpression.h"
 #include "numberLiteral.h"
 #include "stringLiteral.h"
@@ -134,8 +135,7 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 	);
 	createObject->type = ts::instruction::CREATE_OBJECT;
 	createObject->createObject.canCreate = true;
-
-	ALLOCATE_STRING(this->className->print(), createObject->createObject.typeName);
+	createObject->createObject.typeName = cloneString(this->className->print().c_str());
 
 	ts::MethodTree* typeCheck = engine->getNamespace(this->className->print());
 	if(typeCheck != nullptr) {

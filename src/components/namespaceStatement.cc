@@ -2,6 +2,7 @@
 #include "../interpreter/interpreter.h"
 
 #include "../util/allocateString.h"
+#include "../util/cloneString.h"
 
 bool NamespaceStatement::ShouldParse(ts::Engine* engine) {
 	return (
@@ -92,8 +93,8 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 			this->getLineNumber()
 		);
 		callFunction->type = ts::instruction::CALL_FUNCTION;
-		ALLOCATE_STRING(this->operation->print(), callFunction->callFunction.name);
-		ALLOCATE_STRING(this->name->print(), callFunction->callFunction.nameSpace);
+		callFunction->callFunction.name = cloneString(this->operation->print().c_str());
+		callFunction->callFunction.nameSpace = cloneString(this->name->print().c_str());
 		callFunction->callFunction.cachedFunctionList = nullptr;
 		callFunction->callFunction.cachedEntry = nullptr;
 		callFunction->callFunction.isCached = false;
@@ -131,7 +132,7 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 			this->getLineNumber()
 		);
 		callParent->type = ts::instruction::CALL_PARENT;
-		ALLOCATE_STRING(this->operation->print(), callParent->callParent.name);
+		callParent->callParent.name = cloneString(this->operation->print().c_str());
 		callParent->callParent.cachedIndex = 0;
 		callParent->callParent.isCached = false;
 		output.add(callParent);

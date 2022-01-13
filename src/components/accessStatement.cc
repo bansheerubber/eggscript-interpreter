@@ -4,6 +4,7 @@
 #include "../util/allocateString.h"
 #include "arrayStatement.h"
 #include "callStatement.h"
+#include "../util/cloneString.h"
 #include "../util/stringToChars.h"
 #include "symbol.h"
 
@@ -253,8 +254,8 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			this->elements[0].token.lineNumber
 		);
 		callFunction->type = ts::instruction::CALL_FUNCTION;
-		ALLOCATE_STRING(this->elements[0].token.lexeme, callFunction->callFunction.name);
-		ALLOCATE_STRING(string(""), callFunction->callFunction.nameSpace);
+		callFunction->callFunction.name = cloneString(this->elements[0].token.lexeme.c_str());
+		callFunction->callFunction.nameSpace = nullptr;
 		callFunction->callFunction.cachedFunctionList = nullptr;
 		callFunction->callFunction.cachedEntry = nullptr;
 		callFunction->callFunction.isCached = false;
@@ -294,7 +295,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			);
 			instruction->type = ts::instruction::LOCAL_ACCESS;
 			instruction->localAccess.hash = hash<string>{}(element.token.lexeme);
-			ALLOCATE_STRING(element.token.lexeme, instruction->localAccess.source);
+			instruction->localAccess.source = cloneString(element.token.lexeme.c_str());
 			instruction->localAccess.stackIndex = -1;
 
 			c.lastAccess = instruction;
@@ -309,7 +310,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			);
 			instruction->type = ts::instruction::GLOBAL_ACCESS;
 			instruction->globalAccess.hash = hash<string>{}(element.token.lexeme);
-			ALLOCATE_STRING(element.token.lexeme, instruction->globalAccess.source);
+			instruction->globalAccess.source = cloneString(element.token.lexeme.c_str());
 
 			c.lastAccess = instruction;
 
@@ -319,7 +320,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			if(lastInstruction != nullptr) {
 				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(
-						lastInstruction->localAccess.source,
+						string(lastInstruction->localAccess.source),
 						false,
 						engine->getInstructionDebug(lastInstruction).character,
 						engine->getInstructionDebug(lastInstruction).line
@@ -340,7 +341,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			if(lastInstruction != nullptr) {
 				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(
-						lastInstruction->localAccess.source,
+						string(lastInstruction->localAccess.source),
 						false,
 						engine->getInstructionDebug(lastInstruction).character,
 						engine->getInstructionDebug(lastInstruction).line
@@ -356,7 +357,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			);
 			instruction->type = ts::instruction::OBJECT_ACCESS;
 			instruction->objectAccess.hash = hash<string>{}(element.token.lexeme);
-			ALLOCATE_STRING(element.token.lexeme, instruction->objectAccess.source);
+			instruction->objectAccess.source = cloneString(element.token.lexeme.c_str());
 
 			c.lastAccess = instruction;
 
@@ -389,7 +390,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 				element.component->getLineNumber()
 			);
 			instruction->type = ts::instruction::CALL_OBJECT;
-			ALLOCATE_STRING(lastInstruction->objectAccess.source, instruction->callObject.name);
+			instruction->callObject.name = cloneString(lastInstruction->objectAccess.source);
 			instruction->callObject.cachedIndex = ~((uint64_t)0);
 			instruction->callObject.isCached = false;
 
@@ -422,7 +423,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			instruction->objectAssign.entry = ts::Entry(); // initialize memory to avoid crash
 
 			instruction->objectAssign.hash = hash<string>{}(((Symbol*)element.component)->value);
-			ALLOCATE_STRING(((Symbol*)element.component)->value, instruction->objectAssign.destination);
+			instruction->objectAssign.destination = cloneString(((Symbol*)element.component)->value.c_str());
 			instruction->objectAssign.fromStack = false;
 			instruction->objectAssign.pushResult = false;
 			instruction->objectAssign.popObject = false;
@@ -436,7 +437,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	if(lastInstruction != nullptr) {
 		if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
 			lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(
-				lastInstruction->localAccess.source,
+				string(lastInstruction->localAccess.source),
 				false,
 				engine->getInstructionDebug(lastInstruction).character,
 				engine->getInstructionDebug(lastInstruction).line

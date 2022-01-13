@@ -23,7 +23,7 @@ namespace ts {
 	
 	class Scope {
 		public:
-			BoundVariable& allocateVariable(string &variableName, bool isArgument, unsigned short character, unsigned int line);
+			BoundVariable& allocateVariable(string variableName, bool isArgument, unsigned short character, unsigned int line);
 			uint64_t allocatedSize();
 		
 		protected:

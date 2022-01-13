@@ -210,7 +210,6 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 	else if(instruction->type == ts::instruction::ARRAY_ACCESS) {
 		instruction->type = AssignStatement::TypeToArrayOperator(this->assignmentToken.type);
 		
-		ALLOCATE_STRING(string(""), instruction->arrayAssign.blank1);
 		instruction->arrayAssign.entry = ts::Entry(); // initialize memory to avoid crash
 		instruction->arrayAssign.fromStack = false;
 		instruction->arrayAssign.pushResult = this->parent->shouldPushToStack(this);

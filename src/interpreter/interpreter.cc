@@ -552,7 +552,7 @@ void Interpreter::interpret() {
 			if(!instruction.callFunction.isCached) {
 				bool found = false;
 				if(
-					instruction.callFunction.nameSpace.length() != 0
+					instruction.callFunction.nameSpace != nullptr
 					&& this->engine->namespaceToMethodTreeIndex.find(instruction.callFunction.nameSpace) != this->engine->namespaceToMethodTreeIndex.end()
 				) {
 					uint64_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[instruction.callFunction.nameSpace];
@@ -579,7 +579,7 @@ void Interpreter::interpret() {
 
 				// print warning if function was not defined
 				if(found == false) {
-					this->warning(&instruction, "could not find function with name '%s'\n", instruction.callFunction.name.c_str());
+					this->warning(&instruction, "could not find function with name '%s'\n", instruction.callFunction.name);
 				
 					// pop arguments that we didn't use
 					Entry &numberOfArguments = this->stack[this->stack.head - 1];
@@ -662,7 +662,7 @@ void Interpreter::interpret() {
 				// create the object
 				MethodTree* typeCheck = this->engine->getNamespace(typeName);
 				if(typeCheck == nullptr) {
-					this->warning(&instruction, "could not create object with type '%s'\n", typeName.c_str());
+					this->warning(&instruction, "could not create object with type '%s'\n", typeName);
 					this->pushEmpty(instruction.pushType);
 
 					// cache this result since we always need a base type name to create a object
@@ -674,7 +674,7 @@ void Interpreter::interpret() {
 				instruction.createObject.methodTree = typeCheck;
 			}
 			else if(!instruction.createObject.canCreate) {
-				this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
+				this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName);
 				this->pushEmpty(instruction.pushType);
 				break;
 			}
@@ -732,7 +732,7 @@ void Interpreter::interpret() {
 
 			auto methodEntry = object->methodTree->methodIndexToEntry.find(instruction.callObject.cachedIndex);
 			if(!found || methodEntry == object->methodTree->methodIndexToEntry.end()) {
-				this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callFunction.name.c_str());
+				this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace, instruction.callFunction.name);
 
 				// pop arguments that we didn't use
 				Entry &numberOfArguments = this->stack[this->stack.head - 1];

@@ -31,10 +31,10 @@ void VariableContext::inherit(VariableContext &parent) {
 	this->variableMap = parent.variableMap;
 }
 
-Entry& VariableContext::getVariableEntry(Instruction &instruction, string &name, uint64_t hash) {
+Entry& VariableContext::getVariableEntry(Instruction &instruction, const char* name, uint64_t hash) {
 	auto value = this->variableMap.find(name, hash);
 	if(value == this->variableMap.end()) { // initialize empty string
-		this->interpreter->warning(&instruction, "trying to access unassigned variable/property '%s'\n", name.c_str());
+		this->interpreter->warning(&instruction, "trying to access unassigned variable/property '%s'\n", name);
 		
 		Entry &entry = this->variableMap[name];
 		copyEntry(this->interpreter->emptyEntry, entry);
@@ -45,7 +45,7 @@ Entry& VariableContext::getVariableEntry(Instruction &instruction, string &name,
 	}
 }
 
-void VariableContext::setVariableEntry(Instruction &instruction, string &name, uint64_t hash, Entry &entry, bool greedy) {
+void VariableContext::setVariableEntry(Instruction &instruction, const char* name, uint64_t hash, Entry &entry, bool greedy) {
 	auto value = this->variableMap.find(name, hash);
 	if(value == this->variableMap.end()) { // uninitialized
 		Entry &variableEntry = this->variableMap[name];
@@ -57,7 +57,7 @@ void VariableContext::setVariableEntry(Instruction &instruction, string &name, u
 	}
 }
 
-void VariableContext::setVariableEntry(string &name, Entry &entry) {
+void VariableContext::setVariableEntry(const char* name, Entry &entry) {
 	auto value = this->variableMap.find(name);
 	if(value == this->variableMap.end()) { // uninitialized
 		copyEntry(entry, this->variableMap[name]);
@@ -67,10 +67,10 @@ void VariableContext::setVariableEntry(string &name, Entry &entry) {
 	}
 }
 
-Entry& VariableContext::getVariableEntry(string &name) {
+Entry& VariableContext::getVariableEntry(const char* name) {
 	auto value = this->variableMap.find(name);
 	if(value == this->variableMap.end()) { // initialize empty string
-		this->interpreter->warning(nullptr, "trying to access unassigned variable/property '%s'\n", name.c_str());
+		this->interpreter->warning(nullptr, "trying to access unassigned variable/property '%s'\n", name);
 		
 		Entry &entry = this->variableMap[name];
 		copyEntry(this->interpreter->emptyEntry, entry);

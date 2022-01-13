@@ -173,7 +173,7 @@ namespace ts {
 			} unaryMathematics;
 
 			struct {
-				string destination;
+				const char* destination;
 				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
@@ -182,7 +182,7 @@ namespace ts {
 			} localAssign;
 
 			struct {
-				string destination;
+				const char* destination;
 				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
@@ -190,7 +190,7 @@ namespace ts {
 			} globalAssign;
 
 			struct {
-				string destination;
+				const char* destination;
 				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
@@ -199,45 +199,44 @@ namespace ts {
 			} objectAssign;
 
 			struct {
-				string blank1; // TODO fix this so we don't need blank entries https://stackoverflow.com/questions/3521914/why-compiler-doesnt-allow-stdstring-inside-union
-				uint64_t blank2;
+				char blank[sizeof(const char*) + sizeof(uint64_t)];
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
 			} arrayAssign;
 
 			struct {
-				string source;
+				const char* source;
 				uint64_t hash;
 				int stackIndex;
 			} localAccess;
 
 			struct {
-				string source;
+				const char* source;
 				uint64_t hash;
 			} globalAccess;
 
 			struct {
-				string source;
+				const char* source;
 				uint64_t hash;
 			} objectAccess;
 
 			struct {
-				string name;
-				string nameSpace;
+				const char* name;
+				const char* nameSpace;
 				class PackagedFunctionList* cachedFunctionList;
 				class MethodTreeEntry* cachedEntry;
 				bool isCached;
 			} callFunction;
 
 			struct {
-				string name;
+				const char* name;
 				uint64_t cachedIndex;
 				bool isCached;
 			} callObject;
 
 			struct {
-				string typeName;
+				const char* typeName;
 				bool typeNameCached;
 				class MethodTree* methodTree;
 				bool isCached; // whether or not namespaceIndex has been cached yet
@@ -249,7 +248,7 @@ namespace ts {
 			} popArguments;
 
 			struct {
-				string name;
+				const char* name;
 				uint64_t cachedIndex;
 				bool isCached;
 			} callParent;

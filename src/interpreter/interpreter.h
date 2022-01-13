@@ -55,7 +55,6 @@ namespace ts {
 	class Interpreter {
 		friend class Engine;
 		friend void onFunctionFrameRealloc(Interpreter* interpreter);
-		friend string VariableContext::computeVariableString(Instruction &instruction, string &variable);
 		friend VariableContext;
 		friend Object;
 		friend ObjectWrapper;

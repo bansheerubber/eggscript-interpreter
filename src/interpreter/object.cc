@@ -55,10 +55,9 @@ Object::Object(ts::Interpreter* interpreter, string nameSpace, MethodTree* metho
 
 	this->id = interpreter->highestObjectId++;
 
-	string id = "id";
 	Entry entry;
 	entry.setNumber(this->id);
-	this->properties.setVariableEntry(id, entry);
+	this->properties.setVariableEntry("id", entry);
 
 	this->nameSpace = nameSpace;
 	this->methodTree = methodTree;
