@@ -57,7 +57,6 @@ int main(int argc, char* argv[]) {
 	printf("call object %ld\n", sizeof(ts::Instruction::callObject));
 	printf("create object %ld\n", sizeof(ts::Instruction::createObject));
 	printf("pop arguments %ld\n", sizeof(ts::Instruction::popArguments));
-	printf("call parent %ld\n", sizeof(ts::Instruction::callParent));
 	printf("function return %ld\n", sizeof(ts::Instruction::functionReturn));
 	printf("matrix create %ld\n", sizeof(ts::Instruction::matrixCreate));
 	printf("matrix set %ld\n", sizeof(ts::Instruction::matrixSet));

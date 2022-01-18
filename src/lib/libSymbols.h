@@ -67,6 +67,7 @@ extern "C" {
 	void esSetPrintFunction(esEnginePtr engine, esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
 	void esSetVPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
 	void esSetInstructionDebug(esEnginePtr engine, bool enabled); // whether or not to generate instruction -> debug info maps
+	void esLogCompilationErrors(esEnginePtr engine);
 
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
 	void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper));

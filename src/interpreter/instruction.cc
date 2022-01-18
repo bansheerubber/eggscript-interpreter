@@ -18,6 +18,7 @@ void ts::copyInstruction(Engine* engine, Instruction &source, Instruction &desti
 	destination.index = source.index;
 
 	engine->swapInstructionDebug(&source, &destination);
+	engine->swapInstructionLinking(&source, &destination); // swap the datastructures used for keeping track of the linking process
 
 	switch(source.type) {
 		## instruction_generator.py instruction.cc

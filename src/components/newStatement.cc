@@ -133,19 +133,10 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	createObject->type = ts::instruction::CREATE_OBJECT;
-	createObject->createObject.canCreate = true;
+	createObject->type = ts::instruction::CREATE_OBJECT_UNLINKED;
 	createObject->createObject.typeName = cloneString(this->className->print().c_str());
 
-	ts::MethodTree* typeCheck = engine->getNamespace(this->className->print());
-	if(typeCheck != nullptr) {
-		ts::MethodTree* tree = engine->createMethodTreeFromNamespaces(this->className->print());
-		createObject->createObject.methodTree = tree;
-		createObject->createObject.isCached = true;
-	}
-	else {
-		createObject->createObject.isCached = false;
-	}
+	engine->addUnlinkedInstruction(createObject);
 
 	output.add(createObject);
 

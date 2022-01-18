@@ -64,6 +64,7 @@ void Engine::execFile(string fileName, bool forceExecution) {
 			loop: nullptr,
 			scope: nullptr,
 		});
+		this->link();
 		
 		if(this->interpreter->startTime == 0) {
 			this->interpreter->startInterpretation(result.first);
@@ -94,6 +95,8 @@ void Engine::execVirtualFile(string fileName, string contents) {
 		loop: nullptr,
 		scope: nullptr,
 	});
+	this->link();
+
 	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
 	this->interpreter->interpret();
 }
@@ -112,6 +115,7 @@ void Engine::execPiped(string piped) {
 		loop: nullptr,
 		scope: nullptr,
 	});
+	this->link();
 
 	this->interpreter->startInterpretation(result.first);	
 }
@@ -131,11 +135,115 @@ void Engine::execShell(string shell, bool forceExecution) {
 			loop: nullptr,
 			scope: nullptr,
 		});
+		this->link();
+
 		this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first));
 		this->interpreter->interpret();
 	}
 	else {
 		this->shellQueue.push(shell);
+	}
+}
+
+// find functions/class creation statements that need references filled in during link time
+void Engine::link() {
+	vector<Instruction*> linkedInstructions;
+
+	for(Instruction* unlinked: this->unlinkedFunctions) {
+		switch(unlinked->type) {
+			case instruction::CALL_FUNCTION_UNLINKED: {
+				if(this->nameToFunctionIndex.find(unlinked->callFunction.name) != this->nameToFunctionIndex.end()) {
+					unlinked->callFunction.cachedFunctionList = this->functions[this->nameToFunctionIndex[unlinked->callFunction.name]];
+					unlinked->type = instruction::CALL_FUNCTION;
+					linkedInstructions.push_back(unlinked);
+				}
+
+				break;
+			}
+
+			case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: {
+				if(
+					this->namespaceToMethodTreeIndex.find(unlinked->callNamespaceFunction.nameSpace) != this->namespaceToMethodTreeIndex.end()
+				) {
+					uint64_t namespaceIndex = this->namespaceToMethodTreeIndex[unlinked->callNamespaceFunction.nameSpace];
+					auto methodIndex = this->methodNameToIndex.find(unlinked->callNamespaceFunction.name);
+
+					if(methodIndex != this->methodNameToIndex.end()) {
+						auto methodEntry = this->methodTrees[namespaceIndex]->methodIndexToEntry.find(methodIndex->second);
+						if(methodEntry != this->methodTrees[namespaceIndex]->methodIndexToEntry.end()) {
+							unlinked->callNamespaceFunction.cachedEntry = methodEntry->second;
+							unlinked->type = instruction::CALL_NAMESPACE_FUNCTION;
+							linkedInstructions.push_back(unlinked);
+						}
+					}
+				}
+
+				break;
+			}
+
+			case instruction::CALL_OBJECT_UNLINKED: {
+				auto methodNameIndex = this->methodNameToIndex.find(unlinked->callObject.name);
+				if(methodNameIndex != this->methodNameToIndex.end()) {
+					unlinked->callObject.cachedIndex = methodNameIndex->second;
+					unlinked->type = instruction::CALL_OBJECT;
+					linkedInstructions.push_back(unlinked);
+				}
+				
+				break;
+			}
+
+			case instruction::CREATE_OBJECT_UNLINKED: {
+				MethodTree* typeCheck = this->getNamespace(unlinked->createObject.typeName);
+				if(typeCheck != nullptr) {
+					unlinked->createObject.methodTree = typeCheck;
+					unlinked->type = instruction::CREATE_OBJECT;
+					linkedInstructions.push_back(unlinked);
+				}
+				
+				break;
+			}
+		}
+	}
+
+	for(Instruction* linked: linkedInstructions) {
+		this->unlinkedFunctions.erase(linked);
+	}
+}
+
+// log any unlinked instructions to console for debugging
+void Engine::printUnlinkedInstructions() {
+	for(Instruction* unlinked: this->unlinkedFunctions) {
+		string format = "";
+		InstructionDebug debug = this->getInstructionDebug(unlinked);
+		if(debug.commonSource != nullptr) {
+			format = debug.commonSource->fileName + ":" + to_string(debug.line) + ":" + to_string(debug.character) + ": ";
+		}
+		
+		switch(unlinked->type) {
+			case instruction::CALL_FUNCTION_UNLINKED: {
+				format += "could not link function '%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->callFunction.name);
+				break;
+			}
+
+			case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: {
+				format += "could not link function '%s::%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->callNamespaceFunction.nameSpace, unlinked->callNamespaceFunction.name);
+				break;
+			}
+
+			case instruction::CALL_OBJECT_UNLINKED: {
+				format += "could not link method '%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->callObject.name);
+				break;
+			}
+
+			case instruction::CREATE_OBJECT_UNLINKED: {
+				format += "could not link object creation namespace '%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->createObject.typeName);
+				break;
+			}
+		}
 	}
 }
 
@@ -411,4 +519,15 @@ void ts::Engine::addInstructionDebug(Instruction* source, string symbolicFileNam
 		character: character,
 		line: line,
 	};
+}
+
+void ts::Engine::swapInstructionLinking(Instruction* source, Instruction* destination) {
+	if(this->unlinkedFunctions.find(source) != this->unlinkedFunctions.end()) {
+		this->unlinkedFunctions.erase(source);
+		this->unlinkedFunctions.insert(destination);
+	}
+}
+
+void ts::Engine::addUnlinkedInstruction(Instruction* instruction) {
+	this->unlinkedFunctions.insert(instruction);
 }

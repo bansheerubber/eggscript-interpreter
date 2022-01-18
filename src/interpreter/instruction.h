@@ -70,11 +70,17 @@ namespace ts {
 			GLOBAL_ASSIGN_BITWISE_OR,
 			LOCAL_ACCESS, // gets the value of a local variable and puts it on the stack
 			GLOBAL_ACCESS,
+			CALL_FUNCTION_UNLINKED,
 			CALL_FUNCTION, // call a globally scoped function
+			CALL_NAMESPACE_FUNCTION_UNLINKED,
+			CALL_NAMESPACE_FUNCTION,
+			CALL_PARENT_UNLINKED,
 			CALL_PARENT,
 			RETURN, // return from a function without returning a value
 			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
+			CREATE_OBJECT_UNLINKED,
 			CREATE_OBJECT, // create an object
+			CALL_OBJECT_UNLINKED,
 			CALL_OBJECT, // call a function on an object
 			OBJECT_ASSIGN_EQUAL,
 			OBJECT_ASSIGN_INCREMENT,
@@ -133,6 +139,12 @@ namespace ts {
 		Instruction* next; // next instruction in linked list
 		uint64_t index; // instruction's index in flat array
 
+		// TODO-if: stuff that we can do to reduce the amount of if statements in the VM, involves separating out functionality into seperate instructions
+		// function call notes: replace un-cached functions with warning message instruction?
+		//   - call instructions that do not have a valid linked entry use a `function_call_error` instruction that prints out a warning message
+		//   - keep track of the function_call_error instructions in a list
+		//   - every time we execute new code that has function definitions, look at the list and determine if we can finally link the instructions
+		//   - if we can, then replace the tracked instruction's type with a proper `function_call` instruction type
 		union {
 			struct {
 				Entry entry;
@@ -145,6 +157,7 @@ namespace ts {
 				};
 			} jump;
 
+			// TODO-if seperate jump_if_true_then_pop instruction
 			struct {
 				union {
 					Instruction* instruction;
@@ -153,6 +166,7 @@ namespace ts {
 				bool pop;
 			} jumpIfTrue;
 
+			// TODO-if seperate jump_if_false_then_pop instruction
 			struct {
 				union {
 					Instruction* instruction;
@@ -161,6 +175,7 @@ namespace ts {
 				bool pop;
 			} jumpIfFalse;
 
+			// TODO-if maybe seperate instructions for each combination of l/r entry/stack indices? probably bad idea
 			struct {
 				Entry lvalueEntry;
 				Entry rvalueEntry;
@@ -223,36 +238,30 @@ namespace ts {
 
 			struct {
 				const char* name;
-				const char* nameSpace;
 				class PackagedFunctionList* cachedFunctionList;
-				class MethodTreeEntry* cachedEntry;
-				bool isCached;
 			} callFunction;
 
 			struct {
 				const char* name;
+				const char* nameSpace;
+				class MethodTreeEntry* cachedEntry;
+			} callNamespaceFunction;
+
+			struct {
+				const char* name;
 				uint64_t cachedIndex;
-				bool isCached;
 			} callObject;
 
 			struct {
 				const char* typeName;
-				bool typeNameCached;
 				class MethodTree* methodTree;
-				bool isCached; // whether or not namespaceIndex has been cached yet
-				bool canCreate;
 			}	createObject;
 
 			struct {
 				uint64_t argumentCount;
 			} popArguments;
 
-			struct {
-				const char* name;
-				uint64_t cachedIndex;
-				bool isCached;
-			} callParent;
-
+			// TODO-if seperate out hasValue into its own instruction
 			struct {
 				bool hasValue;
 			} functionReturn;

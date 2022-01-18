@@ -253,13 +253,12 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			this->elements[0].token.characterNumber,
 			this->elements[0].token.lineNumber
 		);
-		callFunction->type = ts::instruction::CALL_FUNCTION;
+		callFunction->type = ts::instruction::CALL_FUNCTION_UNLINKED;
 		callFunction->callFunction.name = cloneString(this->elements[0].token.lexeme.c_str());
-		callFunction->callFunction.nameSpace = nullptr;
 		callFunction->callFunction.cachedFunctionList = nullptr;
-		callFunction->callFunction.cachedEntry = nullptr;
-		callFunction->callFunction.isCached = false;
 		c.output.add(callFunction);
+
+		engine->addUnlinkedInstruction(callFunction);
 
 		if(this->parent->requiresSemicolon(this) && this->elements.size() == 2) { // if we do not assign/need the value of the function, just pop it
 			ts::Instruction* pop = new ts::Instruction(
@@ -389,10 +388,11 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 				element.component->getCharacterNumber(),
 				element.component->getLineNumber()
 			);
-			instruction->type = ts::instruction::CALL_OBJECT;
+			instruction->type = ts::instruction::CALL_OBJECT_UNLINKED;
 			instruction->callObject.name = cloneString(lastInstruction->objectAccess.source);
-			instruction->callObject.cachedIndex = ~((uint64_t)0);
-			instruction->callObject.isCached = false;
+			instruction->callObject.cachedIndex = 0;
+
+			engine->addUnlinkedInstruction(instruction);
 
 			c.output.add(instruction);
 

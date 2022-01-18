@@ -92,13 +92,13 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 			this->getCharacterNumber(),
 			this->getLineNumber()
 		);
-		callFunction->type = ts::instruction::CALL_FUNCTION;
-		callFunction->callFunction.name = cloneString(this->operation->print().c_str());
-		callFunction->callFunction.nameSpace = cloneString(this->name->print().c_str());
-		callFunction->callFunction.cachedFunctionList = nullptr;
-		callFunction->callFunction.cachedEntry = nullptr;
-		callFunction->callFunction.isCached = false;
+		callFunction->type = ts::instruction::CALL_NAMESPACE_FUNCTION_UNLINKED;
+		callFunction->callNamespaceFunction.name = cloneString(this->operation->print().c_str());
+		callFunction->callNamespaceFunction.nameSpace = cloneString(this->name->print().c_str());
+		callFunction->callNamespaceFunction.cachedEntry = nullptr;
 		output.add(callFunction);
+
+		engine->addUnlinkedInstruction(callFunction);
 
 		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it
 			ts::Instruction* pop = new ts::Instruction(
@@ -132,9 +132,6 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 			this->getLineNumber()
 		);
 		callParent->type = ts::instruction::CALL_PARENT;
-		callParent->callParent.name = cloneString(this->operation->print().c_str());
-		callParent->callParent.cachedIndex = 0;
-		callParent->callParent.isCached = false;
 		output.add(callParent);
 
 		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it

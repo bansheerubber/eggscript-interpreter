@@ -548,66 +548,63 @@ void Interpreter::interpret() {
 			break;
 		}
 
-		case instruction::CALL_FUNCTION: { // jump to a new instruction container
-			if(!instruction.callFunction.isCached) {
-				bool found = false;
-				if(
-					instruction.callFunction.nameSpace != nullptr
-					&& this->engine->namespaceToMethodTreeIndex.find(instruction.callFunction.nameSpace) != this->engine->namespaceToMethodTreeIndex.end()
-				) {
-					uint64_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[instruction.callFunction.nameSpace];
-					auto methodIndex = this->engine->methodNameToIndex.find(instruction.callFunction.name);
-
-					if(methodIndex != this->engine->methodNameToIndex.end()) {
-						auto methodEntry = this->engine->methodTrees[namespaceIndex]->methodIndexToEntry.find(methodIndex->second);
-						if(methodEntry != this->engine->methodTrees[namespaceIndex]->methodIndexToEntry.end()) {
-							instruction.callFunction.cachedEntry = methodEntry->second;
-							instruction.callFunction.isCached = true;
-							found = true;
-						}
-					}
-				}
-				else { // find non-namespace function
-					if(this->engine->nameToFunctionIndex.find(instruction.callFunction.name) != this->engine->nameToFunctionIndex.end()) {
-						instruction.callFunction.cachedFunctionList
-							= this->engine->functions[this->engine->nameToFunctionIndex[instruction.callFunction.name]];
-
-						instruction.callFunction.isCached = true;
-						found = true;
-					}
-				}
-
-				// print warning if function was not defined
-				if(found == false) {
-					this->warning(&instruction, "could not find function with name '%s'\n", instruction.callFunction.name);
+		case instruction::CALL_FUNCTION_UNLINKED: { // if the function is unlinked, then print a warning, push nothing onto the stack, and noop
+			this->warning(&instruction, "could not find function with name '%s'\n", instruction.callFunction.name);
 				
-					// pop arguments that we didn't use
-					Entry &numberOfArguments = this->stack[this->stack.head - 1];
-					int number = (int)numberOfArguments.numberData;
-					for(int i = 0; i < number + 1; i++) {
-						this->pop();
-					}
-
-					this->pushEmpty(instruction.pushType);
-					break;
-				}
+			// pop arguments that we didn't use
+			Entry &numberOfArguments = this->stack[this->stack.head - 1];
+			int number = (int)numberOfArguments.numberData;
+			for(int i = 0; i < number + 1; i++) {
+				this->pop();
 			}
 
+			this->pushEmpty(instruction.pushType);
+			break;
+		}
+
+		case instruction::CALL_FUNCTION: { // jump to a new instruction container
 			Function* foundFunction;
 			PackagedFunctionList* list;
 			int packagedFunctionListIndex = -1;
 			MethodTreeEntry* methodTreeEntry = nullptr;
 			int methodTreeEntryIndex = -1;
-			if(instruction.callFunction.cachedEntry != nullptr) {
-				list = instruction.callFunction.cachedEntry->list[0];
-				packagedFunctionListIndex = list->topValidIndex;
-				foundFunction = (*list)[packagedFunctionListIndex];
+			list = instruction.callFunction.cachedFunctionList;
+			packagedFunctionListIndex = list->topValidIndex;
+			foundFunction = (*list)[packagedFunctionListIndex];
+
+			## call_generator.py
+
+			break;
+		}
+
+		case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: { // if the function is unlinked, then print a warning, push nothing onto the stack, and noop
+			this->warning(
+				&instruction,
+				"could not find function with name '%s::%s'\n",
+				instruction.callNamespaceFunction.nameSpace,
+				instruction.callNamespaceFunction.name
+			);
+				
+			// pop arguments that we didn't use
+			Entry &numberOfArguments = this->stack[this->stack.head - 1];
+			int number = (int)numberOfArguments.numberData;
+			for(int i = 0; i < number + 1; i++) {
+				this->pop();
 			}
-			else {
-				list = instruction.callFunction.cachedFunctionList;
-				packagedFunctionListIndex = list->topValidIndex;
-				foundFunction = (*list)[packagedFunctionListIndex];
-			}
+
+			this->pushEmpty(instruction.pushType);
+			break;
+		}
+
+		case instruction::CALL_NAMESPACE_FUNCTION: {
+			Function* foundFunction;
+			PackagedFunctionList* list;
+			int packagedFunctionListIndex = -1;
+			MethodTreeEntry* methodTreeEntry = nullptr;
+			int methodTreeEntryIndex = -1;
+			list = instruction.callNamespaceFunction.cachedEntry->list[0];
+			packagedFunctionListIndex = list->topValidIndex;
+			foundFunction = (*list)[packagedFunctionListIndex];
 
 			## call_generator.py
 
@@ -655,30 +652,15 @@ void Interpreter::interpret() {
 			break;
 		}
 
+		case instruction::CREATE_OBJECT_UNLINKED: {
+			this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName);
+			this->pushEmpty(instruction.pushType);	
+			break;
+		}
+
 		case instruction::CREATE_OBJECT: {
 			string typeName = instruction.createObject.typeName;
-			if(!instruction.createObject.isCached) {
-				// check to make sure that the type name that we're using is defined by the TSSL. if not, we can't
-				// create the object
-				MethodTree* typeCheck = this->engine->getNamespace(typeName);
-				if(typeCheck == nullptr) {
-					this->warning(&instruction, "could not create object with type '%s'\n", typeName);
-					this->pushEmpty(instruction.pushType);
 
-					// cache this result since we always need a base type name to create a object
-					instruction.createObject.isCached = true;
-					instruction.createObject.canCreate = false;
-					break;
-				}
-
-				instruction.createObject.methodTree = typeCheck;
-			}
-			else if(!instruction.createObject.canCreate) {
-				this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName);
-				this->pushEmpty(instruction.pushType);
-				break;
-			}
-			
 			ObjectWrapper* object = ts::CreateObject(
 				this,
 				true,
@@ -687,6 +669,41 @@ void Interpreter::interpret() {
 			);
 
 			this->push(new ObjectReference(object), instruction.pushType);
+			break;
+		}
+
+		case instruction::CALL_OBJECT_UNLINKED: { // if the method is unlinked, then print a warning, push nothing onto the stack, and noop
+			Entry &numberOfArguments = this->stack[this->stack.head - 1];
+			int argumentCount = (int)numberOfArguments.numberData;
+			
+			// pull the object from the stack
+			Entry &objectEntry = this->stack[this->stack.head - 1 - argumentCount];
+			ObjectWrapper* objectWrapper = nullptr;
+			Object* object = nullptr;
+			## type_conversion.py objectEntry objectWrapper ALL OBJECT
+
+			if(objectWrapper == nullptr) {
+				this->warning(&instruction, "could not find object for method call\n");
+				
+				// pop arguments that we didn't use
+				for(int i = 0; i < argumentCount + 1; i++) {
+					this->pop();
+				}
+
+				this->pushEmpty(instruction.pushType);
+				break;
+			}
+
+			object = objectWrapper->object;
+			
+			this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callObject.name);
+
+			// pop arguments that we didn't use
+			for(int i = 0; i < argumentCount + 1; i++) {
+				this->pop();
+			}
+
+			this->pushEmpty(instruction.pushType);
 			break;
 		}
 
@@ -704,9 +721,7 @@ void Interpreter::interpret() {
 				this->warning(&instruction, "could not find object for method call\n");
 				
 				// pop arguments that we didn't use
-				Entry &numberOfArguments = this->stack[this->stack.head - 1];
-				int number = (int)numberOfArguments.numberData;
-				for(int i = 0; i < number + 1; i++) {
+				for(int i = 0; i < argumentCount + 1; i++) {
 					this->pop();
 				}
 
@@ -716,28 +731,12 @@ void Interpreter::interpret() {
 
 			object = objectWrapper->object;
 
-			// cache the method entry pointer in the instruction
-			// TODO as soon as the namespace type changes, this breaks
-			bool found = instruction.callObject.isCached;
-			if(instruction.callObject.isCached == false) {
-				auto methodNameIndex = this->engine->methodNameToIndex.find(instruction.callObject.name);
-				if(methodNameIndex != this->engine->methodNameToIndex.end()) {
-					instruction.callObject.cachedIndex = methodNameIndex->second;
-					found = true;
-				}
-				else {
-					found = false;
-				}
-			}
-
 			auto methodEntry = object->methodTree->methodIndexToEntry.find(instruction.callObject.cachedIndex);
-			if(!found || methodEntry == object->methodTree->methodIndexToEntry.end()) {
-				this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace, instruction.callFunction.name);
+			if(methodEntry == object->methodTree->methodIndexToEntry.end()) {
+				this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callObject.name);
 
 				// pop arguments that we didn't use
-				Entry &numberOfArguments = this->stack[this->stack.head - 1];
-				int number = (int)numberOfArguments.numberData;
-				for(int i = 0; i < number + 1; i++) {
+				for(int i = 0; i < argumentCount + 1; i++) {
 					this->pop();
 				}
 

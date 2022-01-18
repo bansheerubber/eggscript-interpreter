@@ -15,10 +15,10 @@ structs = {
 	"globalAssign": get_assignment_instructions("GLOBAL_ASSIGN"),
 	"localAccess": ["LOCAL_ACCESS"],
 	"globalAccess": ["GLOBAL_ACCESS"],
-	"createObject": ["CREATE_OBJECT"],
-	"callFunction": ["CALL_FUNCTION"],
-	"callParent": ["CALL_PARENT"],
-	"callObject": ["CALL_OBJECT"],
+	"createObject": ["CREATE_OBJECT", "CREATE_OBJECT_UNLINKED"],
+	"callFunction": ["CALL_FUNCTION", "CALL_FUNCTION_UNLINKED"],
+	"callNamespaceFunction": ["CALL_NAMESPACE_FUNCTION", "CALL_NAMESPACE_FUNCTION_UNLINKED"],
+	"callObject": ["CALL_OBJECT", "CALL_OBJECT_UNLINKED"],
 	"objectAssign": get_assignment_instructions("OBJECT_ASSIGN"),
 	"objectAccess": ["OBJECT_ACCESS"],
 	"popArguments": ["POP_ARGUMENTS"],
@@ -64,7 +64,7 @@ for line in file:
 			
 			buffer.append((variable_type, variable_name))
 		
-		if brace_count == 1 and line.strip() != '':
+		if brace_count == 1 and line.strip() != '' and "}" in line:
 			struct_name = re.match(r'\}[\s]*([\w]+)', line.strip()).group(1)
 			struct_to_types[struct_name] = buffer
 			buffer = []

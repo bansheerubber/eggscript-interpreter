@@ -64,6 +64,10 @@ void esSetInstructionDebug(esEnginePtr engine, bool enabled) {
 	((ts::Engine*)engine)->setInstructionDebugEnabled(enabled);
 }
 
+void esLogCompilationErrors(esEnginePtr engine) {
+	((ts::Engine*)engine)->printUnlinkedInstructions();
+}
+
 void esRegisterNamespace(esEnginePtr engine, const char* nameSpace) {
 	ts::MethodTree* methodTree = ((ts::Engine*)engine)->createMethodTreeFromNamespace(nameSpace);
 	methodTree->isTSSL = true;

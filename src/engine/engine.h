@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #ifdef __linux__
 #include <termios.h>
@@ -17,6 +18,7 @@
 #include "../interpreter/packagedFunctionList.h"
 #include "../parser/parser.h"
 #include "../include/robin-map/include/tsl/robin_map.h"
+#include "../include/robin-map/include/tsl/robin_set.h"
 #include "../tokenizer/tokenizer.h"
 
 using namespace std;
@@ -64,6 +66,8 @@ namespace ts {
 			void execPiped(string piped);
 			void execShell(string shell, bool forceExecution = false);
 
+			void link();
+
 			esPrintFunction(printFunction) = &printf;
 			esPrintFunction(warningFunction) = &printWarning;
 			esPrintFunction(errorFunction) = &printError;
@@ -96,6 +100,10 @@ namespace ts {
 
 			const InstructionDebug& getInstructionDebug(Instruction* instruction);
 			void setInstructionDebugEnabled(bool instructionDebugEnabled);
+
+			void addUnlinkedInstruction(Instruction* instruction);
+
+			void printUnlinkedInstructions();
 		
 		private:
 			ParsedArguments args;
@@ -133,7 +141,12 @@ namespace ts {
 			robin_map<Instruction*, InstructionDebug> instructionDebug;
 			bool instructionDebugEnabled = false;
 
+			// data structures for keeping track of instructions that need extra linking
+			robin_set<Instruction*> unlinkedFunctions;
+
 			void swapInstructionDebug(Instruction* source, Instruction* destination);
 			void addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line);
+
+			void swapInstructionLinking(Instruction* source, Instruction* destination);
 	};
 }

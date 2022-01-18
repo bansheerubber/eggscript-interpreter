@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "array.h"
+#include "debug.h"
 #include "echo.h"
 #include "../engine/engine.h"
 #include "eval.h"
@@ -204,6 +205,7 @@ void ts::sl::define(Engine* engine) {
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &eval, "eval", 1, s));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &exec, "exec", 1, s));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &printCompilationErrors, "printCompilationErrors", 0, nullptr));
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__onAdd, "Array", "onAdd", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__push, "Array", "push", 1, o));
