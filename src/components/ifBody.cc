@@ -127,9 +127,8 @@ ts::InstructionReturn IfBody::compile(ts::Engine* engine, ts::CompilationContext
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	conditionalJump->type = ts::instruction::JUMP_IF_FALSE;
-	conditionalJump->jumpIfFalse.instruction = noop;
-	conditionalJump->jumpIfFalse.pop = true;
+	conditionalJump->type = ts::instruction::JUMP_IF_FALSE_THEN_POP;
+	conditionalJump->jump.instruction = noop;
 
 	output.add(this->conditional->compile(engine, context));
 	output.add(conditionalJump);
@@ -158,13 +157,13 @@ ts::InstructionReturn IfBody::compile(ts::Engine* engine, ts::CompilationContext
 				compiled.lastJump->jump.instruction = noop;
 				output.add(compiled.output);
 
-				lastConditionalJump->jumpIfFalse.instruction = compiled.output.first; // weave together jumps with first of chain
+				lastConditionalJump->jump.instruction = compiled.output.first; // weave together jumps with first of chain
 				lastConditionalJump = compiled.conditionalJump;
 				next = ((ElseIfBody*)next)->next;
 			}
 			else if(next->getType() == ELSE_STATEMENT) {
 				ts::InstructionReturn compiled = next->compile(engine, context);
-				lastConditionalJump->jumpIfFalse.instruction = compiled.first;
+				lastConditionalJump->jump.instruction = compiled.first;
 				lastConditionalJump = nullptr;
 				output.add(compiled);
 				next = nullptr;
@@ -172,7 +171,7 @@ ts::InstructionReturn IfBody::compile(ts::Engine* engine, ts::CompilationContext
 		}
 
 		if(lastConditionalJump) {
-			lastConditionalJump->jumpIfFalse.instruction = noop;
+			lastConditionalJump->jump.instruction = noop;
 		}
 	}
 

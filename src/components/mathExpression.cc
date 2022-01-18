@@ -688,8 +688,7 @@ ts::InstructionReturn MathExpression::compile(ts::Engine* engine, ts::Compilatio
 						element->op.lineNumber
 					);
 					jumpIfFalse->type = ts::instruction::JUMP_IF_FALSE;
-					jumpIfFalse->jumpIfFalse.instruction = andNoop;
-					jumpIfFalse->jumpIfFalse.pop = false;
+					jumpIfFalse->jump.instruction = andNoop;
 					output.add(jumpIfFalse);
 
 					ts::Instruction* pop = new ts::Instruction(
@@ -723,8 +722,7 @@ ts::InstructionReturn MathExpression::compile(ts::Engine* engine, ts::Compilatio
 				value.op.lineNumber
 			);
 			jumpIfTrue->type = ts::instruction::JUMP_IF_TRUE;
-			jumpIfTrue->jumpIfTrue.instruction = noop;
-			jumpIfTrue->jumpIfTrue.pop = false;
+			jumpIfTrue->jump.instruction = noop;
 			output.add(jumpIfTrue);
 
 			ts::Instruction* pop = new ts::Instruction(

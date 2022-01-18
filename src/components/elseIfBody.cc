@@ -56,8 +56,7 @@ ElseIfBodyCompiled ElseIfBody::compileElseIf(ts::Engine* engine, ts::Compilation
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	conditionalJump->type = ts::instruction::JUMP_IF_FALSE; // the instruction this jumps to will be set by the if statement compilation
-	conditionalJump->jumpIfFalse.pop = true;
+	conditionalJump->type = ts::instruction::JUMP_IF_FALSE_THEN_POP; // the instruction this jumps to will be set by the if statement compilation
 	compiled.conditionalJump = conditionalJump;
 
 	compiled.output.add(this->conditional->compile(engine, context));

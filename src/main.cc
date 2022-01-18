@@ -42,8 +42,6 @@ int main(int argc, char* argv[]) {
 
 	printf("push %ld\n", sizeof(ts::Instruction::push));
 	printf("jump %ld\n", sizeof(ts::Instruction::jump));
-	printf("jump if true %ld\n", sizeof(ts::Instruction::jumpIfTrue));
-	printf("jump if false %ld\n", sizeof(ts::Instruction::jumpIfFalse));
 	printf("mathematics %ld\n", sizeof(ts::Instruction::mathematics));
 	printf("unary mathematics %ld\n", sizeof(ts::Instruction::unaryMathematics));
 	printf("local assign %ld\n", sizeof(ts::Instruction::localAssign));
@@ -57,7 +55,6 @@ int main(int argc, char* argv[]) {
 	printf("call object %ld\n", sizeof(ts::Instruction::callObject));
 	printf("create object %ld\n", sizeof(ts::Instruction::createObject));
 	printf("pop arguments %ld\n", sizeof(ts::Instruction::popArguments));
-	printf("function return %ld\n", sizeof(ts::Instruction::functionReturn));
 	printf("matrix create %ld\n", sizeof(ts::Instruction::matrixCreate));
 	printf("matrix set %ld\n", sizeof(ts::Instruction::matrixSet));
 

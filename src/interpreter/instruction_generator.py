@@ -6,9 +6,7 @@ from math_instructions import get_math_instructions
 
 structs = {
 	"push": ["PUSH"],
-	"jump": ["JUMP"],
-	"jumpIfTrue": ["JUMP_IF_TRUE"],
-	"jumpIfFalse": ["JUMP_IF_FALSE"],
+	"jump": ["JUMP", "JUMP_IF_TRUE", "JUMP_IF_FALSE", "JUMP_IF_TRUE_THEN_POP", "JUMP_IF_FALSE_THEN_POP"],
 	"mathematics": get_math_instructions(),
 	"unaryMathematics": ["UNARY_BITWISE_NOT", "UNARY_LOGICAL_NOT", "UNARY_NEGATE"],
 	"localAssign": get_assignment_instructions("LOCAL_ASSIGN"),
@@ -22,7 +20,6 @@ structs = {
 	"objectAssign": get_assignment_instructions("OBJECT_ASSIGN"),
 	"objectAccess": ["OBJECT_ACCESS"],
 	"popArguments": ["POP_ARGUMENTS"],
-	"functionReturn": ["RETURN"],
 	"arrayAssign": get_assignment_instructions("ARRAY_ASSIGN"),
 	"matrixCreate": ["MATRIX_CREATE"],
 	"matrixSet": ["MATRIX_SET"],

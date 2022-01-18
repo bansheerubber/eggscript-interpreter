@@ -61,9 +61,8 @@ ts::InstructionReturn InlineConditional::compile(ts::Engine* engine, ts::Compila
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	conditionalJump->type = ts::instruction::JUMP_IF_FALSE;
-	conditionalJump->jumpIfFalse.instruction = ifFalse.first;
-	conditionalJump->jumpIfFalse.pop = true;
+	conditionalJump->type = ts::instruction::JUMP_IF_FALSE_THEN_POP;
+	conditionalJump->jump.instruction = ifFalse.first;
 
 	output.add(this->leftHandSide->compile(engine, context));
 	output.add(conditionalJump);

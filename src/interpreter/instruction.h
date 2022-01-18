@@ -17,7 +17,9 @@ namespace ts {
 			POP, // pop the top of the stack
 			JUMP, // jump to a particular instruction
 			JUMP_IF_TRUE, // jump to particular insturction if top element on stack is true, pops the element
+			JUMP_IF_TRUE_THEN_POP,
 			JUMP_IF_FALSE, // jump to particular insturction if top element on stack is false, pops the element
+			JUMP_IF_FALSE_THEN_POP,
 			MATH_ADDITION,
 			MATH_SUBTRACT,
 			MATH_MULTIPLY,
@@ -76,6 +78,7 @@ namespace ts {
 			CALL_NAMESPACE_FUNCTION,
 			CALL_PARENT_UNLINKED,
 			CALL_PARENT,
+			RETURN_NO_VALUE,
 			RETURN, // return from a function without returning a value
 			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
 			CREATE_OBJECT_UNLINKED,
@@ -156,24 +159,6 @@ namespace ts {
 					uint64_t index;
 				};
 			} jump;
-
-			// TODO-if seperate jump_if_true_then_pop instruction
-			struct {
-				union {
-					Instruction* instruction;
-					uint64_t index;
-				};
-				bool pop;
-			} jumpIfTrue;
-
-			// TODO-if seperate jump_if_false_then_pop instruction
-			struct {
-				union {
-					Instruction* instruction;
-					uint64_t index;
-				};
-				bool pop;
-			} jumpIfFalse;
 
 			// TODO-if maybe seperate instructions for each combination of l/r entry/stack indices? probably bad idea
 			struct {
@@ -260,11 +245,6 @@ namespace ts {
 			struct {
 				uint64_t argumentCount;
 			} popArguments;
-
-			// TODO-if seperate out hasValue into its own instruction
-			struct {
-				bool hasValue;
-			} functionReturn;
 
 			struct {
 				unsigned int rows;

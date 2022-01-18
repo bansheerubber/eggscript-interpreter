@@ -420,26 +420,38 @@ void Interpreter::interpret() {
 			break;
 		}
 
+		case instruction::JUMP_IF_TRUE_THEN_POP: {
+			Entry &entry = this->stack[this->stack.head - 1];
+			if(isEntryTruthy(entry)) {
+				*this->instructionPointer = instruction.jump.index;
+			}
+
+			this->pop();
+			break;
+		}
+
 		case instruction::JUMP_IF_TRUE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
 			if(isEntryTruthy(entry)) {
-				*this->instructionPointer = instruction.jumpIfTrue.index;
+				*this->instructionPointer = instruction.jump.index;
+			}
+			break;
+		}
+
+		case instruction::JUMP_IF_FALSE_THEN_POP: {
+			Entry &entry = this->stack[this->stack.head - 1];
+			if(!isEntryTruthy(entry)) {
+				*this->instructionPointer = instruction.jump.index;
 			}
 
-			if(instruction.jumpIfTrue.pop) {
-				this->pop();
-			}
+			this->pop();
 			break;
 		}
 
 		case instruction::JUMP_IF_FALSE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
 			if(!isEntryTruthy(entry)) {
-				*this->instructionPointer = instruction.jumpIfFalse.index;
-			}
-
-			if(instruction.jumpIfFalse.pop) {
-				this->pop();
+				*this->instructionPointer = instruction.jump.index;
 			}
 			break;
 		}
@@ -611,6 +623,25 @@ void Interpreter::interpret() {
 			break;
 		}
 
+		case instruction::RETURN_NO_VALUE: {
+			this->popFunctionFrame();
+
+			// if we just ran out of instruction containers, just die here
+			if(this->topContainer == nullptr) {
+				return;
+			}
+
+			this->pushEmpty(instruction::STACK);
+
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL || this->frames[this->frames.head].earlyQuit) {
+				return;
+			}
+
+			break;
+		}
+
 		case instruction::RETURN: { // return from a function
 			this->popFunctionFrame();
 
@@ -619,12 +650,7 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			if(instruction.functionReturn.hasValue) {
-				this->push(this->returnRegister, instruction::STACK, true); // push return register
-			}
-			else {
-				this->pushEmpty(instruction::STACK);
-			}
+			this->push(this->returnRegister, instruction::STACK, true); // push return register
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over

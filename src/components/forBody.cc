@@ -87,9 +87,8 @@ ts::InstructionReturn ForBody::compile(ts::Engine* engine, ts::CompilationContex
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	conditionalJump->type = ts::instruction::JUMP_IF_FALSE;
-	conditionalJump->jumpIfFalse.instruction = noop;
-	conditionalJump->jumpIfFalse.pop = true;
+	conditionalJump->type = ts::instruction::JUMP_IF_FALSE_THEN_POP;
+	conditionalJump->jump.instruction = noop;
 	output.add(conditionalJump);
 
 	// add the body

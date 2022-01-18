@@ -143,8 +143,7 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	returnInstruction->type = ts::instruction::RETURN;
-	returnInstruction->functionReturn.hasValue = false;
+	returnInstruction->type = ts::instruction::RETURN_NO_VALUE;
 	output.add(returnInstruction);
 
 	if(context.package == nullptr) {

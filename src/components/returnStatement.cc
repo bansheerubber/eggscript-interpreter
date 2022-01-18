@@ -53,14 +53,13 @@ ts::InstructionReturn ReturnStatement::compile(ts::Engine* engine, ts::Compilati
 		this->getCharacterNumber(),
 		this->getLineNumber()
 	);
-	returnInstruction->type = ts::instruction::RETURN;
-	returnInstruction->functionReturn.hasValue = false;
+	returnInstruction->type = ts::instruction::RETURN_NO_VALUE;
 
 	if(this->operation != nullptr) {
 		ts::InstructionReturn operation = this->operation->compile(engine, context);
 		operation.last->pushType = ts::instruction::RETURN_REGISTER;
 		output.add(operation);
-		returnInstruction->functionReturn.hasValue = true;
+		returnInstruction->type = ts::instruction::RETURN;
 	}
 
 	output.add(returnInstruction);
