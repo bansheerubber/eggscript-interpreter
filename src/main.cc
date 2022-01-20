@@ -40,30 +40,6 @@ bool isPipe() {
 int main(int argc, char* argv[]) {
 	vector<Argument> arguments = createArguments();
 
-	printf("push %ld\n", sizeof(ts::Instruction::push));
-	printf("jump %ld\n", sizeof(ts::Instruction::jump));
-	printf("mathematics %ld\n", sizeof(ts::Instruction::mathematics));
-	printf("unary mathematics %ld\n", sizeof(ts::Instruction::unaryMathematics));
-	printf("local assign %ld\n", sizeof(ts::Instruction::localAssign));
-	printf("global assign %ld\n", sizeof(ts::Instruction::globalAssign));
-	printf("object assign %ld\n", sizeof(ts::Instruction::objectAssign));
-	printf("array assign %ld\n", sizeof(ts::Instruction::arrayAssign));
-	printf("local access %ld\n", sizeof(ts::Instruction::localAccess));
-	printf("global access %ld\n", sizeof(ts::Instruction::globalAccess));
-	printf("object access %ld\n", sizeof(ts::Instruction::objectAccess));
-	printf("call function %ld\n", sizeof(ts::Instruction::callFunction));
-	printf("call object %ld\n", sizeof(ts::Instruction::callObject));
-	printf("create object %ld\n", sizeof(ts::Instruction::createObject));
-	printf("pop arguments %ld\n", sizeof(ts::Instruction::popArguments));
-	printf("matrix create %ld\n", sizeof(ts::Instruction::matrixCreate));
-	printf("matrix set %ld\n", sizeof(ts::Instruction::matrixSet));
-
-	printf("total size %ld\n", sizeof(ts::Instruction));
-	printf("type size %ld\n", sizeof(ts::Instruction::type));
-	printf("push type %ld\n", sizeof(ts::Instruction::pushType));
-
-	printf("entry type %ld\n", sizeof(ts::Entry));
-
 	bool isPiped = isPipe();
 
 	// parse arguments
