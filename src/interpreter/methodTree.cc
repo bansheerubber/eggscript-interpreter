@@ -39,39 +39,6 @@ MethodTree::~MethodTree() {
 	}
 }
 
-string MethodTree::GetComplexNamespace(
-	string name1,
-	string name2,
-	string name3,
-	string name4,
-	string name5
-) {
-	string names[] = {
-		name1,
-		name2,
-		name3,
-		name4,
-		name5
-	};
-
-	string output; 
-	uint64_t count = 0;
-	for(uint64_t i = 0; i < 5; i++) {
-		if(names[i].length() != 0) {
-			output += names[i] + "->";
-			count++;
-		}
-	}
-	output.pop_back();
-	output.pop_back();
-
-	if(count != 1) { // designate this namespace as a special one that was created at runtime
-		output = "$" + output;
-	}
-	
-	return output;
-}
-
 void MethodTree::defineInitialMethod(string name, uint64_t nameIndex, Function* container) {
 	MethodTreeEntry* entry;
 	if(this->methodIndexToEntry.find(nameIndex) == this->methodIndexToEntry.end()) {
@@ -130,6 +97,10 @@ void MethodTree::updateMethodTree(string methodName, uint64_t methodNameIndex) {
 	for(uint64_t i = 0; i < this->children.head; i++) {
 		this->children[i]->updateMethodTree(methodName, methodNameIndex);
 	}
+}
+
+void MethodTree::definePropertyDeclaration(ts::Engine* engine, ts::InstructionReturn properties) {
+	this->propertyDeclaration = new Function(engine, properties.first, 0, 0, "");
 }
 
 vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string methodName, uint64_t methodNameIndex, bool addInitial) {

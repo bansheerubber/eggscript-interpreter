@@ -427,6 +427,7 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			instruction->objectAssign.fromStack = false;
 			instruction->objectAssign.pushResult = false;
 			instruction->objectAssign.popObject = false;
+			instruction->objectAssign.newBodyPatch = 0;
 			
 			c.lastAccess = instruction;
 			lastInstruction = instruction;

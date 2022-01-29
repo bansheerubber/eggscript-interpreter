@@ -90,14 +90,6 @@ namespace ts {
 			MethodTree* createMethodTreeFromNamespace(string nameSpace);
 			MethodTree* getNamespace(string nameSpace);
 
-			MethodTree* createMethodTreeFromNamespaces(
-				string namespace1,
-				string namespace2 = string(),
-				string namespace3 = string(),
-				string namespace4 = string(),
-				string namespace5 = string()
-			);
-
 			const InstructionDebug& getInstructionDebug(Instruction* instruction);
 			void setInstructionDebugEnabled(bool instructionDebugEnabled);
 

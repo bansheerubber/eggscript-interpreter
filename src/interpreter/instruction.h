@@ -196,6 +196,7 @@ namespace ts {
 				bool pushResult;
 				Entry entry;
 				bool popObject;
+				char newBodyPatch; // TODO figure out a better way to fix the stack behavior
 			} objectAssign;
 
 			struct {

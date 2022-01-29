@@ -191,6 +191,7 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 		instruction->objectAssign.fromStack = false;
 		instruction->objectAssign.pushResult = this->parent->shouldPushToStack(this);
 		instruction->objectAssign.popObject = true;
+		instruction->objectAssign.newBodyPatch = 0;
 	}
 	else if(instruction->type == ts::instruction::GLOBAL_ACCESS) {
 		instruction->type = AssignStatement::TypeToGlobalOperator(this->assignmentToken.type);

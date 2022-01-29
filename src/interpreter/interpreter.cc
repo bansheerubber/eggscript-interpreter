@@ -67,6 +67,29 @@ void Interpreter::enterParallel() {
 	this->isParallel = true;
 }
 
+void Interpreter::declareObjectProperties(Function* function) {
+	FunctionFrame &frame = this->frames[this->frames.head];
+	frame.container = function;
+	frame.instructionPointer = 0;
+	frame.stackPointer = this->stack.head - 1;
+	frame.stackPopCount = 1;
+	frame.packagedFunctionList = nullptr;
+	frame.packagedFunctionListIndex = 0;
+	frame.methodTreeEntry = nullptr;
+	frame.methodTreeEntryIndex = 0;
+	frame.earlyQuit = true;
+	frame.isTSSL = false;
+	ALLOCATE_STRING(string(""), frame.fileName);
+
+	this->topContainer = frame.container;
+	this->instructionPointer = &frame.instructionPointer;
+	this->stackFramePointer = frame.stackPointer;
+	
+	this->frames.pushed();
+
+	this->interpret();
+}
+
 void Interpreter::pushFunctionFrame(
 	InstructionContainer* container,
 	PackagedFunctionList* list,
@@ -232,23 +255,6 @@ void Interpreter::startInterpretation(Instruction* head) {
 	delete container;
 }
 
-void Interpreter::execFile(string filename) {
-	if(this->isParallel) {
-		this->execFilenames.push(filename);
-		return;
-	}
-	this->actuallyExecFile(filename);
-}
-
-void Interpreter::actuallyExecFile(string filename) {
-	// ParsedArguments args;
-	// Tokenizer tokenizer(filename, args);
-	// Parser parser(&tokenizer, args);
-	
-	// this->pushFunctionFrame(new InstructionContainer(ts::Compile(&parser, this)));
-	// this->interpret();
-}
-
 Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes) {
 	FunctionFrame &frame = this->frames[this->frames.head - 1];
 	MethodTreeEntry* methodTreeEntry = frame.methodTreeEntry;
@@ -383,6 +389,7 @@ void Interpreter::interpret() {
 	(*this->instructionPointer)++;
 
 	// PrintInstruction(instruction);
+	// this->printStack();
 	
 	switch(instruction.type) {
 		case instruction::INVALID_INSTRUCTION: {
@@ -741,7 +748,14 @@ void Interpreter::interpret() {
 			Entry &objectEntry = this->stack[this->stack.head - 1 - argumentCount];
 			ObjectWrapper* objectWrapper = nullptr;
 			Object* object = nullptr;
-			## type_conversion.py objectEntry objectWrapper ALL OBJECT
+
+			if(objectEntry.type == entry::OBJECT) {
+				objectWrapper = objectEntry.objectData->objectWrapper;
+			}
+			else {
+				this->warning(&instruction, "could not call method on non-object\n");
+				break;
+			}
 
 			if(objectWrapper == nullptr) {
 				this->warning(&instruction, "could not find object for method call\n");

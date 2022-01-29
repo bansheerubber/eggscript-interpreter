@@ -9,7 +9,7 @@ bool FunctionDeclaration::ShouldParse(ts::Engine* engine) {
 }
 
 FunctionDeclaration* FunctionDeclaration::Parse(Body* parent, ts::Engine* engine) {
-	if(parent->getType() != SOURCE_FILE && parent->getType() != PACKAGE_DECLARATION) {
+	if(parent->getType() != SOURCE_FILE && parent->getType() != PACKAGE_DECLARATION && parent->getType() != CLASS_DECLARATION) {
 		engine->parser->error("cannot declare scoped functions");
 	}
 	
@@ -146,18 +146,7 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 	returnInstruction->type = ts::instruction::RETURN_NO_VALUE;
 	output.add(returnInstruction);
 
-	if(context.package == nullptr) {
-		if(this->name2 != nullptr) {
-			string nameSpace = this->name1->print();
-			string name = this->name2->print();
-			engine->defineMethod(nameSpace, name, output, argumentCount, this->allocatedSize());
-		}
-		else {
-			string name = this->name1->print();
-			engine->defineFunction(name, output, argumentCount, this->allocatedSize()); // tell the interpreter to add a function under our name
-		}
-	}
-	else {
+	if(context.package != nullptr) {
 		if(this->name2 != nullptr) {
 			string nameSpace = this->name1->print();
 			string name = this->name2->print();
@@ -166,6 +155,21 @@ ts::InstructionReturn FunctionDeclaration::compile(ts::Engine* engine, ts::Compi
 		else {
 			string name = this->name1->print();
 			engine->addPackageFunction(context.package, name, output, argumentCount, this->allocatedSize()); // tell the interpreter to add a function under our name
+		}
+	}
+	else if(context.classContext != nullptr) {
+		string name = this->name1->print();
+		engine->defineMethod(context.classContext->name, name, output, argumentCount, this->allocatedSize());
+	}
+	else {
+		if(this->name2 != nullptr) {
+			string nameSpace = this->name1->print();
+			string name = this->name2->print();
+			engine->defineMethod(nameSpace, name, output, argumentCount, this->allocatedSize());
+		}
+		else {
+			string name = this->name1->print();
+			engine->defineFunction(name, output, argumentCount, this->allocatedSize()); // tell the interpreter to add a function under our name
 		}
 	}
 

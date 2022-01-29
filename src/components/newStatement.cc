@@ -11,7 +11,6 @@
 #include "numberLiteral.h"
 #include "stringLiteral.h"
 #include "../util/stringToChars.h"
-#include "../util/toLower.h"
 #include "symbol.h"
 
 bool NewStatement::ShouldParse(ts::Engine* engine) {
@@ -73,7 +72,7 @@ NewStatement* NewStatement::Parse(Component* parent, ts::Engine* engine) {
 			if(
 				access->hasChain()
 				|| access->hasCall()
-				|| access->chainSize() > 2
+				|| access->chainSize() > 1
 				|| access->isLocalVariable()
 				|| access->isGlobalVariable()
 			) {
@@ -171,6 +170,7 @@ ts::InstructionReturn NewStatement::compile(ts::Engine* engine, ts::CompilationC
 			) {
 				output.add(assignStatement->getRValue()->compile(engine, context)); // TODO this is bugged out
 				instruction->objectAssign.fromStack = true;
+				instruction->objectAssign.newBodyPatch = 1;
 			}
 
 			output.add(c.output);

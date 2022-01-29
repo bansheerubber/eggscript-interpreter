@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "function.h"
+#include "../include/robin-map/include/tsl/robin_map.h"
 
 using namespace std;
+using namespace tsl;
 
 namespace std {
 	template<>

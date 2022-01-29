@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../util/dynamicArray.h"
+#include "instruction.h"
 #include "object.h"
 #include "../include/robin-map/include/tsl/robin_map.h"
 
@@ -31,14 +32,6 @@ namespace ts {
 			MethodTree(string name, uint64_t index);
 			~MethodTree();
 
-			static string GetComplexNamespace(
-				string name1,
-				string name2 = string(),
-				string name3 = string(),
-				string name4 = string(),
-				string name5 = string()
-			);
-
 			void defineInitialMethod(string name, uint64_t nameIndex, class Function* container);
 			void addPackageMethod(string name, uint64_t nameIndex, class Function* container);
 			void removePackageMethod(uint64_t nameIndex, class Function* container);
@@ -51,6 +44,8 @@ namespace ts {
 
 			void updateMethodTree(string methodName, uint64_t methodNameIndex);
 
+			void definePropertyDeclaration(ts::Engine* engine, ts::InstructionReturn properties);
+
 			// each method gets its own index assigned to it by the interpreter. the method's index is based on its name,
 			// so we can have a method with the same name that is defined in several unrelated namespaces but that method
 			// still gets the same index as the rest of the methods with the same name
@@ -62,6 +57,8 @@ namespace ts {
 			uint64_t index;
 
 			bool isTSSL = false;
+
+			Function* propertyDeclaration = nullptr;
 
 			TS_OBJECT_CONSTRUCTOR(tsslConstructor) = nullptr;
 			TS_OBJECT_DECONSTRUCTOR(tsslDeconstructor) = nullptr;

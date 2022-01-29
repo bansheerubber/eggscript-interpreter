@@ -75,7 +75,6 @@ namespace ts {
 			Interpreter(class Engine* engine, ParsedArguments args, bool isParallel);
 
 			void startInterpretation(Instruction* head);
-			void execFile(string filename);
 			
 			void printStack();
 			void warning(Instruction* instruction, const char* format, ...);
@@ -107,8 +106,6 @@ namespace ts {
 			
 			void interpret(); // interprets the next instruction
 
-			void actuallyExecFile(string filename);
-
 			void enterParallel();
 
 			bool warnings = true;
@@ -119,7 +116,7 @@ namespace ts {
 			void push(double number, instruction::PushType type) __attribute__((always_inline));
 			void push(char* data, instruction::PushType type) __attribute__((always_inline));
 			void push(Matrix* matrix, instruction::PushType type) __attribute__((always_inline));
-			void push(ObjectReference* data, instruction::PushType) __attribute__((always_inline));
+			void push(ObjectReference* data, instruction::PushType);
 			void pushEmpty(instruction::PushType type)  __attribute__((always_inline));
 			void pop() __attribute__((always_inline)) {
 				// TODO does this fuck everything??
@@ -139,6 +136,7 @@ namespace ts {
 			Entry returnRegister;
 			VariableContext globalContext;
 
+			void declareObjectProperties(Function* function);
 			void pushFunctionFrame(
 				InstructionContainer* container,
 				PackagedFunctionList* list = nullptr,
@@ -163,7 +161,6 @@ namespace ts {
 
 			// parallel stuff
 			thread tickThread;
-			queue<string> execFilenames;
 			int64_t tickRate = 4;
 	};
 }

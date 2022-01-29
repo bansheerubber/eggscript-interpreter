@@ -1,17 +1,18 @@
 #pragma once
 
 #include "component.h"
+#include "body.h"
 #include "../engine/engine.h"
 #include "../parser/parser.h"
 #include "../compiler/scope.h"
 #include "../tokenizer/tokenizer.h"
 #include "../tokenizer/token.h"
 
-class ClassDeclaration : public Component {
+class ClassDeclaration : public Body, public ClassContext, public ts::Scope {
 	friend class Parser;
 	
 	public:
-		using Component::Component;
+		using Body::Body;
 		
 		ComponentType getType() {
 			return CLASS_DECLARATION;
@@ -44,5 +45,8 @@ class ClassDeclaration : public Component {
 		Token token;
 		string className;
 		string inheritedName = "";
+
+		vector<class AssignStatement*> declarations;
+		vector<class FunctionDeclaration*> functions;
 };
 

@@ -26,6 +26,12 @@ ObjectWrapper* ts::CreateObject(
 
 	interpreter->garbageHeap.insert(wrapper);
 
+	if(methodTree->propertyDeclaration != nullptr) {
+		ts::ObjectReference* reference = new ObjectReference(wrapper);
+		interpreter->push(reference, instruction::STACK);
+		interpreter->declareObjectProperties(methodTree->propertyDeclaration);
+	}
+
 	ts::ObjectReference* reference = new ObjectReference(wrapper);
 	ts::Entry entry(reference);
 	delete interpreter->callMethod(reference, "onAdd", &entry, 1);

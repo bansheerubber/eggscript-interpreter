@@ -440,47 +440,6 @@ MethodTree* Engine::getNamespace(string nameSpace) {
 	}
 }
 
-MethodTree* Engine::createMethodTreeFromNamespaces(
-	string namespace1,
-	string namespace2,
-	string namespace3,
-	string namespace4,
-	string namespace5
-) {
-	string names[] = {
-		namespace1,
-		namespace2,
-		namespace3,
-		namespace4,
-		namespace5,
-	};
-	
-	string nameSpace = MethodTree::GetComplexNamespace(
-		namespace1,
-		namespace2,
-		namespace3,
-		namespace4,
-		namespace5
-	);
-
-	MethodTree* tree = nullptr;
-	auto iterator = this->namespaceToMethodTreeIndex.find(nameSpace);
-	if(iterator == this->namespaceToMethodTreeIndex.end()) {
-		tree = this->createMethodTreeFromNamespace(nameSpace);
-		for(uint64_t i = 0; i < 5; i++) {
-			if(names[i].length() != 0 && names[i] != nameSpace) {
-				MethodTree* tree2 = this->createMethodTreeFromNamespace(names[i]);
-				tree->addParent(tree2);
-			}
-		}
-	}
-	else {
-		tree = this->methodTrees[iterator->second];
-	}
-
-	return tree;
-}
-
 const ts::InstructionDebug& ts::Engine::getInstructionDebug(Instruction* instruction) {
 	return this->instructionDebug[instruction];
 }

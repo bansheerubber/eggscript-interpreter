@@ -41,7 +41,7 @@ for line in file:
 			loading_instructions = False
 		else:
 			all_instructions.append(re.match(r'(\w+),', line.strip()).group(1))
-	elif "enum InstructionType {" in line:
+	elif "enum InstructionType : unsigned short {" in line:
 		loading_instructions = True
 	
 	if flag == 2:
