@@ -75,7 +75,11 @@ MatrixExpression* MatrixExpression::Parse(Component* parent, ts::Engine* engine)
 ts::InstructionReturn MatrixExpression::compile(ts::Engine* engine, ts::CompilationContext context) {
 	ts::InstructionReturn output;
 
-	ts::Instruction* create = new ts::Instruction();
+	ts::Instruction* create = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	create->type = ts::instruction::MATRIX_CREATE;
 	create->matrixCreate.rows = this->rows;
 	create->matrixCreate.columns = this->columns;
@@ -91,7 +95,11 @@ ts::InstructionReturn MatrixExpression::compile(ts::Engine* engine, ts::Compilat
 		else {
 			output.add(element.component->compile(engine, context));
 			
-			ts::Instruction* set = new ts::Instruction();
+			ts::Instruction* set = new ts::Instruction(
+				engine,
+				this->getCharacterNumber(),
+				this->getLineNumber()
+			);
 			set->type = ts::instruction::MATRIX_SET;
 			set->matrixSet.row = row;
 			set->matrixSet.column = column;

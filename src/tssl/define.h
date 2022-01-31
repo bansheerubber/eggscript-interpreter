@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "../interpreter/entry.h"
-#include "../util/toLower.h"
 
 using namespace std;
 
@@ -21,7 +20,7 @@ namespace ts {
 			entry::EntryType returnType;
 			string nameSpace;
 			string name;
-			size_t argumentCount;
+			uint64_t argumentCount;
 			ts_func function;
 			entry::EntryType* argumentTypes;
 
@@ -31,10 +30,10 @@ namespace ts {
 		};
 
 		extern vector<Function*> functions;
-		extern unordered_map<string, size_t> nameToIndex;
+		extern unordered_map<string, uint64_t> nameToIndex;
 
 		extern vector<MethodTree*> methodTrees;
-		extern unordered_map<string, size_t> methodTreeNameToIndex;
+		extern unordered_map<string, uint64_t> methodTreeNameToIndex;
 
 		ts::sl::Function* FUNC_DEF(entry::EntryType returnType, ts_func functionPointer, const char* nameSpace, const char* name, unsigned int argumentCount, entry::EntryType* argumentTypes);
 		ts::sl::Function* FUNC_DEF(entry::EntryType returnType, ts_func functionPointer, const char* name, unsigned int argumentCount, entry::EntryType* argumentTypes);

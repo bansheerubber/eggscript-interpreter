@@ -36,7 +36,8 @@ bool Symbol::ShouldParseAlphabeticToken(ts::Engine* engine) {
 Symbol* Symbol::Parse(Component* parent, ts::Engine* engine) {
 	Symbol* output = new Symbol(engine);
 	output->parent = parent;
-	output->value = engine->tokenizer->getToken().lexeme;
+	output->token = engine->tokenizer->getToken();
+	output->value = output->token.lexeme;
 	return output;
 }
 
@@ -49,9 +50,5 @@ string Symbol::printJSON() {
 }
 
 ts::InstructionReturn Symbol::compile(ts::Engine* engine, ts::CompilationContext context) {
-	ts::Instruction* instruction = new ts::Instruction();
-	instruction->type = ts::instruction::SYMBOL_ACCESS;
-	instruction->symbolAccess.hash = hash<string>{}(this->value);
-	ALLOCATE_STRING(this->value, instruction->symbolAccess.source);
-	return ts::InstructionReturn(instruction, instruction);
+	return {};
 }

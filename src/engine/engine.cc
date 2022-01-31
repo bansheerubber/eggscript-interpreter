@@ -25,6 +25,8 @@ Engine::Engine(ParsedArguments args, bool isParallel) {
 	this->tokenizer = new Tokenizer(this, args);
 	this->parser = new Parser(this, args);
 	this->interpreter = new Interpreter(this, args, isParallel);
+
+	this->setRandomSeed(time(0));
 }
 
 Engine::~Engine() {
@@ -32,11 +34,11 @@ Engine::~Engine() {
 	delete this->parser;
 	delete this->interpreter;
 
-	for(size_t i = 0; i < this->functions.head; i++) {
+	for(uint64_t i = 0; i < this->functions.head; i++) {
 		delete this->functions[i];
 	}
 
-	for(size_t i = 0; i < this->methodTrees.head; i++) {
+	for(uint64_t i = 0; i < this->methodTrees.head; i++) {
 		delete this->methodTrees[i];
 	}
 }
@@ -49,20 +51,26 @@ std::mutex& execLock() {
 
 void Engine::execFile(string fileName, bool forceExecution) {
 	if(!this->interpreter->isParallel || forceExecution) {
-		this->tokenizer->tokenizeFile(fileName);
-		this->parser->startParse();
+		if(!this->tokenizer->tokenizeFile(fileName)) {
+			return;
+		}
+		
+		if(!this->parser->startParse()) {
+			return;
+		}
 
 		// compile
 		InstructionReturn result = parser->getSourceFile()->compile(this, {
 			loop: nullptr,
 			scope: nullptr,
 		});
+		this->link();
 		
 		if(this->interpreter->startTime == 0) {
 			this->interpreter->startInterpretation(result.first);
 		}
 		else {
-			InstructionContainer* container = new InstructionContainer(result.first);
+			InstructionContainer* container = new InstructionContainer(this, result.first);
 			this->interpreter->pushFunctionFrame(container);
 			this->interpreter->interpret();
 			delete container;
@@ -73,43 +81,63 @@ void Engine::execFile(string fileName, bool forceExecution) {
 	}
 }
 
-void Engine::execFileContents(string fileName, string contents) {
-	this->tokenizer->tokenizePiped(contents);
-	this->parser->startParse();
+void Engine::execVirtualFile(string fileName, string contents) {
+	if(!this->tokenizer->tokeinzeVirtualFile(fileName, contents)) {
+		return;
+	}
+
+	if(!this->parser->startParse()) {
+		return;
+	}
 
 	// compile
 	InstructionReturn result = parser->getSourceFile()->compile(this, {
 		loop: nullptr,
 		scope: nullptr,
 	});
-	this->interpreter->pushFunctionFrame(new InstructionContainer(result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
+	this->link();
+
+	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
 	this->interpreter->interpret();
 }
 
 void Engine::execPiped(string piped) {
-	this->tokenizer->tokenizePiped(piped);
-	this->parser->startParse();
+	if(!this->tokenizer->tokenizePiped(piped)) {
+		return;
+	}
+
+	if(!this->parser->startParse()) {
+		return;
+	}
 
 	// compile
 	InstructionReturn result = parser->getSourceFile()->compile(this, {
 		loop: nullptr,
 		scope: nullptr,
 	});
+	this->link();
 
 	this->interpreter->startInterpretation(result.first);	
 }
 
 void Engine::execShell(string shell, bool forceExecution) {
 	if(!this->interpreter->isParallel || forceExecution) {
-		this->tokenizer->tokenizePiped(shell);
-		this->parser->startParse();
+		if(!this->tokenizer->tokenizePiped(shell)) {
+			return;
+		}
+
+		if(!this->parser->startParse()) {
+			return;
+		}
 
 		// compile
 		InstructionReturn result = parser->getSourceFile()->compile(this, {
 			loop: nullptr,
 			scope: nullptr,
 		});
-		this->interpreter->pushFunctionFrame(new InstructionContainer(result.first));
+		this->link();
+
+		this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first));
 		this->interpreter->interpret();
 	}
 	else {
@@ -117,10 +145,112 @@ void Engine::execShell(string shell, bool forceExecution) {
 	}
 }
 
+// find functions/class creation statements that need references filled in during link time
+void Engine::link() {
+	vector<Instruction*> linkedInstructions;
+
+	for(Instruction* unlinked: this->unlinkedFunctions) {
+		switch(unlinked->type) {
+			case instruction::CALL_FUNCTION_UNLINKED: {
+				if(this->nameToFunctionIndex.find(unlinked->callFunction.name) != this->nameToFunctionIndex.end()) {
+					unlinked->callFunction.cachedFunctionList = this->functions[this->nameToFunctionIndex[unlinked->callFunction.name]];
+					unlinked->type = instruction::CALL_FUNCTION;
+					linkedInstructions.push_back(unlinked);
+				}
+
+				break;
+			}
+
+			case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: {
+				if(
+					this->namespaceToMethodTreeIndex.find(unlinked->callNamespaceFunction.nameSpace) != this->namespaceToMethodTreeIndex.end()
+				) {
+					uint64_t namespaceIndex = this->namespaceToMethodTreeIndex[unlinked->callNamespaceFunction.nameSpace];
+					auto methodIndex = this->methodNameToIndex.find(unlinked->callNamespaceFunction.name);
+
+					if(methodIndex != this->methodNameToIndex.end()) {
+						auto methodEntry = this->methodTrees[namespaceIndex]->methodIndexToEntry.find(methodIndex->second);
+						if(methodEntry != this->methodTrees[namespaceIndex]->methodIndexToEntry.end()) {
+							unlinked->callNamespaceFunction.cachedEntry = methodEntry->second;
+							unlinked->type = instruction::CALL_NAMESPACE_FUNCTION;
+							linkedInstructions.push_back(unlinked);
+						}
+					}
+				}
+
+				break;
+			}
+
+			case instruction::CALL_OBJECT_UNLINKED: {
+				auto methodNameIndex = this->methodNameToIndex.find(unlinked->callObject.name);
+				if(methodNameIndex != this->methodNameToIndex.end()) {
+					unlinked->callObject.cachedIndex = methodNameIndex->second;
+					unlinked->type = instruction::CALL_OBJECT;
+					linkedInstructions.push_back(unlinked);
+				}
+				
+				break;
+			}
+
+			case instruction::CREATE_OBJECT_UNLINKED: {
+				MethodTree* typeCheck = this->getNamespace(unlinked->createObject.typeName);
+				if(typeCheck != nullptr) {
+					unlinked->createObject.methodTree = typeCheck;
+					unlinked->type = instruction::CREATE_OBJECT;
+					linkedInstructions.push_back(unlinked);
+				}
+				
+				break;
+			}
+		}
+	}
+
+	for(Instruction* linked: linkedInstructions) {
+		this->unlinkedFunctions.erase(linked);
+	}
+}
+
+// log any unlinked instructions to console for debugging
+void Engine::printUnlinkedInstructions() {
+	for(Instruction* unlinked: this->unlinkedFunctions) {
+		string format = "";
+		InstructionDebug debug = this->getInstructionDebug(unlinked);
+		if(debug.commonSource != nullptr) {
+			format = debug.commonSource->fileName + ":" + to_string(debug.line) + ":" + to_string(debug.character) + ": ";
+		}
+		
+		switch(unlinked->type) {
+			case instruction::CALL_FUNCTION_UNLINKED: {
+				format += "could not link function '%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->callFunction.name);
+				break;
+			}
+
+			case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: {
+				format += "could not link function '%s::%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->callNamespaceFunction.nameSpace, unlinked->callNamespaceFunction.name);
+				break;
+			}
+
+			case instruction::CALL_OBJECT_UNLINKED: {
+				format += "could not link method '%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->callObject.name);
+				break;
+			}
+
+			case instruction::CREATE_OBJECT_UNLINKED: {
+				format += "could not link object creation namespace '%s'";
+				(*this->warningFunction)(format.c_str(), unlinked->createObject.typeName);
+				break;
+			}
+		}
+	}
+}
+
 void Engine::defineTSSLMethodTree(MethodTree* tree) {
 	string nameSpace = tree->name;
-	if(this->namespaceToMethodTreeIndex.find(toLower(nameSpace)) == this->namespaceToMethodTreeIndex.end()) {
-		this->namespaceToMethodTreeIndex[toLower(nameSpace)] = this->methodTrees.head;
+	if(this->namespaceToMethodTreeIndex.find(nameSpace) == this->namespaceToMethodTreeIndex.end()) {
+		this->namespaceToMethodTreeIndex[nameSpace] = this->methodTrees.head;
 		tree->index = this->methodTrees.head;
 		this->methodTrees[this->methodTrees.head] = tree;
 		this->methodTrees.pushed();
@@ -128,151 +258,167 @@ void Engine::defineTSSLMethodTree(MethodTree* tree) {
 }
 
 void Engine::defineTSSLFunction(sl::Function* function) {
-	Function* container = new Function(function);
+	Function* container = new Function(this, function);
 	
 	if(function->nameSpace.length() == 0) {
 		PackagedFunctionList* list;
-		if(this->nameToFunctionIndex.find(toLower(function->name)) == this->nameToFunctionIndex.end()) {
+		if(this->nameToFunctionIndex.find(function->name) == this->nameToFunctionIndex.end()) {
 			// add the function to the function-specific datastructure
-			this->nameToFunctionIndex[toLower(function->name)] = this->functions.head;
+			this->nameToFunctionIndex[function->name] = this->functions.head;
 			list = new PackagedFunctionList(function->name);
 			list->isTSSL = true;
 			this->functions[this->functions.head] = list;
 			this->functions.pushed();
 		}
 		else {
-			list = this->functions[this->nameToFunctionIndex[toLower(function->name)]];
+			list = this->functions[this->nameToFunctionIndex[function->name]];
 		}
 
 		// create the packaged function list
 		list->defineInitialFunction(container);
 	}
 	else {
-		MethodTree* tree = this->methodTrees[this->namespaceToMethodTreeIndex[toLower(function->nameSpace)]];
+		MethodTree* tree = this->methodTrees[this->namespaceToMethodTreeIndex[function->nameSpace]];
 
 		// associate the method name with an index
-		size_t index = 0;
-		if(this->methodNameToIndex.find(toLower(function->name)) == this->methodNameToIndex.end()) {
-			this->methodNameToIndex[toLower(function->name)] = index = this->currentMethodNameIndex;
+		uint64_t index = 0;
+		if(this->methodNameToIndex.find(function->name) == this->methodNameToIndex.end()) {
+			this->methodNameToIndex[function->name] = index = this->currentMethodNameIndex;
 			this->currentMethodNameIndex++;
 		}
 		else {
-			index = this->methodNameToIndex[toLower(function->name)];
+			index = this->methodNameToIndex[function->name];
 		}
 
 		tree->defineInitialMethod(function->name, index, container);
 	}
 }
 
-void Engine::defineFunction(string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+void Engine::defineFunction(string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
 	// create the function container which we will use to execute the function at runtime
-	Function* container = new Function(output.first, argumentCount, variableCount, name);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name);
 	
 	PackagedFunctionList* list;
-	if(this->nameToFunctionIndex.find(toLower(name)) == this->nameToFunctionIndex.end()) {
+	if(this->nameToFunctionIndex.find(name) == this->nameToFunctionIndex.end()) {
 		// add the function to the function-specific datastructure
-		this->nameToFunctionIndex[toLower(name)] = this->functions.head;
+		this->nameToFunctionIndex[name] = this->functions.head;
 		list = new PackagedFunctionList(name);
 		this->functions[this->functions.head] = list;
 		this->functions.pushed();
 	}
 	else {
-		list = this->functions[this->nameToFunctionIndex[toLower(name)]];
+		list = this->functions[this->nameToFunctionIndex[name]];
 	}
 
 	// create the packaged function list
 	list->defineInitialFunction(container);
 }
 
-void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
-	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
+void Engine::defineMethod(string &nameSpace, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name, nameSpace);
 
 	// define the method tree if we don't have one yet
 	MethodTree* tree;
-	if(this->namespaceToMethodTreeIndex.find(toLower(nameSpace)) == this->namespaceToMethodTreeIndex.end()) {
-		this->namespaceToMethodTreeIndex[toLower(nameSpace)] = this->methodTrees.head;
+	if(this->namespaceToMethodTreeIndex.find(nameSpace) == this->namespaceToMethodTreeIndex.end()) {
+		this->namespaceToMethodTreeIndex[nameSpace] = this->methodTrees.head;
 		tree = new MethodTree(nameSpace, this->methodTrees.head);
 		this->methodTrees[this->methodTrees.head] = tree;
 		this->methodTrees.pushed();
 	}
 	else {
-		tree = this->methodTrees[this->namespaceToMethodTreeIndex[toLower(nameSpace)]];
+		tree = this->methodTrees[this->namespaceToMethodTreeIndex[nameSpace]];
 	}
 
 	// associate the method name with an index
-	size_t index = 0;
-	if(this->methodNameToIndex.find(toLower(name)) == this->methodNameToIndex.end()) {
-		this->methodNameToIndex[toLower(name)] = index = this->currentMethodNameIndex;
+	uint64_t index = 0;
+	if(this->methodNameToIndex.find(name) == this->methodNameToIndex.end()) {
+		this->methodNameToIndex[name] = index = this->currentMethodNameIndex;
 		this->currentMethodNameIndex++;
 	}
 	else {
-		index = this->methodNameToIndex[toLower(name)];
+		index = this->methodNameToIndex[name];
 	}
 
 	tree->defineInitialMethod(name, index, container);
 }
 
-void Engine::addPackageFunction(Package* package, string &name, InstructionReturn output, size_t argumentCount, size_t variableCount) {
+Package* Engine::createPackage(PackageContext* package) {
+	if(this->nameToPackage[package->name] == nullptr) {
+		this->nameToPackage[package->name] = new Package(this);
+	}
+	return this->nameToPackage[package->name];
+}
+
+void Engine::addPackageFunction(PackageContext* packageContext, string &name, InstructionReturn output, uint64_t argumentCount, uint64_t variableCount) {
+	// create a package if we don't have one
+	Package* package = this->createPackage(packageContext);
+	package->removeFunction(name);
+	
 	// create the function container which we will use to execute the function at runtime
-	Function* container = new Function(output.first, argumentCount, variableCount, name);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name);
 	
 	PackagedFunctionList* list;
-	if(this->nameToFunctionIndex.find(toLower(name)) == this->nameToFunctionIndex.end()) {
+	if(this->nameToFunctionIndex.find(name) == this->nameToFunctionIndex.end()) {
 		// add the function to the function-specific datastructure
-		this->nameToFunctionIndex[toLower(name)] = this->functions.head;
+		this->nameToFunctionIndex[name] = this->functions.head;
 		list = new PackagedFunctionList(name);
 		this->functions[this->functions.head] = list;
 		this->functions.pushed();
 	}
 	else {
-		list = this->functions[this->nameToFunctionIndex[toLower(name)]];
+		list = this->functions[this->nameToFunctionIndex[name]];
 	}
 
 	// create the packaged function list
 	list->addPackageFunction(container);
+	package->addPackageFunction(name, container);
 }
 
 void Engine::addPackageMethod(
-	Package* package,
+	PackageContext* packageContext,
 	string &nameSpace,
 	string &name,
 	InstructionReturn output,
-	size_t argumentCount,
-	size_t variableCount
+	uint64_t argumentCount,
+	uint64_t variableCount
 ) {
 	// create the function container which we will use to execute the function at runtime
-	Function* container = new Function(output.first, argumentCount, variableCount, name, nameSpace);
+	Function* container = new Function(this, output.first, argumentCount, variableCount, name, nameSpace);
+
+	Package* package = this->createPackage(packageContext);
+	package->removeMethod(nameSpace, name);
 	
 	// define the method tree if we don't have one yet
 	MethodTree* tree;
-	if(this->namespaceToMethodTreeIndex.find(toLower(nameSpace)) == this->namespaceToMethodTreeIndex.end()) {
-		this->namespaceToMethodTreeIndex[toLower(nameSpace)] = this->methodTrees.head;
+	if(this->namespaceToMethodTreeIndex.find(nameSpace) == this->namespaceToMethodTreeIndex.end()) {
+		this->namespaceToMethodTreeIndex[nameSpace] = this->methodTrees.head;
 		tree = new MethodTree(nameSpace, this->methodTrees.head);
 		this->methodTrees[this->methodTrees.head] = tree;
 		this->methodTrees.pushed();
 	}
 	else {
-		tree = this->methodTrees[this->namespaceToMethodTreeIndex[toLower(nameSpace)]];
+		tree = this->methodTrees[this->namespaceToMethodTreeIndex[nameSpace]];
 	}
 
 	// associate the method name with an index
-	size_t index = 0;
-	if(this->methodNameToIndex.find(toLower(name)) == this->methodNameToIndex.end()) {
-		this->methodNameToIndex[toLower(name)] = index = this->currentMethodNameIndex;
+	uint64_t index = 0;
+	if(this->methodNameToIndex.find(name) == this->methodNameToIndex.end()) {
+		this->methodNameToIndex[name] = index = this->currentMethodNameIndex;
 		this->currentMethodNameIndex++;
 	}
 	else {
-		index = this->methodNameToIndex[toLower(name)];
+		index = this->methodNameToIndex[name];
 	}
 
 	tree->addPackageMethod(name, index, container);
+	package->addPackageMethod(nameSpace, name, container);
 }
 
 MethodTree* Engine::createMethodTreeFromNamespace(string nameSpace) {
 	MethodTree* tree;
-	auto iterator = this->namespaceToMethodTreeIndex.find(toLower(nameSpace));
+	auto iterator = this->namespaceToMethodTreeIndex.find(nameSpace);
 	if(iterator == this->namespaceToMethodTreeIndex.end()) {
-		this->namespaceToMethodTreeIndex[toLower(nameSpace)] = this->methodTrees.head;
+		this->namespaceToMethodTreeIndex[nameSpace] = this->methodTrees.head;
 		tree = new MethodTree(nameSpace, this->methodTrees.head);
 		this->methodTrees[this->methodTrees.head] = tree;
 		this->methodTrees.pushed();
@@ -285,7 +431,7 @@ MethodTree* Engine::createMethodTreeFromNamespace(string nameSpace) {
 }
 
 MethodTree* Engine::getNamespace(string nameSpace) {
-	auto iterator = this->namespaceToMethodTreeIndex.find(toLower(nameSpace));
+	auto iterator = this->namespaceToMethodTreeIndex.find(nameSpace);
 	if(iterator == this->namespaceToMethodTreeIndex.end()) {
 		return nullptr;
 	}
@@ -294,43 +440,53 @@ MethodTree* Engine::getNamespace(string nameSpace) {
 	}
 }
 
-MethodTree* Engine::createMethodTreeFromNamespaces(
-	string namespace1,
-	string namespace2,
-	string namespace3,
-	string namespace4,
-	string namespace5
-) {
-	string names[] = {
-		namespace1,
-		namespace2,
-		namespace3,
-		namespace4,
-		namespace5,
-	};
-	
-	string nameSpace = MethodTree::GetComplexNamespace(
-		namespace1,
-		namespace2,
-		namespace3,
-		namespace4,
-		namespace5
-	);
+const ts::InstructionDebug& ts::Engine::getInstructionDebug(Instruction* instruction) {
+	return this->instructionDebug[instruction];
+}
 
-	MethodTree* tree = nullptr;
-	auto iterator = this->namespaceToMethodTreeIndex.find(toLower(nameSpace));
-	if(iterator == this->namespaceToMethodTreeIndex.end()) {
-		tree = this->createMethodTreeFromNamespace(nameSpace);
-		for(size_t i = 0; i < 5; i++) {
-			if(names[i].length() != 0 && names[i] != nameSpace) {
-				MethodTree* tree2 = this->createMethodTreeFromNamespace(names[i]);
-				tree->addParent(tree2);
-			}
-		}
+void ts::Engine::setInstructionDebugEnabled(bool instructionDebugEnabled) {
+	this->instructionDebugEnabled = instructionDebugEnabled;
+}
+
+void ts::Engine::swapInstructionDebug(Instruction* source, Instruction* destination) {
+	if(!this->instructionDebugEnabled) {
+		return;
+	}
+	
+	this->instructionDebug[destination] = this->instructionDebug[source];
+	this->instructionDebug.erase(source);
+}
+
+void ts::Engine::addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line) {
+	if(!this->instructionDebugEnabled) {
+		return;
+	}
+	
+	InstructionSource* commonSource = nullptr;
+	if(this->fileNameToSource.find(symbolicFileName) == this->fileNameToSource.end()) {
+		commonSource = new InstructionSource {
+			fileName: symbolicFileName,
+		};
+		this->fileNameToSource[symbolicFileName] = commonSource;
 	}
 	else {
-		tree = this->methodTrees[iterator->second];
+		commonSource = this->fileNameToSource[symbolicFileName];
 	}
+	
+	this->instructionDebug[source] = InstructionDebug {
+		commonSource: commonSource,
+		character: character,
+		line: line,
+	};
+}
 
-	return tree;
+void ts::Engine::swapInstructionLinking(Instruction* source, Instruction* destination) {
+	if(this->unlinkedFunctions.find(source) != this->unlinkedFunctions.end()) {
+		this->unlinkedFunctions.erase(source);
+		this->unlinkedFunctions.insert(destination);
+	}
+}
+
+void ts::Engine::addUnlinkedInstruction(Instruction* instruction) {
+	this->unlinkedFunctions.insert(instruction);
 }

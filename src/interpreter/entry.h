@@ -10,6 +10,7 @@ using namespace std;
 namespace ts {
 	namespace entry {
 		enum EntryType {
+			INVALID = 0,
 			EMPTY,
 			NUMBER,
 			STRING,
@@ -54,17 +55,19 @@ namespace ts {
 		inline void erase() {
 			if(this->type == entry::STRING && this->stringData != nullptr) {
 				delete[] this->stringData;
+				this->stringData = nullptr;
 			}
 
 			if(this->type == entry::OBJECT && this->objectData != nullptr) {
 				delete this->objectData;
+				this->objectData = nullptr;
 			}
 
 			if(this->type == entry::MATRIX && this->matrixData != nullptr) {
 				delete this->matrixData;
+				this->matrixData = nullptr;
 			}
 
-			this->numberData = 0;
 			this->type = entry::EMPTY;
 		}
 		

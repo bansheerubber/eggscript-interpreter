@@ -24,11 +24,11 @@ def preprocess(filename, contents, directory = None):
 	for line in contents:
 		if match := re.match(pattern, line):
 			if directory == None:
-				directory = pathlib.Path(filename).parent
+				directory = str(pathlib.Path(filename).parent.as_posix())
 
 			command = match.group(1).strip()
 
-			if ".py" in command:
+			if ".py" in command.split(" ")[0]:
 				command = f"cd {directory} && python3 {command}"
 			else:
 				command = f"cd {directory} && {command}"

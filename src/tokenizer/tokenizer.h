@@ -31,12 +31,13 @@ class Tokenizer {
 		bool eof();
 		void printToken(Token token);
 		const char* typeToName(TokenType type);
-		size_t getTotalLineCount();
-		size_t getTotalCharacterCount();
+		uint64_t getTotalLineCount();
+		uint64_t getTotalCharacterCount();
 		bool isAlphabeticalKeyword(TokenType keyword);
 		string& getKeywordLexeme(TokenType type);
 
 		string fileName;
+		string symbolicFileName = "shell"; // the filename that is used for debug information. can be anything, not just a file on disk
 	
 	private:
 		void reset();
@@ -44,8 +45,9 @@ class Tokenizer {
 		ParsedArguments args;
 		void handleArgs(ParsedArguments args);
 
-		void tokenizePiped(string piped);
-		void tokenizeFile(string fileName);
+		bool tokenizePiped(string piped);
+		bool tokeinzeVirtualFile(string fileName, string contents);
+		bool tokenizeFile(string fileName);
 		
 		void tokenize();
 		char getChar();
@@ -57,13 +59,13 @@ class Tokenizer {
 
 		ts::Engine* engine;
 
-		size_t lineNumber = 1;
-		size_t characterNumber = 1;
+		uint64_t lineNumber = 1;
+		uint64_t characterNumber = 1;
 
 		bool freezeKeywordTest = false;
 		bool failedKeyword = false;
-		int overrun = 0;
-		int fileIndex = 0;
+		unsigned overrun = 0;
+		unsigned int fileIndex = 0;
 		int tokenIndex = 0;
 		bool showWarnings = true;
 
@@ -72,12 +74,12 @@ class Tokenizer {
 		
 		vector<Token> tokens;
 		char* contents = nullptr;
-		size_t contentSize = 0;
+		uint64_t contentSize = 0;
 
 		// be potential symbols, like function names, object names, etc, so when we fail a keyword we need to read a symbol
 		robin_map<string, string> partialKeywords; // partial keyword tables. first int is length of partial keyword
 		robin_map<char, string> partialKeywordCharacters;
-		size_t largestPartial = 0;
+		uint64_t largestPartial = 0;
 		robin_map<string, TokenType> validKeywords; // map of valid keyword
 		robin_map<TokenType, string> customLexeme;
 		void initializeKeywords();

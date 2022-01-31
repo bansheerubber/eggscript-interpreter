@@ -28,6 +28,20 @@ class MatrixExpression : public Component {
 			return true;
 		}
 
+		unsigned short getCharacterNumber() {
+			if(this->elements.size() == 0 || this->elements[0].component == nullptr) {
+				return 0;
+			}
+			return this->elements[0].component->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			if(this->elements.size() == 0 || this->elements[0].component == nullptr) {
+				return 0;
+			}
+			return this->elements[0].component->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

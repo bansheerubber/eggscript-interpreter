@@ -10,7 +10,7 @@
 
 string collapseEscape(string &source, bool shouldThrow) {
 	string output;
-	for(size_t i = 0; i < source.length(); i++) {
+	for(uint64_t i = 0; i < source.length(); i++) {
 		if(source[i] == '\\') {
 			INCREMENT_ESCAPE_SEQUENCE();
 			char command = source[i];

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../util/dynamicArray.h"
+#include "instruction.h"
 #include "object.h"
 #include "../include/robin-map/include/tsl/robin_map.h"
 
@@ -28,19 +29,12 @@ namespace ts {
 	class MethodTree {
 		public:
 			MethodTree();
-			MethodTree(string name, size_t index);
+			MethodTree(string name, uint64_t index);
 			~MethodTree();
 
-			static string GetComplexNamespace(
-				string name1,
-				string name2 = string(),
-				string name3 = string(),
-				string name4 = string(),
-				string name5 = string()
-			);
-
-			void defineInitialMethod(string name, size_t nameIndex, class Function* container);
-			void addPackageMethod(string name, size_t nameIndex, class Function* container);
+			void defineInitialMethod(string name, uint64_t nameIndex, class Function* container);
+			void addPackageMethod(string name, uint64_t nameIndex, class Function* container);
+			void removePackageMethod(uint64_t nameIndex, class Function* container);
 
 			void addParent(MethodTree* parent); // add a parent for this method tree, order matters
 			bool hasParent(string nameSpace); // recursively check for parent
@@ -48,25 +42,29 @@ namespace ts {
 			// adds a child to this method tree, order doesn't matter
 			void addChild(MethodTree* child);
 
-			void updateMethodTree(string methodName, size_t methodNameIndex);
+			void updateMethodTree(string methodName, uint64_t methodNameIndex);
+
+			void definePropertyDeclaration(ts::Engine* engine, ts::InstructionReturn properties);
 
 			// each method gets its own index assigned to it by the interpreter. the method's index is based on its name,
 			// so we can have a method with the same name that is defined in several unrelated namespaces but that method
 			// still gets the same index as the rest of the methods with the same name
-			robin_map<size_t, MethodTreeEntry*> methodIndexToEntry;
+			robin_map<uint64_t, MethodTreeEntry*> methodIndexToEntry;
 			string name;
 
 			void print();
 
-			size_t index;
+			uint64_t index;
 
 			bool isTSSL = false;
+
+			Function* propertyDeclaration = nullptr;
 
 			TS_OBJECT_CONSTRUCTOR(tsslConstructor) = nullptr;
 			TS_OBJECT_DECONSTRUCTOR(tsslDeconstructor) = nullptr;
 		
 		private:
-			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, size_t methodNameIndex, bool addInitial = true);
+			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, uint64_t methodNameIndex, bool addInitial = true);
 			DynamicArray<MethodTree*, MethodTree> parents = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
 			DynamicArray<MethodTree*, MethodTree> children = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
 	};

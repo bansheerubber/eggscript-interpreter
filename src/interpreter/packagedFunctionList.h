@@ -21,16 +21,19 @@ namespace ts {
 
 			void defineInitialFunction(Function* function);
 			void addPackageFunction(Function* function);
+			void removePackageFunction(Function* function);
 			void deactivateFunction(Function* function);
 			void activateFunction(Function* function);
 
 			int getNextValidIndex(int currentIndex);
 
-			Function* operator[](size_t index) {
+			Function* operator[](uint64_t index) {
 				return this->functions[index];
 			}
 
-			size_t topValidIndex = 0;
+			uint64_t topValidIndex = 0;
+
+			class MethodTree* owner = nullptr; // owner if the packaged function list if an owner exists at all
 		
 		private:
 			DynamicArray<Function*, PackagedFunctionList> functions = DynamicArray<Function*, PackagedFunctionList>(this, 15, initPackagedFunctionListFunction, nullptr);

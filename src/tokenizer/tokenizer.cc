@@ -28,7 +28,7 @@ void Tokenizer::reset() {
 	}
 }
 
-void Tokenizer::tokenizePiped(string piped) {
+bool Tokenizer::tokenizePiped(string piped) {
 	this->reset();
 	
 	this->contentSize = piped.size();
@@ -36,15 +36,29 @@ void Tokenizer::tokenizePiped(string piped) {
 	strcpy(this->contents, piped.c_str());
 	this->contents[this->contentSize] = '\0';
 
-	this->tokenize();
+	try {
+		this->tokenize();
+		return true;
+	}
+	catch(...) {
+
+	}
+
+	return false;
 }
 
-void Tokenizer::tokenizeFile(string fileName) {
+bool Tokenizer::tokeinzeVirtualFile(string fileName, string contents) {
+	this->symbolicFileName = fileName;
+	return this->tokenizePiped(contents);
+}
+
+bool Tokenizer::tokenizeFile(string fileName) {
 	this->reset();
 	
 	// read the file
 	ifstream file = ifstream(fileName, ios::binary | ios::ate);
 	this->fileName = fileName;
+	this->symbolicFileName = fileName;
 
 	if((file.rdstate() & ifstream::failbit) != 0) {
 		printError("failed to read file %s\n", fileName.c_str());
@@ -52,13 +66,21 @@ void Tokenizer::tokenizeFile(string fileName) {
 
 	// TODO this is probably insecure
 	// TODO test for directories here, or ensure that we test for directory somewhere along the exec path
-	contentSize = file.tellg();
+	contentSize = (uint64_t)file.tellg();
 	this->contents = new char[this->contentSize];
 	file.seekg(0);
 	file.read(this->contents, this->contentSize);
 	file.close();
 
-	this->tokenize();
+	try {
+		this->tokenize();
+		return true;
+	}
+	catch(...) {
+
+	}
+
+	return false;
 }
 
 void Tokenizer::handleArgs(ParsedArguments args) {
@@ -192,14 +214,14 @@ void Tokenizer::tokenize() {
 }
 
 Token& Tokenizer::getToken(bool whitespace) {
-	if(this->tokenIndex >= this->tokens.size()) {
+	if((unsigned int)this->tokenIndex >= this->tokens.size()) {
 		return this->emptyToken;
 	}
 
 	if(!whitespace) {
 		Token* token = &this->tokens[this->tokenIndex++];
 		while(token->type == WHITESPACE) {
-			if(this->tokenIndex >= this->tokens.size()) {
+			if((unsigned int)this->tokenIndex >= this->tokens.size()) {
 				return this->emptyToken;
 			}
 			
@@ -236,7 +258,7 @@ Token& Tokenizer::peekToken(int offset, bool whitespace) {
 		Token* token = &this->tokens[this->tokenIndex];
 		int index = 0, count = 0;
 		while(count <= offset) {
-			if(this->tokenIndex + index >= this->tokens.size()) {
+			if((unsigned int)this->tokenIndex + index >= this->tokens.size()) {
 				return this->emptyToken;	
 			}
 
@@ -251,7 +273,7 @@ Token& Tokenizer::peekToken(int offset, bool whitespace) {
 		return *token;
 	}
 	else {
-		if(this->tokenIndex + offset >= this->tokens.size()) {
+		if((unsigned int)this->tokenIndex + offset >= this->tokens.size()) {
 			return this->emptyToken;
 		}
 
@@ -264,7 +286,7 @@ Token& Tokenizer::peekToken(int offset, bool whitespace) {
 }
 
 bool Tokenizer::eof() {
-	if(this->tokenIndex >= this->tokens.size()) {
+	if((unsigned int)this->tokenIndex >= this->tokens.size()) {
 		return true;
 	}
 	return false;

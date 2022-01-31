@@ -10,7 +10,7 @@ bool EmptyLiteral::ShouldParse(ts::Engine* engine) {
 EmptyLiteral* EmptyLiteral::Parse(Component* parent, ts::Engine* engine) {
 	EmptyLiteral* output = new EmptyLiteral(engine);
 	output->parent = parent;
-	engine->parser->expectToken(EMPTY);
+	output->token = engine->parser->expectToken(EMPTY);
 	return output;
 }
 
@@ -23,7 +23,11 @@ string EmptyLiteral::printJSON() {
 }
 
 InstructionReturn EmptyLiteral::compile(ts::Engine* engine, ts::CompilationContext context) {
-	Instruction* instruction = new Instruction();
+	Instruction* instruction = new Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = instruction::PUSH;
 	instruction->push.entry = ts::Entry();
 	instruction->push.entry.type = entry::EMPTY;

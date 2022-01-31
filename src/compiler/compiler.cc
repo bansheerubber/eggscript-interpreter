@@ -10,5 +10,7 @@ Instruction* Compile(Parser* parser, Engine* engine) {
 		loop: nullptr,
 		scope: nullptr,
 	});
+	engine->link();
+
 	return result.first;
 }

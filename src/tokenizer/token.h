@@ -84,11 +84,13 @@ enum TokenType {
 	COMMENT,
 	MEMBER_CHAIN,
 	EMPTY,
+	CLASS,
+	INHERITS,
 };
 
 struct Token {
 	string lexeme;
 	TokenType type;
-	size_t lineNumber;
-	size_t characterNumber;
+	uint64_t lineNumber;
+	uint64_t characterNumber;
 };

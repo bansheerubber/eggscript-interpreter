@@ -25,6 +25,14 @@ class InlineConditional : public Component {
 			return true;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->leftHandSide->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->leftHandSide->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

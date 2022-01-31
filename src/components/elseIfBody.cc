@@ -51,9 +51,12 @@ ts::InstructionReturn ElseIfBody::compile(ts::Engine* engine, ts::CompilationCon
 ElseIfBodyCompiled ElseIfBody::compileElseIf(ts::Engine* engine, ts::CompilationContext context) {
 	ElseIfBodyCompiled compiled;
 
-	ts::Instruction* conditionalJump = new ts::Instruction();
-	conditionalJump->type = ts::instruction::JUMP_IF_FALSE; // the instruction this jumps to will be set by the if statement compilation
-	conditionalJump->jumpIfFalse.pop = true;
+	ts::Instruction* conditionalJump = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
+	conditionalJump->type = ts::instruction::JUMP_IF_FALSE_THEN_POP; // the instruction this jumps to will be set by the if statement compilation
 	compiled.conditionalJump = conditionalJump;
 
 	compiled.output.add(this->conditional->compile(engine, context));
@@ -63,7 +66,11 @@ ElseIfBodyCompiled ElseIfBody::compileElseIf(ts::Engine* engine, ts::Compilation
 		compiled.output.add(component->compile(engine, context));
 	}
 
-	ts::Instruction* jump = new ts::Instruction();
+	ts::Instruction* jump = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	jump->type = ts::instruction::JUMP; // the instruction this jumps to will be set by the if statement compilation
 	compiled.lastJump = jump;
 	compiled.output.add(jump);

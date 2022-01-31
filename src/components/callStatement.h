@@ -33,6 +33,14 @@ class CallStatement : public Component {
 			return true;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
@@ -45,11 +53,13 @@ class CallStatement : public Component {
 			vector<CallElement>::iterator
 		> getElements();
 
-		CallElement &getElement(size_t index);
+		CallElement &getElement(uint64_t index);
 
-		size_t getElementCount();
+		uint64_t getElementCount();
 	
 	private:
+		Token token;
+		
 		// can be literals, a mathematical statement, access statements, etc
 		vector<CallElement> elements;
 };

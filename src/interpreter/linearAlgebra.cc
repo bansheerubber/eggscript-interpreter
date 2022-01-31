@@ -26,6 +26,22 @@ ts::Matrix::~Matrix() {
 	}
 }
 
+bool ts::Matrix::equal(const Matrix* other) {
+	if(this->rows != other->rows || this->columns != other->columns) {
+		return false;
+	}
+	
+	for(unsigned int r = 0; r < this->rows; r++) {
+		for(unsigned int c = 0; c < this->columns; c++) {
+			if(!isEntryEqual(this->data[r][c], other->data[r][c])) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 ts::Matrix* ts::Matrix::initialize(unsigned int rows, unsigned int columns, bool fillZeros) {
 	if(this->data != nullptr) {
 		for(unsigned int r = 0; r < this->rows; r++) {

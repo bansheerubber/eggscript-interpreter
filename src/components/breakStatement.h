@@ -22,6 +22,14 @@ class BreakStatement : public Component {
 		bool shouldPushToStack(Component* child) {
 			return false;
 		}
+
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
 		
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
@@ -29,4 +37,7 @@ class BreakStatement : public Component {
 		string printJSON();
 		static bool ShouldParse(ts::Engine* engine);
 		static BreakStatement* Parse(Component* parent, ts::Engine* engine);
+	
+	private:
+		Token token;
 };

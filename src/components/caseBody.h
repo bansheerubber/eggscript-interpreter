@@ -38,6 +38,20 @@ class CaseBody : public Body {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			if(this->conditionals.size() == 0) {
+				return 0;
+			}
+			return this->conditionals[0].component->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			if(this->conditionals.size() == 0) {
+				return 0;
+			}
+			return this->conditionals[0].component->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

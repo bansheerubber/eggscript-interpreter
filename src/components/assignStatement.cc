@@ -191,6 +191,7 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 		instruction->objectAssign.fromStack = false;
 		instruction->objectAssign.pushResult = this->parent->shouldPushToStack(this);
 		instruction->objectAssign.popObject = true;
+		instruction->objectAssign.newBodyPatch = 0;
 	}
 	else if(instruction->type == ts::instruction::GLOBAL_ACCESS) {
 		instruction->type = AssignStatement::TypeToGlobalOperator(this->assignmentToken.type);
@@ -210,7 +211,6 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 	else if(instruction->type == ts::instruction::ARRAY_ACCESS) {
 		instruction->type = AssignStatement::TypeToArrayOperator(this->assignmentToken.type);
 		
-		ALLOCATE_STRING(string(""), instruction->arrayAssign.blank1);
 		instruction->arrayAssign.entry = ts::Entry(); // initialize memory to avoid crash
 		instruction->arrayAssign.fromStack = false;
 		instruction->arrayAssign.pushResult = this->parent->shouldPushToStack(this);
@@ -226,6 +226,9 @@ ts::InstructionReturn AssignStatement::compile(ts::Engine* engine, ts::Compilati
 		string literal = ((StringLiteral*)this->rvalue)->getString();
 		instruction->localAssign.entry = ts::Entry();
 		instruction->localAssign.entry.setString(stringToChars(literal));
+	}
+	else if(this->rvalue->getType() == EMPTY_LITERAL) {
+		instruction->objectAssign.entry = ts::Entry();
 	}
 	else if(
 		this->rvalue->getType() == MATH_EXPRESSION

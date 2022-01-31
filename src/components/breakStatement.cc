@@ -8,7 +8,7 @@ bool BreakStatement::ShouldParse(ts::Engine* engine) {
 BreakStatement* BreakStatement::Parse(Component* parent, ts::Engine* engine) {
 	BreakStatement* output = new BreakStatement(engine);
 	output->parent = parent;
-	engine->parser->expectToken(BREAK);
+	output->token = engine->parser->expectToken(BREAK);
 	engine->parser->expectToken(SEMICOLON);
 	return output;
 }
@@ -28,7 +28,11 @@ ts::InstructionReturn BreakStatement::compile(ts::Engine* engine, ts::Compilatio
 	}
 	
 	ts::InstructionReturn output;
-	ts::Instruction* instruction = new ts::Instruction();
+	ts::Instruction* instruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = ts::instruction::JUMP;
 	output.add(instruction);
 	context.loop->breaks.push_back(output);

@@ -97,27 +97,97 @@
 #else
 	double lvalueNumber = 0;
 	double rvalueNumber = 0;
+	Matrix* lvalueMatrix = nullptr;
+	Matrix* rvalueMatrix = nullptr;
+	entry::EntryType type1 = (entry::EntryType)500;
+	entry::EntryType type2 = (entry::EntryType)501;
 	
 	// we have to define rvalue first when working with postfix
 	if(instruction.mathematics.rvalueEntry.type) {
-		rvalueNumber = instruction.mathematics.rvalueEntry.numberData;
+		if(instruction.mathematics.rvalueEntry.type == entry::NUMBER) {
+			rvalueNumber = instruction.mathematics.rvalueEntry.numberData;
+			type2 = entry::NUMBER;
+		}
+		else if(instruction.mathematics.rvalueEntry.type == entry::EMPTY) {
+			rvalueNumber = 0;
+			type2 = entry::NUMBER;
+		}
+		else if(instruction.mathematics.rvalueEntry.type == entry::MATRIX) {
+			rvalueMatrix = instruction.mathematics.rvalueEntry.matrixData;
+			type2 = entry::MATRIX;
+		}
 	}
 	else if(instruction.mathematics.rvalueStackIndex < 0) {
-		rvalueNumber = this->stack[this->stack.head - 1].numberData;
+		if(this->stack[this->stack.head - 1].type == entry::NUMBER) {
+			rvalueNumber = this->stack[this->stack.head - 1].numberData;
+			type2 = entry::NUMBER;
+		}
+		else if(this->stack[this->stack.head - 1].type == entry::EMPTY) {
+			rvalueNumber = 0;
+			type2 = entry::NUMBER;
+		}
+		else if(this->stack[this->stack.head - 1].type == entry::MATRIX) {
+			rvalueMatrix = this->stack[this->stack.head - 1].matrixData;
+			type2 = entry::MATRIX;
+		}
 		this->pop();
 	}
 	else {
-		rvalueNumber = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].numberData;
+		if(this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].type == entry::NUMBER) {
+			rvalueNumber = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].numberData;
+			type2 = entry::NUMBER;
+		}
+		else if(this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].type == entry::EMPTY) {
+			rvalueNumber = 0;
+			type2 = entry::NUMBER;
+		}
+		else if(this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].type == entry::MATRIX) {
+			rvalueMatrix = this->stack[instruction.mathematics.rvalueStackIndex + this->stackFramePointer].matrixData;
+			type2 = entry::MATRIX;
+		}
 	}
 
 	if(instruction.mathematics.lvalueEntry.type) {
-		lvalueNumber = instruction.mathematics.lvalueEntry.numberData;
+		if(instruction.mathematics.lvalueEntry.type == entry::NUMBER) {
+			lvalueNumber = instruction.mathematics.lvalueEntry.numberData;
+			type1 = entry::NUMBER;
+		}
+		else if(instruction.mathematics.lvalueEntry.type == entry::EMPTY) {
+			lvalueNumber = 0;
+			type1 = entry::NUMBER;
+		}
+		else if(instruction.mathematics.lvalueEntry.type == entry::MATRIX) {
+			lvalueMatrix = instruction.mathematics.lvalueEntry.matrixData;
+			type1 = entry::MATRIX;
+		}
 	}
 	else if(instruction.mathematics.lvalueStackIndex < 0) {
-		lvalueNumber = this->stack[this->stack.head - 1].numberData;
+		if(this->stack[this->stack.head - 1].type == entry::NUMBER) {
+			lvalueNumber = this->stack[this->stack.head - 1].numberData;
+			type1 = entry::NUMBER;
+		}
+		else if(this->stack[this->stack.head - 1].type == entry::EMPTY) {
+			lvalueNumber = 0;
+			type1 = entry::NUMBER;
+		}
+		else if(this->stack[this->stack.head - 1].type == entry::MATRIX) {
+			lvalueMatrix = this->stack[this->stack.head - 1].matrixData;
+			type1 = entry::MATRIX;
+		}
 		this->pop();
 	}
 	else {
-		lvalueNumber = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].numberData;
+		if(this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].type == entry::NUMBER) {
+			lvalueNumber = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].numberData;
+			type1 = entry::NUMBER;
+		}
+		else if(this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].type == entry::EMPTY) {
+			lvalueNumber = 0;
+			type1 = entry::NUMBER;
+		}
+		else if(this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].type == entry::MATRIX) {
+			lvalueMatrix = this->stack[instruction.mathematics.lvalueStackIndex + this->stackFramePointer].matrixData;
+			type1 = entry::MATRIX;
+		}
 	}
 #endif

@@ -3,11 +3,13 @@
 
 using namespace ts;
 
-InstructionContainer::InstructionContainer() {
-	
+InstructionContainer::InstructionContainer(Engine* engine) {
+	this->engine = engine;
 }
 
-InstructionContainer::InstructionContainer(Instruction* head) {
+InstructionContainer::InstructionContainer(Engine* engine, Instruction* head) {
+	this->engine = engine;
+	
 	// flatten instructions into array so CPU can cache instruction data types (improves performance by 20%)
 	int count = 0;
 	Instruction* instruction = head;
@@ -25,22 +27,16 @@ InstructionContainer::InstructionContainer(Instruction* head) {
 	instruction = head;
 	count = 0;
 	while(instruction != nullptr) {
-		copyInstruction(*instruction, this->array[count]);
+		copyInstruction(this->engine, *instruction, this->array[count]);
 		
 		// convert jump instruction pointers to indices for flat array
 		switch(instruction->type) {
-			case instruction::JUMP: {
-				this->array[count].jump.index = this->array[count].jump.instruction->index;
-				break;
-			}
-
-			case instruction::JUMP_IF_TRUE: {
-				this->array[count].jumpIfTrue.index = this->array[count].jumpIfTrue.instruction->index;
-				break;
-			}
-
+			case instruction::JUMP:
+			case instruction::JUMP_IF_TRUE_THEN_POP:
+			case instruction::JUMP_IF_TRUE:
+			case instruction::JUMP_IF_FALSE_THEN_POP:
 			case instruction::JUMP_IF_FALSE: {
-				this->array[count].jumpIfFalse.index = this->array[count].jumpIfFalse.instruction->index;
+				this->array[count].jump.index = this->array[count].jump.instruction->index;
 				break;
 			}
 
@@ -65,7 +61,7 @@ InstructionContainer::InstructionContainer(Instruction* head) {
 }
 
 void InstructionContainer::print() {
-	for(size_t i = 0; i < this->size; i++) {
+	for(uint64_t i = 0; i < this->size; i++) {
 		PrintInstruction(this->array[i]);
 	}
 	printf("-----------------------------------------------------------------\n");

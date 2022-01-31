@@ -31,7 +31,11 @@ string BooleanLiteral::printJSON() {
 }
 
 ts::InstructionReturn BooleanLiteral::compile(ts::Engine* engine, ts::CompilationContext context) {
-	ts::Instruction* instruction = new ts::Instruction();
+	ts::Instruction* instruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = ts::instruction::PUSH;
 	instruction->push.entry = ts::Entry();
 	instruction->push.entry.type = ts::entry::NUMBER;

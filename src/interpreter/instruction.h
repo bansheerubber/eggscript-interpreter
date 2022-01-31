@@ -5,19 +5,21 @@
 
 namespace ts {
 	namespace instruction {
-		enum PushType {
+		enum PushType : short {
 			STACK = -1,
 			RETURN_REGISTER,
 		};
 		
-		enum InstructionType {
+		enum InstructionType : unsigned short {
 			INVALID_INSTRUCTION, // an instruction with an invalid type will cause the interpreter to stop
 			NOOP,
 			PUSH, // push a literal value onto the stack, specifies type
 			POP, // pop the top of the stack
 			JUMP, // jump to a particular instruction
 			JUMP_IF_TRUE, // jump to particular insturction if top element on stack is true, pops the element
+			JUMP_IF_TRUE_THEN_POP,
 			JUMP_IF_FALSE, // jump to particular insturction if top element on stack is false, pops the element
+			JUMP_IF_FALSE_THEN_POP,
 			MATH_ADDITION,
 			MATH_SUBTRACT,
 			MATH_MULTIPLY,
@@ -70,11 +72,19 @@ namespace ts {
 			GLOBAL_ASSIGN_BITWISE_OR,
 			LOCAL_ACCESS, // gets the value of a local variable and puts it on the stack
 			GLOBAL_ACCESS,
+			CALL_FUNCTION_UNLINKED,
 			CALL_FUNCTION, // call a globally scoped function
+			CALL_NAMESPACE_FUNCTION_UNLINKED,
+			CALL_NAMESPACE_FUNCTION,
+			CALL_PARENT_UNLINKED,
 			CALL_PARENT,
+			CALL_PARENT_ONADD, // special parent that declares superclass properties
+			RETURN_NO_VALUE,
 			RETURN, // return from a function without returning a value
 			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
+			CREATE_OBJECT_UNLINKED,
 			CREATE_OBJECT, // create an object
+			CALL_OBJECT_UNLINKED,
 			CALL_OBJECT, // call a function on an object
 			OBJECT_ASSIGN_EQUAL,
 			OBJECT_ASSIGN_INCREMENT,
@@ -90,7 +100,6 @@ namespace ts {
 			OBJECT_ASSIGN_BITWISE_XOR,
 			OBJECT_ASSIGN_BITWISE_OR,
 			OBJECT_ACCESS,
-			SYMBOL_ACCESS,
 			ARRAY_ACCESS,
 			ARRAY_ASSIGN_EQUAL,
 			ARRAY_ASSIGN_INCREMENT,
@@ -109,7 +118,7 @@ namespace ts {
 			MATRIX_SET,
 		};
 
-		enum AssignOperations {
+		enum AssignOperations : unsigned short {
 			INVALID_ASSIGN,
 			EQUALS,
 			INCREMENT,
@@ -130,10 +139,16 @@ namespace ts {
 	// instructions form a linked list
 	struct Instruction {
 		instruction::InstructionType type;
-		Instruction* next; // next instruction in linked list
-		size_t index; // instruction's index in flat array
 		instruction::PushType pushType;
+		Instruction* next; // next instruction in linked list
+		uint64_t index; // instruction's index in flat array
 
+		// TODO-if: stuff that we can do to reduce the amount of if statements in the VM, involves separating out functionality into seperate instructions
+		// function call notes: replace un-cached functions with warning message instruction?
+		//   - call instructions that do not have a valid linked entry use a `function_call_error` instruction that prints out a warning message
+		//   - keep track of the function_call_error instructions in a list
+		//   - every time we execute new code that has function definitions, look at the list and determine if we can finally link the instructions
+		//   - if we can, then replace the tracked instruction's type with a proper `function_call` instruction type
 		union {
 			struct {
 				Entry entry;
@@ -142,26 +157,11 @@ namespace ts {
 			struct {
 				union {
 					Instruction* instruction;
-					size_t index;
+					uint64_t index;
 				};
 			} jump;
 
-			struct {
-				union {
-					Instruction* instruction;
-					size_t index;
-				};
-				bool pop;
-			} jumpIfTrue;
-
-			struct {
-				union {
-					Instruction* instruction;
-					size_t index;
-				};
-				bool pop;
-			} jumpIfFalse;
-
+			// TODO-if maybe seperate instructions for each combination of l/r entry/stack indices? probably bad idea
 			struct {
 				Entry lvalueEntry;
 				Entry rvalueEntry;
@@ -174,8 +174,8 @@ namespace ts {
 			} unaryMathematics;
 
 			struct {
-				string destination;
-				size_t hash;
+				const char* destination;
+				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
@@ -183,94 +183,70 @@ namespace ts {
 			} localAssign;
 
 			struct {
-				string destination;
-				size_t hash;
+				const char* destination;
+				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
 			} globalAssign;
 
 			struct {
-				string destination;
-				size_t hash;
+				const char* destination;
+				uint64_t hash;
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
 				bool popObject;
+				char newBodyPatch; // TODO figure out a better way to fix the stack behavior
 			} objectAssign;
 
 			struct {
-				string blank1; // TODO fix this so we don't need blank entries https://stackoverflow.com/questions/3521914/why-compiler-doesnt-allow-stdstring-inside-union
-				size_t blank2;
+				char blank[sizeof(const char*) + sizeof(uint64_t)];
 				bool fromStack;
 				bool pushResult;
 				Entry entry;
 			} arrayAssign;
 
 			struct {
-				string source;
-				size_t hash;
+				const char* source;
+				uint64_t hash;
 				int stackIndex;
 			} localAccess;
 
 			struct {
-				string source;
-				size_t hash;
+				const char* source;
+				uint64_t hash;
 			} globalAccess;
 
 			struct {
-				string source;
-				size_t hash;
+				const char* source;
+				uint64_t hash;
 			} objectAccess;
 
 			struct {
-				string source;
-				size_t hash;
-			} symbolAccess;
-
-			struct {
-				string name;
-				string nameSpace;
+				const char* name;
 				class PackagedFunctionList* cachedFunctionList;
-				class MethodTreeEntry* cachedEntry;
-				bool isCached;
 			} callFunction;
 
 			struct {
-				string name;
+				const char* name;
+				const char* nameSpace;
 				class MethodTreeEntry* cachedEntry;
-				bool isCached;
+			} callNamespaceFunction;
+
+			struct {
+				const char* name;
+				uint64_t cachedIndex;
 			} callObject;
 
 			struct {
-				string inheritedName;
-				string typeName;
-				bool typeNameCached;
-				class MethodTree* typeMethodTree;
+				const char* typeName;
 				class MethodTree* methodTree;
-				bool isCached; // whether or not namespaceIndex has been cached yet
-				string symbolName;
-				bool symbolNameCached;
-				string classProperty;
-				bool classPropertyCached;
-				string superClassProperty;
-				bool superClassPropertyCached;
-				bool canCreate;
 			}	createObject;
 
 			struct {
-				size_t argumentCount;
+				uint64_t argumentCount;
 			} popArguments;
-
-			struct {
-				string name;
-				size_t cachedIndex;
-				bool isCached;
-			} callParent;
-
-			struct {
-				bool hasValue;
-			} functionReturn;
 
 			struct {
 				unsigned int rows;
@@ -289,12 +265,14 @@ namespace ts {
 			this->next = nullptr;
 		}
 
+		Instruction(class Engine* engine, unsigned short character, unsigned int line);
+
 		~Instruction() {
 			
 		}
 	};
 
-	void copyInstruction(Instruction &source, Instruction &destination);
+	void copyInstruction(class Engine* engine, Instruction &source, Instruction &destination);
 
 	struct InstructionReturn {
 		Instruction* first; // first instruction in mini linked list

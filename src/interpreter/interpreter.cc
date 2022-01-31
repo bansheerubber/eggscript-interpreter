@@ -13,12 +13,12 @@
 #include "object.h"
 #include "../util/numberToString.h"
 #include "../parser/parser.h"
+#include "../tssl/map.h"
 #include "stack.h"
 #include "../util/stringCompare.h"
 #include "../util/stringToNumber.h"
 #include "../util/time.h"
 #include "../tokenizer/tokenizer.h"
-#include "../util/toLower.h"
 
 using namespace ts;
 
@@ -67,15 +67,39 @@ void Interpreter::enterParallel() {
 	this->isParallel = true;
 }
 
+void Interpreter::declareObjectProperties(Function* function) {
+	FunctionFrame &frame = this->frames[this->frames.head];
+	frame.container = function;
+	frame.instructionPointer = 0;
+	frame.stackPointer = this->stack.head - 1;
+	frame.stackPopCount = 1;
+	frame.packagedFunctionList = nullptr;
+	frame.packagedFunctionListIndex = 0;
+	frame.methodTreeEntry = nullptr;
+	frame.methodTreeEntryIndex = 0;
+	frame.earlyQuit = true;
+	frame.isTSSL = false;
+	ALLOCATE_STRING(string(""), frame.fileName);
+
+	this->topContainer = frame.container;
+	this->instructionPointer = &frame.instructionPointer;
+	this->stackFramePointer = frame.stackPointer;
+	
+	this->frames.pushed();
+
+	this->interpret();
+}
+
 void Interpreter::pushFunctionFrame(
 	InstructionContainer* container,
 	PackagedFunctionList* list,
 	int packagedFunctionListIndex,
 	MethodTreeEntry* methodTreeEntry,
 	int methodTreeEntryIndex,
-	size_t argumentCount,
-	size_t popCount,
-	string fileName
+	uint64_t argumentCount,
+	uint64_t popCount,
+	string fileName,
+	bool earlyQuit
 ) {
 	if(this->frames.head == 0) {
 		this->startTime = getMicrosecondsNow();
@@ -90,6 +114,7 @@ void Interpreter::pushFunctionFrame(
 	frame.packagedFunctionListIndex = packagedFunctionListIndex;
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
+	frame.earlyQuit = earlyQuit;
 	frame.isTSSL = false;
 	ALLOCATE_STRING(fileName, frame.fileName);
 
@@ -103,7 +128,7 @@ void Interpreter::pushFunctionFrame(
 void Interpreter::popFunctionFrame() {
 	this->frames.popped();
 
-	for(size_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
+	for(uint64_t i = 0; i < this->frames[this->frames.head].stackPopCount; i++) {
 		this->pop();
 	}
 
@@ -123,6 +148,7 @@ void Interpreter::popFunctionFrame() {
 
 void Interpreter::pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex) {
 	FunctionFrame &frame = this->frames[this->frames.head];
+	frame.earlyQuit = false;
 	frame.isTSSL = true;
 	frame.stackPopCount = 0;
 	frame.methodTreeEntry = methodTreeEntry;
@@ -221,35 +247,12 @@ void Interpreter::pushEmpty(instruction::PushType type) {
 	}
 }
 
-void Interpreter::pop() {
-	// TODO does this fuck everything??
-	// this->stack[this->stack.head - 1].erase();
-	this->stack.popped();
-}
-
 void Interpreter::startInterpretation(Instruction* head) {
-	InstructionContainer* container = new InstructionContainer(head);
+	InstructionContainer* container = new InstructionContainer(this->engine, head);
 	this->pushFunctionFrame(container); // create the instructions
 	this->startTime = getMicrosecondsNow();
 	this->interpret();
 	delete container;
-}
-
-void Interpreter::execFile(string filename) {
-	if(this->isParallel) {
-		this->execFilenames.push(filename);
-		return;
-	}
-	this->actuallyExecFile(filename);
-}
-
-void Interpreter::actuallyExecFile(string filename) {
-	// ParsedArguments args;
-	// Tokenizer tokenizer(filename, args);
-	// Parser parser(&tokenizer, args);
-	
-	// this->pushFunctionFrame(new InstructionContainer(ts::Compile(&parser, this)));
-	// this->interpret();
 }
 
 Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes) {
@@ -259,7 +262,7 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 	PackagedFunctionList* list;
 	int packagedFunctionListIndex;
 
-	if((size_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
+	if((uint64_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
 		list = methodTreeEntry->list[methodTreeEntryIndex];
 		packagedFunctionListIndex = list->topValidIndex;
 
@@ -273,7 +276,7 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 		}
 		else {
 			// push arguments onto the stack
-			for(size_t i = 0; i < argc; i++) {
+			for(uint64_t i = 0; i < argc; i++) {
 				this->push(argv[i], instruction::STACK);
 			}
 
@@ -297,11 +300,20 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 	return new Entry();
 }
 
-void Interpreter::warning(const char* format, ...) {
+void Interpreter::warning(Instruction* instruction, const char* format, ...) {
 	if(this->warnings) {
+		string formatString(format);
+
+		if(instruction != nullptr) {
+			InstructionDebug debug = this->engine->getInstructionDebug(instruction);
+			if(debug.commonSource != nullptr) {
+				formatString = debug.commonSource->fileName + ":" + to_string(debug.line) + ":" + to_string(debug.character) + ": " + formatString;
+			}
+		}
+		
 		va_list argptr;
 		va_start(argptr, format);
-		printWarning(format, argptr);
+		(*this->engine->vWarningFunction)(formatString.c_str(), argptr);
 		va_end(argptr);
 	}
 }
@@ -309,7 +321,7 @@ void Interpreter::warning(const char* format, ...) {
 bool Interpreter::tick() {
 	start_tick:
 	
-	unsigned long long time = getMicrosecondsNow();
+	uint64_t time = getMicrosecondsNow();
 
 	Schedule* schedule = this->schedules.top();
 	while(this->schedules.array.head > 0 && time > schedule->end) {
@@ -344,19 +356,31 @@ bool Interpreter::tick() {
 		goto start_tick;
 	}
 
+	this->garbageCollect(10000);
+
 	// return false if we have schedules left, return true if there's none left
 	return this->schedules.array.head == 0;
 }
 
-void Interpreter::setTickRate(long tickRate) {
+void Interpreter::setTickRate(int64_t tickRate) {
 	this->tickRate = tickRate;
 }
 
 void Interpreter::garbageCollect(unsigned int amount) {
-	for(size_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {		
+	for(uint64_t i = 0; i < amount && 0 < this->garbageHeap.array.head && this->garbageHeap.array[0]->referenceCount <= 0; i++) {
 		delete this->garbageHeap.array[0];
 		this->garbageHeap.pop();
 	}
+}
+
+unsigned int Interpreter::probeGarbage(string className) {
+	unsigned int count = 0;
+	for(uint64_t i = 0; i < this->garbageHeap.array.head; i++) {
+		if(this->garbageHeap.array[i]->object->methodTree->name == className) {
+			count++;
+		}
+	}
+	return count;
 }
 
 void Interpreter::interpret() {
@@ -365,6 +389,7 @@ void Interpreter::interpret() {
 	(*this->instructionPointer)++;
 
 	// PrintInstruction(instruction);
+	// this->printStack();
 	
 	switch(instruction.type) {
 		case instruction::INVALID_INSTRUCTION: {
@@ -402,26 +427,38 @@ void Interpreter::interpret() {
 			break;
 		}
 
+		case instruction::JUMP_IF_TRUE_THEN_POP: {
+			Entry &entry = this->stack[this->stack.head - 1];
+			if(isEntryTruthy(entry)) {
+				*this->instructionPointer = instruction.jump.index;
+			}
+
+			this->pop();
+			break;
+		}
+
 		case instruction::JUMP_IF_TRUE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
 			if(isEntryTruthy(entry)) {
-				*this->instructionPointer = instruction.jumpIfTrue.index;
+				*this->instructionPointer = instruction.jump.index;
+			}
+			break;
+		}
+
+		case instruction::JUMP_IF_FALSE_THEN_POP: {
+			Entry &entry = this->stack[this->stack.head - 1];
+			if(!isEntryTruthy(entry)) {
+				*this->instructionPointer = instruction.jump.index;
 			}
 
-			if(instruction.jumpIfTrue.pop) {
-				this->pop();
-			}
+			this->pop();
 			break;
 		}
 
 		case instruction::JUMP_IF_FALSE: { // jump to an instruction
 			Entry &entry = this->stack[this->stack.head - 1];
 			if(!isEntryTruthy(entry)) {
-				*this->instructionPointer = instruction.jumpIfFalse.index;
-			}
-
-			if(instruction.jumpIfFalse.pop) {
-				this->pop();
+				*this->instructionPointer = instruction.jump.index;
 			}
 			break;
 		}
@@ -513,7 +550,7 @@ void Interpreter::interpret() {
 			// if the object is not alive anymore, push nothing to the stack
 			if(objectWrapper == nullptr) {
 				this->pop(); // pop the object
-				this->push(this->emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 			
@@ -530,81 +567,84 @@ void Interpreter::interpret() {
 			break;
 		}
 
-		case instruction::SYMBOL_ACCESS: { // lookup object by name and push it to stack if it exists
-			// try to look up the object's name
-			auto objectIterator = this->stringToObject.find(instruction.symbolAccess.source, instruction.symbolAccess.hash);
-			if(objectIterator == this->stringToObject.end()) {
-				this->push(emptyEntry, instruction.pushType);
+		case instruction::CALL_FUNCTION_UNLINKED: { // if the function is unlinked, then print a warning, push nothing onto the stack, and noop
+			this->warning(&instruction, "could not find function with name '%s'\n", instruction.callFunction.name);
+				
+			// pop arguments that we didn't use
+			Entry &numberOfArguments = this->stack[this->stack.head - 1];
+			int number = (int)numberOfArguments.numberData;
+			for(int i = 0; i < number + 1; i++) {
+				this->pop();
 			}
-			else {
-				this->push(new ObjectReference(objectIterator->second), instruction.pushType);
-			}
-			
+
+			this->pushEmpty(instruction.pushType);
 			break;
 		}
 
 		case instruction::CALL_FUNCTION: { // jump to a new instruction container
-			if(!instruction.callFunction.isCached) {
-				bool found = false;
-				if(
-					instruction.callFunction.nameSpace.length() != 0
-					&& this->engine->namespaceToMethodTreeIndex.find(toLower(instruction.callFunction.nameSpace)) != this->engine->namespaceToMethodTreeIndex.end()
-				) {
-					size_t namespaceIndex = this->engine->namespaceToMethodTreeIndex[toLower(instruction.callFunction.nameSpace)];
-					auto methodIndex = this->engine->methodNameToIndex.find(toLower(instruction.callFunction.name));
-
-					if(methodIndex != this->engine->methodNameToIndex.end()) {
-						auto methodEntry = this->engine->methodTrees[namespaceIndex]->methodIndexToEntry.find(methodIndex->second);
-						if(methodEntry != this->engine->methodTrees[namespaceIndex]->methodIndexToEntry.end()) {
-							instruction.callFunction.cachedEntry = methodEntry->second;
-							instruction.callFunction.isCached = true;
-							found = true;
-						}
-					}
-				}
-				else { // find non-namespace function
-					if(this->engine->nameToFunctionIndex.find(toLower(instruction.callFunction.name)) != this->engine->nameToFunctionIndex.end()) {
-						instruction.callFunction.cachedFunctionList
-							= this->engine->functions[this->engine->nameToFunctionIndex[toLower(instruction.callFunction.name)]];
-
-						instruction.callFunction.isCached = true;
-						found = true;
-					}
-				}
-
-				// print warning if function was not defined
-				if(found == false) {
-					this->warning("could not find function with name '%s'\n", instruction.callFunction.name.c_str());
-				
-					// pop arguments that we didn't use
-					Entry &numberOfArguments = this->stack[this->stack.head - 1];
-					int number = (int)numberOfArguments.numberData;
-					for(int i = 0; i < number + 1; i++) {
-						this->pop();
-					}
-
-					this->push(this->emptyEntry, instruction.pushType);
-					break;
-				}
-			}
-
 			Function* foundFunction;
 			PackagedFunctionList* list;
 			int packagedFunctionListIndex = -1;
 			MethodTreeEntry* methodTreeEntry = nullptr;
 			int methodTreeEntryIndex = -1;
-			if(instruction.callFunction.cachedEntry != nullptr) {
-				list = instruction.callFunction.cachedEntry->list[0];
-				packagedFunctionListIndex = list->topValidIndex;
-				foundFunction = (*list)[packagedFunctionListIndex];
-			}
-			else {
-				list = instruction.callFunction.cachedFunctionList;
-				packagedFunctionListIndex = list->topValidIndex;
-				foundFunction = (*list)[packagedFunctionListIndex];
-			}
+			list = instruction.callFunction.cachedFunctionList;
+			packagedFunctionListIndex = list->topValidIndex;
+			foundFunction = (*list)[packagedFunctionListIndex];
 
 			## call_generator.py
+
+			break;
+		}
+
+		case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: { // if the function is unlinked, then print a warning, push nothing onto the stack, and noop
+			this->warning(
+				&instruction,
+				"could not find function with name '%s::%s'\n",
+				instruction.callNamespaceFunction.nameSpace,
+				instruction.callNamespaceFunction.name
+			);
+				
+			// pop arguments that we didn't use
+			Entry &numberOfArguments = this->stack[this->stack.head - 1];
+			int number = (int)numberOfArguments.numberData;
+			for(int i = 0; i < number + 1; i++) {
+				this->pop();
+			}
+
+			this->pushEmpty(instruction.pushType);
+			break;
+		}
+
+		case instruction::CALL_NAMESPACE_FUNCTION: {
+			Function* foundFunction;
+			PackagedFunctionList* list;
+			int packagedFunctionListIndex = -1;
+			MethodTreeEntry* methodTreeEntry = nullptr;
+			int methodTreeEntryIndex = -1;
+			list = instruction.callNamespaceFunction.cachedEntry->list[0];
+			packagedFunctionListIndex = list->topValidIndex;
+			foundFunction = (*list)[packagedFunctionListIndex];
+
+			## call_generator.py
+
+			break;
+		}
+
+		case instruction::RETURN_NO_VALUE: {
+			this->popFunctionFrame();
+
+			// if we just ran out of instruction containers, just die here
+			if(this->topContainer == nullptr) {
+				return;
+			}
+
+			this->pushEmpty(instruction::STACK);
+
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL || this->frames[this->frames.head].earlyQuit) {
+				return;
+			}
 
 			break;
 		}
@@ -612,29 +652,25 @@ void Interpreter::interpret() {
 		case instruction::RETURN: { // return from a function
 			this->popFunctionFrame();
 
-			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
-			// here so the original TSSL method can take over
-			if(this->frames[this->frames.head - 1].isTSSL) {
-				return;
-			}
-
 			// if we just ran out of instruction containers, just die here
 			if(this->topContainer == nullptr) {
 				return;
 			}
 
-			if(instruction.functionReturn.hasValue) {
-				this->push(this->returnRegister, instruction::STACK, true); // push return register
+			this->push(this->returnRegister, instruction::STACK, true); // push return register
+
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL || this->frames[this->frames.head].earlyQuit) {
+				return;
 			}
-			else {
-				this->push(this->emptyEntry, instruction::STACK);
-			}
+
 			break;
 		}
 
 		case instruction::POP_ARGUMENTS: {
 			Entry &numberOfArguments = this->stack[this->stack.head - 1];
-			size_t realNumberOfArguments = instruction.popArguments.argumentCount;
+			uint64_t realNumberOfArguments = instruction.popArguments.argumentCount;
 			int number = (int)numberOfArguments.numberData - realNumberOfArguments;
 
 			this->pop(); // pop argument count
@@ -649,87 +685,58 @@ void Interpreter::interpret() {
 			break;
 		}
 
+		case instruction::CREATE_OBJECT_UNLINKED: {
+			this->warning(&instruction, "could not create object with type '%s'\n", instruction.createObject.typeName);
+			this->pushEmpty(instruction.pushType);	
+			break;
+		}
+
 		case instruction::CREATE_OBJECT: {
 			string typeName = instruction.createObject.typeName;
-			string symbolName = instruction.createObject.symbolName;
-			string classProperty = instruction.createObject.classProperty;
-			string superClassProperty = instruction.createObject.superClassProperty;
-			if(!instruction.createObject.isCached) {
-				// handle super class property stuff
-				if(!instruction.createObject.superClassPropertyCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* superClassPropertyCStr;
-					## type_conversion.py entry superClassPropertyCStr ALL STRING
-					superClassProperty = string(superClassPropertyCStr);
-					this->pop();
-				}
 
-				// handle class property stuff
-				if(!instruction.createObject.classPropertyCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* classPropertyCStr;
-					## type_conversion.py entry classPropertyCStr ALL STRING
-					classProperty = string(classPropertyCStr);
-					this->pop();
-				}
+			ObjectWrapper* object = ts::CreateObject(
+				this,
+				true,
+				typeName,
+				instruction.createObject.methodTree
+			);
+
+			this->push(new ObjectReference(object), instruction.pushType);
+			break;
+		}
+
+		case instruction::CALL_OBJECT_UNLINKED: { // if the method is unlinked, then print a warning, push nothing onto the stack, and noop
+			Entry &numberOfArguments = this->stack[this->stack.head - 1];
+			int argumentCount = (int)numberOfArguments.numberData;
+			
+			// pull the object from the stack
+			Entry &objectEntry = this->stack[this->stack.head - 1 - argumentCount];
+			ObjectWrapper* objectWrapper = nullptr;
+			Object* object = nullptr;
+			## type_conversion.py objectEntry objectWrapper ALL OBJECT
+
+			if(objectWrapper == nullptr) {
+				this->warning(&instruction, "could not find object for method call\n");
 				
-				// handle symbol name stuff
-				if(!instruction.createObject.symbolNameCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* symbolNameCStr;
-					## type_conversion.py entry symbolNameCStr ALL STRING
-					symbolName = string(symbolNameCStr);
+				// pop arguments that we didn't use
+				for(int i = 0; i < argumentCount + 1; i++) {
 					this->pop();
 				}
 
-				// handle type name stuff
-				if(!instruction.createObject.typeNameCached) {
-					Entry &entry = this->stack[this->stack.head - 1];
-					char* typeNameCStr;
-					## type_conversion.py entry typeNameCStr ALL STRING
-					typeName = string(typeNameCStr);
-					this->pop();
-				}
-
-				// check to make sure that the type name that we're using is defined by the TSSL. if not, we can't
-				// create the object
-				MethodTree* typeCheck = this->engine->getNamespace(typeName);
-				if(typeCheck == nullptr || !typeCheck->isTSSL) {
-					this->warning("could not create object with type '%s'\n", typeName.c_str());
-					this->pushEmpty(instruction.pushType);
-					break;
-				}
-
-				instruction.createObject.typeMethodTree = typeCheck;
-
-				MethodTree* tree = this->engine->createMethodTreeFromNamespaces(
-					symbolName,
-					classProperty,
-					superClassProperty,
-					typeName
-				);
-
-				instruction.createObject.methodTree = tree;
-			}
-			else if(!instruction.createObject.canCreate) {
-				this->warning("could not create object with type '%s'\n", instruction.createObject.typeName.c_str());
 				this->pushEmpty(instruction.pushType);
 				break;
 			}
-			
-			ObjectWrapper* object = ts::CreateObject(
-				this,
-				typeName,
-				instruction.createObject.inheritedName,
-				instruction.createObject.methodTree,
-				instruction.createObject.typeMethodTree
-			);
 
-			if(symbolName.length() != 0) {
-				this->setObjectName(symbolName, object);
+			object = objectWrapper->object;
+			
+			this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callObject.name);
+
+			// pop arguments that we didn't use
+			for(int i = 0; i < argumentCount + 1; i++) {
+				this->pop();
 			}
 
-			this->push(new ObjectReference(object), instruction.pushType);
+			this->pushEmpty(instruction.pushType);
 			break;
 		}
 
@@ -741,65 +748,55 @@ void Interpreter::interpret() {
 			Entry &objectEntry = this->stack[this->stack.head - 1 - argumentCount];
 			ObjectWrapper* objectWrapper = nullptr;
 			Object* object = nullptr;
-			## type_conversion.py objectEntry objectWrapper ALL OBJECT
+
+			if(objectEntry.type == entry::OBJECT) {
+				objectWrapper = objectEntry.objectData->objectWrapper;
+			}
+			else {
+				this->warning(&instruction, "could not call method on non-object\n");
+				break;
+			}
 
 			if(objectWrapper == nullptr) {
-				this->warning("could not find object for method call\n");
+				this->warning(&instruction, "could not find object for method call\n");
 				
 				// pop arguments that we didn't use
-				Entry &numberOfArguments = this->stack[this->stack.head - 1];
-				int number = (int)numberOfArguments.numberData;
-				for(int i = 0; i < number + 1; i++) {
+				for(int i = 0; i < argumentCount + 1; i++) {
 					this->pop();
 				}
 
-				this->push(this->emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 
 			object = objectWrapper->object;
 
-			// cache the method entry pointer in the instruction
-			// TODO as soon as the namespace type changes, this breaks
-			if(instruction.callObject.isCached == false) {
-				bool found = false;
-				auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(instruction.callObject.name));
-				if(methodNameIndex != this->engine->methodNameToIndex.end()) {
-					auto methodEntry = object->methodTree->methodIndexToEntry.find(methodNameIndex->second);
-					if(methodEntry != object->methodTree->methodIndexToEntry.end()) {
-						instruction.callObject.cachedEntry = methodEntry->second;
-						instruction.callObject.isCached = true;
-						found = true;
-					}
-				}
-				
-				if(!found) {
-					this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callFunction.name.c_str());
+			auto methodEntry = object->methodTree->methodIndexToEntry.find(instruction.callObject.cachedIndex);
+			if(methodEntry == object->methodTree->methodIndexToEntry.end()) {
+				this->warning(&instruction, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), instruction.callObject.name);
 
-					// pop arguments that we didn't use
-					Entry &numberOfArguments = this->stack[this->stack.head - 1];
-					int number = (int)numberOfArguments.numberData;
-					for(int i = 0; i < number + 1; i++) {
-						this->pop();
-					}
-
-					this->pushEmpty(instruction.pushType);
-					break;
+				// pop arguments that we didn't use
+				for(int i = 0; i < argumentCount + 1; i++) {
+					this->pop();
 				}
+
+				this->pushEmpty(instruction.pushType);
+				break;
 			}
 
 			// look up the method in the method tree
-			MethodTreeEntry* methodTreeEntry = instruction.callObject.cachedEntry;
-			int methodTreeEntryIndex = instruction.callObject.cachedEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
+			MethodTreeEntry* methodTreeEntry = methodEntry->second;
+			int methodTreeEntryIndex = methodTreeEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
-			size_t packagedFunctionListIndex = list->topValidIndex;
+			uint64_t packagedFunctionListIndex = list->topValidIndex;
 			Function* foundFunction = (*list)[packagedFunctionListIndex];
 			## call_generator.py
 			
 			break;
 		}
 
-		case instruction::CALL_PARENT: {
+		case instruction::CALL_PARENT_ONADD: {
+		case instruction::CALL_PARENT:
 			FunctionFrame &frame = this->frames[this->frames.head - 1];
 			MethodTreeEntry* methodTreeEntry = frame.methodTreeEntry;
 			int methodTreeEntryIndex = frame.methodTreeEntryIndex;
@@ -808,9 +805,25 @@ void Interpreter::interpret() {
 
 			if(packagedFunctionListIndex == -1 && methodTreeEntry != nullptr) { // walk the method tree
 				methodTreeEntryIndex++;
-				if((size_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
+				if((uint64_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
 					list = methodTreeEntry->list[methodTreeEntryIndex];
 					packagedFunctionListIndex = list->topValidIndex;
+
+					if(instruction.type == instruction::CALL_PARENT_ONADD && list->owner != nullptr && list->owner->propertyDeclaration != nullptr) {
+						Entry &numberOfArguments = this->stack[this->stack.head - 1];
+						Entry &objectEntry = this->stack[this->stack.head - 1 - numberOfArguments.numberData]; // %this variable should always be first
+						ObjectWrapper* objectWrapper = nullptr;
+
+						if(objectEntry.type == entry::OBJECT) {
+							objectWrapper = objectEntry.objectData->objectWrapper;
+						}
+						
+						if(objectWrapper != nullptr) {
+							ts::ObjectReference* reference = new ObjectReference(objectWrapper);
+							this->push(reference, instruction::STACK);
+							this->declareObjectProperties(list->owner->propertyDeclaration);
+						}
+					}
 
 					Function* foundFunction = (*list)[packagedFunctionListIndex];
 					## call_generator.py
@@ -823,7 +836,7 @@ void Interpreter::interpret() {
 						this->pop();
 					}
 
-					this->push(this->emptyEntry, instruction.pushType);
+					this->pushEmpty(instruction.pushType);
 					break;
 				}
 			}
@@ -839,7 +852,7 @@ void Interpreter::interpret() {
 					this->pop();
 				}
 
-				this->push(this->emptyEntry, instruction.pushType);
+				this->pushEmpty(instruction.pushType);
 				break;
 			}
 
@@ -851,10 +864,6 @@ void Interpreter::interpret() {
 			Entry &indexEntry = this->stack[this->stack.head - 1];
 
 			if(objectEntry.type == entry::OBJECT) {
-				Entry &numberOfArguments = this->stack[this->stack.head - 1];
-				
-				MethodTreeEntry* methodTreeEntry = nullptr;
-				
 				// pull the object from the stack
 				ObjectWrapper* objectWrapper = objectEntry.objectData->objectWrapper;
 				Object* object = nullptr;
@@ -881,6 +890,29 @@ void Interpreter::interpret() {
 							this->pop();
 							this->push(array[index], instruction.pushType);
 						}
+						break;
+					}
+
+					case MAP: {
+						const char* key = nullptr;
+						bool deleteString = false;
+						## type_conversion.py indexEntry key ALL STRING deleteString
+
+						auto map = &(((ts::sl::Map*)objectWrapper->data)->map);
+						auto iter = map->find(string(key));
+						if(iter == map->end()) {
+							failure = true;
+						}
+						else {
+							this->pop();
+							this->pop();
+							this->push(iter.value(), instruction.pushType);
+						}
+
+						if(deleteString && key != nullptr) {
+							delete[] key;
+						}
+						break;
 					}
 				}
 
@@ -960,7 +992,7 @@ void Interpreter::interpret() {
 
 void Interpreter::printStack() {
 	printf("\nSTACK: %ld\n", this->stack.head);
-	for(size_t i = 0; i < this->stack.head; i++) {
+	for(uint64_t i = 0; i < this->stack.head; i++) {
 		Entry &entry = this->stack[i];
 
 		printf("#%ld ", i);
@@ -969,7 +1001,7 @@ void Interpreter::printStack() {
 	printf("\n");
 }
 
-void Interpreter::addSchedule(unsigned long long time, string functionName, Entry* arguments, size_t argumentCount, ObjectReference* object) {
+void Interpreter::addSchedule(uint64_t time, string functionName, Entry* arguments, uint64_t argumentCount, ObjectReference* object) {
 	this->schedules.insert(new Schedule(
 		time,
 		getMicrosecondsNow(),
@@ -980,16 +1012,7 @@ void Interpreter::addSchedule(unsigned long long time, string functionName, Entr
 	));
 }
 
-void Interpreter::setObjectName(string &name, ObjectWrapper* object) {
-	this->stringToObject[name] = object;
-	object->object->setName(name);
-}
-
-void Interpreter::deleteObjectName(string &name) {
-	this->stringToObject.erase(name);
-}
-
-Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t argumentCount) {
+Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t argumentCount) {
 	// set up function call frame
 	Function* foundFunction;
 	PackagedFunctionList* list;
@@ -997,13 +1020,13 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	MethodTreeEntry* methodTreeEntry = nullptr;
 	int methodTreeEntryIndex = -1;
 
-	if(this->engine->nameToFunctionIndex.find(toLower(functionName)) != this->engine->nameToFunctionIndex.end()) {
-		list = this->engine->functions[this->engine->nameToFunctionIndex[toLower(functionName)]];
+	if(this->engine->nameToFunctionIndex.find(functionName) != this->engine->nameToFunctionIndex.end()) {
+		list = this->engine->functions[this->engine->nameToFunctionIndex[functionName]];
 		packagedFunctionListIndex = list->topValidIndex;
 		foundFunction = (*list)[packagedFunctionListIndex];
 	}
 	else {
-		this->warning("could not find function with name '%s'\n", functionName.c_str());
+		this->warning(nullptr, "could not find function with name '%s'\n", functionName.c_str());
 		return new Entry();
 	}
 
@@ -1020,7 +1043,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 	}
 	else {
 		// push arguments onto the stack
-		for(size_t i = 0; i < argumentCount; i++) {
+		for(uint64_t i = 0; i < argumentCount; i++) {
 			this->push(arguments[i], instruction::STACK);
 		}
 
@@ -1034,20 +1057,17 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, size_t a
 			methodTreeEntry,
 			methodTreeEntryIndex,
 			argumentCount + 1,
-			foundFunction->variableCount
+			foundFunction->variableCount,
+			"",
+			true
 		);
 		this->interpret();
-
-		if(this->returnRegister.type == entry::EMPTY) {
-			return new Entry();
-		}
-		else {
-			return new Entry(this->returnRegister);
-		}
+	
+		return new Entry(this->returnRegister);
 	}
 }
 
-Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount) {
+Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, uint64_t argumentCount, bool inhibitInterpret) {
 	// set up function call frame
 	Function* foundFunction;
 	PackagedFunctionList* list;
@@ -1064,7 +1084,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	object = objectWrapper->object;
 	
 	bool found = false;
-	auto methodNameIndex = this->engine->methodNameToIndex.find(toLower(methodName));
+	auto methodNameIndex = this->engine->methodNameToIndex.find(methodName);
 	if(methodNameIndex != this->engine->methodNameToIndex.end()) {
 		auto methodEntry = object->methodTree->methodIndexToEntry.find(methodNameIndex->second);
 		if(methodEntry != object->methodTree->methodIndexToEntry.end()) {
@@ -1078,7 +1098,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	}
 
 	if(!found) {
-		this->warning("could not find function with name '%s::%s'\n", object->nameSpace.c_str(), methodName.c_str());
+		this->warning(nullptr, "could not find function with name '%s::%s'\n", object->nameSpace.c_str(), methodName.c_str());
 		return new Entry();
 	}
 
@@ -1095,7 +1115,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 	}
 	else {
 		// push arguments onto the stack
-		for(size_t i = 0; i < argumentCount; i++) {
+		for(uint64_t i = 0; i < argumentCount; i++) {
 			this->push(arguments[i], instruction::STACK);
 		}
 
@@ -1109,15 +1129,16 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			methodTreeEntry,
 			methodTreeEntryIndex,
 			argumentCount + 1,
-			foundFunction->variableCount
+			foundFunction->variableCount,
+			"",
+			true
 		);
 		this->interpret();
 
-		if(this->returnRegister.type == entry::EMPTY) {
-			return new Entry();
+		if(this->topContainer != nullptr) {
+			this->pop(); // pop the return value from the stack, otherwise its just going to stay there forever
 		}
-		else {
-			return new Entry(this->returnRegister);
-		}
+
+		return new Entry(this->returnRegister);
 	}
 }

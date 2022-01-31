@@ -8,20 +8,20 @@ using namespace std;
 
 namespace ts {
 	struct Schedule {
-		unsigned long long time; // how long this schedule should be
-		unsigned long long start; // when this schedule started
-		unsigned long long end; // when the schedule should end
+		uint64_t time; // how long this schedule should be
+		uint64_t start; // when this schedule started
+		uint64_t end; // when the schedule should end
 		string functionName;
 		Entry* arguments;
-		size_t argumentCount;
+		uint64_t argumentCount;
 		ObjectReference* object;
 
 		Schedule(
-			unsigned long long time,
-			unsigned long long start,
+			uint64_t time,
+			uint64_t start,
 			string functionName,
 			Entry* arguments,
-			size_t argumentCount,
+			uint64_t argumentCount,
 			class ObjectReference* object = nullptr
 		) {
 			this->time = time;

@@ -10,7 +10,8 @@ bool NumberLiteral::ShouldParse(ts::Engine* engine) {
 NumberLiteral* NumberLiteral::Parse(Component* parent, ts::Engine* engine) {
 	NumberLiteral* output = new NumberLiteral(engine);
 	output->parent = parent;
-	output->number = engine->tokenizer->getToken().lexeme;
+	output->token = engine->tokenizer->getToken();
+	output->number = output->token.lexeme;
 	return output;
 }
 
@@ -23,7 +24,11 @@ string NumberLiteral::printJSON() {
 }
 
 InstructionReturn NumberLiteral::compile(ts::Engine* engine, ts::CompilationContext context) {
-	Instruction* instruction = new Instruction();
+	Instruction* instruction = new Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = instruction::PUSH;
 	instruction->push.entry = ts::Entry();
 	instruction->push.entry.type = entry::NUMBER;

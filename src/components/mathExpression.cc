@@ -476,12 +476,16 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 	vector<Value*> instructionList;
 	for(PostfixElement &element: postfix) {
 		if(element.element->component == nullptr) { // handle an operator
-			ts::Instruction* instruction = new ts::Instruction();
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.element->op.characterNumber,
+				element.element->op.lineNumber
+			);
 			instruction->type = MathExpression::TypeToOperator(element.element->op.type);
 			instruction->mathematics.lvalueEntry = ts::Entry();
-			instruction->mathematics.lvalueEntry.type = ts::entry::EMPTY;
+			instruction->mathematics.lvalueEntry.type = ts::entry::INVALID;
 			instruction->mathematics.rvalueEntry = ts::Entry();
-			instruction->mathematics.rvalueEntry.type = ts::entry::EMPTY;
+			instruction->mathematics.rvalueEntry.type = ts::entry::INVALID;
 			instruction->mathematics.lvalueStackIndex = -1;
 			instruction->mathematics.rvalueStackIndex = -1;
 
@@ -593,7 +597,11 @@ ts::InstructionReturn MathExpression::compileList(vector<MathElement*>* list, ts
 				}
 				
 				for(ts::instruction::InstructionType operation: value->unary) {
-					ts::Instruction* unaryInstruction = new ts::Instruction();
+					ts::Instruction* unaryInstruction = new ts::Instruction(
+						engine,
+						value->component->getCharacterNumber(),
+						value->component->getLineNumber()
+					);
 					unaryInstruction->type = operation;
 					unaryInstruction->unaryMathematics.stackIndex = stackIndex;
 					output.add(unaryInstruction);
@@ -666,17 +674,28 @@ ts::InstructionReturn MathExpression::compile(ts::Engine* engine, ts::Compilatio
 					andList.clear();
 
 					if(andNoop == nullptr) {
-						andNoop = new ts::Instruction();
+						andNoop = new ts::Instruction(
+							engine,
+							element->op.characterNumber,
+							element->op.lineNumber
+						);
 						andNoop->type = ts::instruction::NOOP;
 					}
 
-					ts::Instruction* jumpIfFalse = new ts::Instruction();
+					ts::Instruction* jumpIfFalse = new ts::Instruction(
+						engine,
+						element->op.characterNumber,
+						element->op.lineNumber
+					);
 					jumpIfFalse->type = ts::instruction::JUMP_IF_FALSE;
-					jumpIfFalse->jumpIfFalse.instruction = andNoop;
-					jumpIfFalse->jumpIfFalse.pop = false;
+					jumpIfFalse->jump.instruction = andNoop;
 					output.add(jumpIfFalse);
 
-					ts::Instruction* pop = new ts::Instruction();
+					ts::Instruction* pop = new ts::Instruction(
+						engine,
+						element->op.characterNumber,
+						element->op.lineNumber
+					);
 					pop->type = ts::instruction::POP;
 					output.add(pop);
 				}
@@ -689,17 +708,28 @@ ts::InstructionReturn MathExpression::compile(ts::Engine* engine, ts::Compilatio
 		}
 		else { // if we hit an || operator, compile the relevant instructions
 			if(noop == nullptr) {
-				noop = new ts::Instruction();
+				noop = new ts::Instruction(
+					engine,
+					value.op.characterNumber,
+					value.op.lineNumber
+				);
 				noop->type = ts::instruction::NOOP;
 			}
 			
-			ts::Instruction* jumpIfTrue = new ts::Instruction();
+			ts::Instruction* jumpIfTrue = new ts::Instruction(
+				engine,
+				value.op.characterNumber,
+				value.op.lineNumber
+			);
 			jumpIfTrue->type = ts::instruction::JUMP_IF_TRUE;
-			jumpIfTrue->jumpIfTrue.instruction = noop;
-			jumpIfTrue->jumpIfTrue.pop = false;
+			jumpIfTrue->jump.instruction = noop;
 			output.add(jumpIfTrue);
 
-			ts::Instruction* pop = new ts::Instruction();
+			ts::Instruction* pop = new ts::Instruction(
+				engine,
+				value.op.characterNumber,
+				value.op.lineNumber
+			);
 			pop->type = ts::instruction::POP;
 			output.add(pop);
 		}

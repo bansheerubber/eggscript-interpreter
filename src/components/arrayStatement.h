@@ -28,6 +28,20 @@ class ArrayStatement : public Component {
 			return true;
 		}
 
+		unsigned short getCharacterNumber() {
+			if(this->component != nullptr) {
+				return this->component->getCharacterNumber();
+			}
+			return 0;
+		}
+
+		unsigned int getLineNumber() {
+			if(this->component != nullptr) {
+				return this->component->getLineNumber();
+			}
+			return 0;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
