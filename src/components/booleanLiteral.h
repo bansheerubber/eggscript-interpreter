@@ -25,6 +25,14 @@ class BooleanLiteral : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->value.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->value.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

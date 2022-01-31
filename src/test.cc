@@ -16,7 +16,7 @@ bool isFileEqual(string &contents, string filename) {
 
 	string buffer;
 	file.seekg(0, ios::end);
-	buffer.reserve(file.tellg());
+	buffer.reserve((uint64_t)file.tellg());
 	file.seekg(0, ios::beg);
 	buffer.assign((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 

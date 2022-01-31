@@ -1,6 +1,6 @@
 import re
 
-file = open("../components/component.h", "r")
+file = open("../components/componentTypeEnum.h", "r")
 
 print("static const char* ComponentTypeDebug[] = {")
 

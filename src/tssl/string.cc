@@ -27,7 +27,7 @@ namespace ts {
 
 		Entry* strPos(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 2) {
-				size_t position = string(args[0].stringData).find(args[1].stringData);
+				uint64_t position = string(args[0].stringData).find(args[1].stringData);
 				if (position == std::string::npos) {
 					return new Entry(-1);
 				}
@@ -36,7 +36,7 @@ namespace ts {
 				}
 			}
 			else if(argc == 3) {
-				size_t position = string(args[0].stringData).find(args[1].stringData, args[2].numberData);
+				uint64_t position = string(args[0].stringData).find(args[1].stringData, args[2].numberData);
 				if (position == std::string::npos) {
 					return new Entry(-1);
 				}
@@ -52,7 +52,7 @@ namespace ts {
 			if(argc == 1) {
 				const char* words = args[0].stringData;
 				bool foundFirst = false;
-				size_t firstIndex = 0, secondIndex = 0, length = 0;
+				uint64_t firstIndex = 0, secondIndex = 0, length = 0;
 				for(; *words; words++) {
 					char character = *words;
 
@@ -91,7 +91,7 @@ namespace ts {
 			if(argc == 1) {
 				const char* words = args[0].stringData;
 				bool foundFirst = false;
-				size_t firstIndex = 0;
+				uint64_t firstIndex = 0;
 				char character;
 				for(; (character = *words); words++) {
 					if(
@@ -119,7 +119,7 @@ namespace ts {
 			if(argc == 1) {
 				const char* words = args[0].stringData;
 				bool foundFirst = false;
-				size_t secondIndex = 0, length = 0;
+				uint64_t secondIndex = 0, length = 0;
 				char character;
 				for(; (character = *words); words++) {
 					if(
@@ -294,11 +294,11 @@ namespace ts {
 				const char* words = args[0].stringData;
 				const char* search = args[1].stringData;
 				const char* replacement = args[2].stringData;
-				size_t searchLength = strlen(search);
+				uint64_t searchLength = strlen(search);
 				string output;
 
 				char character, replacementCharacter;
-				size_t count = 0;
+				uint64_t count = 0;
 				for(; (character = *words); words++) {
 					if((replacementCharacter = *search) == '\0') {
 						output = output.erase(count - searchLength, searchLength);

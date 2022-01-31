@@ -9,6 +9,7 @@
 #include "../tssl/define.h"
 #include "../engine/engine.h"
 #include "../interpreter/interpreter.h"
+#include "../tssl/map.h"
 #include "../parser/parser.h"
 #include "../tokenizer/tokenizer.h"
 
@@ -27,7 +28,7 @@ bool esTick(esEnginePtr engine) {
 	return false;
 }
 
-void esSetTickRate(esEnginePtr engine, long tickRate) {
+void esSetTickRate(esEnginePtr engine, int64_t tickRate) {
 	((ts::Engine*)engine)->interpreter->setTickRate(tickRate);
 }
 
@@ -35,8 +36,8 @@ void esExecFile(esEnginePtr engine, const char* filename) {
 	((ts::Engine*)engine)->execFile(string(filename));
 }
 
-void esExecFileFromContents(esEnginePtr engine, const char* fileName, const char* contents) {
-	((ts::Engine*)engine)->execFileContents(string(fileName), string(contents));
+void esExecVirtualFile(esEnginePtr engine, const char* fileName, const char* contents) {
+	((ts::Engine*)engine)->execVirtualFile(string(fileName), string(contents));
 }
 
 void esEval(esEnginePtr engine, const char* shell) {
@@ -53,10 +54,18 @@ void esSetPrintFunction(esEnginePtr engine, esPrintFunction(print), esPrintFunct
 	((ts::Engine*)engine)->errorFunction = error;
 }
 
-void esVSetPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error)) {
+void esSetVPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error)) {
 	((ts::Engine*)engine)->vPrintFunction = print;
 	((ts::Engine*)engine)->vWarningFunction = warning;
 	((ts::Engine*)engine)->vErrorFunction = error;
+}
+
+void esSetInstructionDebug(esEnginePtr engine, bool enabled) {
+	((ts::Engine*)engine)->setInstructionDebugEnabled(enabled);
+}
+
+void esLogCompilationErrors(esEnginePtr engine) {
+	((ts::Engine*)engine)->printUnlinkedInstructions();
 }
 
 void esRegisterNamespace(esEnginePtr engine, const char* nameSpace) {
@@ -87,7 +96,7 @@ esObjectReferencePtr esInstantiateObject(esEnginePtr engine, const char* nameSpa
 	}
 	else {
 		return (esObjectReferencePtr)new ts::ObjectReference(
-			CreateObject(((ts::Engine*)engine)->interpreter, nameSpace, "", methodTree, methodTree, data)
+			CreateObject(((ts::Engine*)engine)->interpreter, false, nameSpace, methodTree, data)
 		);
 	}
 }
@@ -104,7 +113,7 @@ void esDeleteObject(esObjectReferencePtr objectReference) {
 }
 
 const char* esGetNamespaceFromObject(esObjectReferencePtr object) {
-	return ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name.c_str();
+	return ((ts::ObjectWrapper*)object->objectWrapper)->object->methodTree->name.c_str();
 }
 
 int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpace) {
@@ -112,7 +121,7 @@ int esCompareNamespaceToObject(esObjectReferencePtr object, const char* nameSpac
 		return 0;
 	}
 	
-	return ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree->name == string(nameSpace);
+	return ((ts::ObjectWrapper*)object->objectWrapper)->object->methodTree->name == string(nameSpace);
 }
 
 int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* nameSpace) {
@@ -120,7 +129,7 @@ int esCompareNamespaceToObjectParents(esObjectReferencePtr object, const char* n
 		return 0;
 	}
 
-	ts::MethodTree* tree = ((ts::ObjectWrapper*)object->objectWrapper)->object->typeMethodTree;
+	ts::MethodTree* tree = ((ts::ObjectWrapper*)object->objectWrapper)->object->methodTree;
 	if(tree->name == string(nameSpace)) {
 		return 1;
 	}
@@ -146,6 +155,10 @@ esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned
 
 esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments) {
 	return (esEntryPtr)((ts::Engine*)engine)->interpreter->callMethod((ts::ObjectReference*)object, string(functionName), (ts::Entry*)arguments, argumentCount);
+}
+
+void esDeleteEntry(esEntryPtr entry) {
+	delete ((ts::Entry*)entry);
 }
 
 esEntryPtr esCreateNumber(double number) {
@@ -186,6 +199,14 @@ esEntryPtr esCreateObject(esObjectReferencePtr reference) {
 	return (esEntryPtr)(new ts::Entry(new ts::ObjectReference((ts::ObjectReference*)reference)));
 }
 
+esObjectReferencePtr esCreateArray(esEnginePtr engine) {
+	return esInstantiateObject(engine, "Array", nullptr);
+}
+
+esObjectReferencePtr esCreateMap(esEnginePtr engine) {
+	return esInstantiateObject(engine, "Map", nullptr);
+}
+
 esEntryPtr esCreateNumberAt(esEntryPtr entry, double number) {
 	return (esEntryPtr)new((void*)entry) Entry(number);
 }
@@ -224,14 +245,57 @@ esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference) {
 	return (esEntryPtr)new((void*)entry) Entry(new ts::ObjectReference((ts::ObjectReference*)reference));
 }
 
-void esArrayPush(esObjectReferencePtr reference, esEntryPtr entry) {
-	if(reference->objectWrapper != nullptr) {
-		ObjectReference* array = (ObjectReference*)reference;
-		if(array->objectWrapper->object->dataStructure != ARRAY) {
-			printf("not an array\n");
-			return;
-		}
-
-		((ts::sl::Array*)array->objectWrapper->data)->push((ts::Entry*)entry, 1);
+void esSetObjectProperty(esObjectReferencePtr object, const char* variable, esEntryPtr property) {
+	ts::ObjectWrapper* wrapper = ((ts::ObjectReference*)object)->objectWrapper;
+	if(wrapper == nullptr) {
+		return;
 	}
+
+	wrapper->object->properties.setVariableEntry(variable, *((ts::Entry*)property));
+	esDeleteEntry(property); // TODO better way to do this??
+}
+
+esEntryPtr esGetObjectProperty(esObjectReferencePtr object, const char* variable) {
+	ts::ObjectWrapper* wrapper = ((ts::ObjectReference*)object)->objectWrapper;
+	if(wrapper == nullptr) {
+		return nullptr;
+	}
+
+	return (esEntryPtr)(&wrapper->object->properties.getVariableEntry(variable));
+}
+
+double esGetNumberFromEntry(esEntryPtr entry) {
+	if(entry->type == ES_ENTRY_NUMBER) {
+		return entry->numberData;
+	}
+	else {
+		return 0.0;
+	}
+}
+
+void esArrayPush(esObjectReferencePtr array, esEntryPtr entry) {
+	if(esCompareNamespaceToObject(array, "Array")) {
+		((ts::sl::Array*)((ts::ObjectReference*)array)->objectWrapper->data)->push((ts::Entry*)entry, 1);
+	}
+}
+
+void esMapInsert(esObjectReferencePtr map, const char* key, esEntryPtr entry) {
+	if(esCompareNamespaceToObject(map, "Map")) {
+		copyEntry(*(ts::Entry*)entry, ((ts::sl::Map*)((ts::ObjectReference*)map)->objectWrapper->data)->map[string(key)]);
+	}
+}
+
+const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key) {
+	if(esCompareNamespaceToObject(map, "Map")) {
+		auto hashmap = ((ts::sl::Map*)((ts::ObjectReference*)map)->objectWrapper->data)->map;
+		if(hashmap.find(string(key)) == hashmap.end()) {
+			return nullptr;
+		}
+		return (esEntryPtr)(&hashmap[key]);
+	}
+	return nullptr;
+}
+
+unsigned int esProbeGarbage(esEnginePtr engine, const char* className) {
+	return ((ts::Engine*)engine)->interpreter->probeGarbage(string(className));
 }

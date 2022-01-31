@@ -6,24 +6,20 @@ from math_instructions import get_math_instructions
 
 structs = {
 	"push": ["PUSH"],
-	"jump": ["JUMP"],
-	"jumpIfTrue": ["JUMP_IF_TRUE"],
-	"jumpIfFalse": ["JUMP_IF_FALSE"],
+	"jump": ["JUMP", "JUMP_IF_TRUE", "JUMP_IF_FALSE", "JUMP_IF_TRUE_THEN_POP", "JUMP_IF_FALSE_THEN_POP"],
 	"mathematics": get_math_instructions(),
 	"unaryMathematics": ["UNARY_BITWISE_NOT", "UNARY_LOGICAL_NOT", "UNARY_NEGATE"],
 	"localAssign": get_assignment_instructions("LOCAL_ASSIGN"),
 	"globalAssign": get_assignment_instructions("GLOBAL_ASSIGN"),
 	"localAccess": ["LOCAL_ACCESS"],
 	"globalAccess": ["GLOBAL_ACCESS"],
-	"createObject": ["CREATE_OBJECT"],
-	"callFunction": ["CALL_FUNCTION"],
-	"callParent": ["CALL_PARENT"],
-	"callObject": ["CALL_OBJECT"],
+	"createObject": ["CREATE_OBJECT", "CREATE_OBJECT_UNLINKED"],
+	"callFunction": ["CALL_FUNCTION", "CALL_FUNCTION_UNLINKED"],
+	"callNamespaceFunction": ["CALL_NAMESPACE_FUNCTION", "CALL_NAMESPACE_FUNCTION_UNLINKED"],
+	"callObject": ["CALL_OBJECT", "CALL_OBJECT_UNLINKED"],
 	"objectAssign": get_assignment_instructions("OBJECT_ASSIGN"),
 	"objectAccess": ["OBJECT_ACCESS"],
 	"popArguments": ["POP_ARGUMENTS"],
-	"symbolAccess": ["SYMBOL_ACCESS"],
-	"functionReturn": ["RETURN"],
 	"arrayAssign": get_assignment_instructions("ARRAY_ASSIGN"),
 	"matrixCreate": ["MATRIX_CREATE"],
 	"matrixSet": ["MATRIX_SET"],
@@ -45,7 +41,7 @@ for line in file:
 			loading_instructions = False
 		else:
 			all_instructions.append(re.match(r'(\w+),', line.strip()).group(1))
-	elif "enum InstructionType {" in line:
+	elif "enum InstructionType : unsigned short {" in line:
 		loading_instructions = True
 	
 	if flag == 2:
@@ -65,7 +61,7 @@ for line in file:
 			
 			buffer.append((variable_type, variable_name))
 		
-		if brace_count == 1 and line.strip() != '':
+		if brace_count == 1 and line.strip() != '' and "}" in line:
 			struct_name = re.match(r'\}[\s]*([\w]+)', line.strip()).group(1)
 			struct_to_types[struct_name] = buffer
 			buffer = []
@@ -124,7 +120,7 @@ elif sys.argv[1] == "debug.cc":
 	}}""")
 			elif variable_type == "string": # handle strings
 				print(f'	printf("   {variable_name}: %s,\\n", instruction.{struct}.{variable_name}.c_str());')
-			elif "long" in variable_type or "size_t" in variable_type: # handle longs
+			elif "long" in variable_type or "uint64_t" in variable_type: # handle longs
 				print(f'	printf("   {variable_name}: %ld,\\n", instruction.{struct}.{variable_name});')
 			elif variable_type == "Entry": # handle entries
 				print(f"""	if(instruction.{struct}.{variable_name}.type != entry::EMPTY) {{
@@ -143,7 +139,7 @@ elif sys.argv[1] == "debug.cc":
 	else {{
 		printf("   {variable_name}: invalid entry,\\n");
 	}}""")
-			elif variable_type == "size_t" or variable_type == "relative_stack_location" or variable_type == "stack_location": # handle size_t
+			elif variable_type == "uint64_t" or variable_type == "relative_stack_location" or variable_type == "stack_location": # handle uint64_t
 				print(f'	printf("   {variable_name}: %ld,\\n", instruction.{struct}.{variable_name});')
 			elif variable_type[-1] == "*": # handle pointers
 				print(f'	printf("   {variable_name}: %p,\\n", instruction.{struct}.{variable_name});')

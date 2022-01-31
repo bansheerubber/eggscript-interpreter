@@ -25,6 +25,14 @@ class NumberLiteral : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
@@ -36,4 +44,5 @@ class NumberLiteral : public Component {
 	
 	private:
 		string number;
+		Token token;
 };

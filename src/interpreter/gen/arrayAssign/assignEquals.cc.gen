@@ -15,6 +15,19 @@ switch(object->dataStructure) {
 		else {
 			foundEntry = &array[index];
 		}
+		break;
+	}
+
+	case MAP: {
+		const char* key = nullptr;
+		bool deleteString = false;
+		## type_conversion.py indexEntry key ALL STRING deleteString
+		foundEntry = &((ts::sl::Map*)objectWrapper->data)->map[string(key)];
+
+		if(deleteString && key != nullptr) {
+			delete[] key;
+		}
+		break;
 	}
 }
 

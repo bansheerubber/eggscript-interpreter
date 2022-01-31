@@ -26,6 +26,20 @@ class NamespaceStatement : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			if(this->name == nullptr) {
+				return this->parentToken.characterNumber;
+			}
+			return this->name->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			if(this->name == nullptr) {
+				return this->parentToken.lineNumber;
+			}
+			return this->name->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();
@@ -34,6 +48,7 @@ class NamespaceStatement : public Component {
 		static NamespaceStatement* Parse(Component* parent, ts::Engine* engine);
 	
 	private:
+		Token parentToken;
 		Symbol* name = nullptr;
 		Symbol* operation = nullptr;
 		CallStatement* call = nullptr;

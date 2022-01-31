@@ -65,6 +65,8 @@ keywords = {
 	"tab": "TAB",
 	"nl": "NL",
 	"null": "EMPTY",
+	"class": "CLASS",
+	"inherits": "INHERITS",
 }
 
 for syntax, token_type in keywords.items():

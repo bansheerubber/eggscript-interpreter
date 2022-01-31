@@ -13,7 +13,7 @@ void Tokenizer::error(const char* format, ...) {
 
 	(*this->engine->errorFunction)("\n");
 
-	exit(1);
+	throw 0;
 }
 
 void Tokenizer::warning(const char* format, ...) {

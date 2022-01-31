@@ -15,6 +15,7 @@ PackageDeclaration* PackageDeclaration::Parse(Component* parent, ts::Engine* eng
 		engine->parser->error("invalid package name");
 	}
 	output->packageName = Symbol::Parse(output, engine);
+	output->name = output->packageName->value;
 
 	engine->parser->expectToken(LEFT_BRACKET);
 

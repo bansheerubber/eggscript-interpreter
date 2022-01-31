@@ -4,7 +4,9 @@
 #include "../util/allocateString.h"
 #include "arrayStatement.h"
 #include "callStatement.h"
+#include "../util/cloneString.h"
 #include "../util/stringToChars.h"
+#include "symbol.h"
 
 bool AccessStatement::DatablockAsSymbol = false;
 
@@ -195,7 +197,7 @@ bool AccessStatement::hasCall() {
 	return false;
 }
 
-size_t AccessStatement::chainSize() {
+uint64_t AccessStatement::chainSize() {
 	return this->elements.size();
 }
 
@@ -210,13 +212,13 @@ bool AccessStatement::isValidLValue() {
 	return true;
 }
 
-size_t AccessStatement::getStackIndex(ts::Scope* scope) {
+uint64_t AccessStatement::getStackIndex(ts::Scope* scope) {
 	if(!this->isLocalVariable() || this->chainSize() != 1) {
 		return -1;
 	}
 	else {
 		string name = this->getVariableName();
-		return scope->allocateVariable(name).stackIndex;
+		return scope->allocateVariable(name, false, this->getCharacterNumber(), this->getLineNumber()).stackIndex;
 	}
 }
 
@@ -235,24 +237,35 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		c.output.add(this->elements[1].component->compile(engine, context)); // push arguments
 
 		// push the amount of arguments we just found
-		ts::Instruction* instruction = new ts::Instruction();
+		ts::Instruction* instruction = new ts::Instruction(
+			engine,
+			this->elements[0].token.characterNumber,
+			this->elements[0].token.lineNumber
+		);
 		instruction->type = ts::instruction::PUSH;
 		instruction->push.entry.type = ts::entry::NUMBER;
 		instruction->push.entry.setNumber(((CallStatement*)this->elements[1].component)->getElementCount());
 		c.output.add(instruction);
 
 		// build call instruction
-		ts::Instruction* callFunction = new ts::Instruction();
-		callFunction->type = ts::instruction::CALL_FUNCTION;
-		ALLOCATE_STRING(this->elements[0].token.lexeme, callFunction->callFunction.name);
-		ALLOCATE_STRING(string(""), callFunction->callFunction.nameSpace);
+		ts::Instruction* callFunction = new ts::Instruction(
+			engine,
+			this->elements[0].token.characterNumber,
+			this->elements[0].token.lineNumber
+		);
+		callFunction->type = ts::instruction::CALL_FUNCTION_UNLINKED;
+		callFunction->callFunction.name = cloneString(this->elements[0].token.lexeme.c_str());
 		callFunction->callFunction.cachedFunctionList = nullptr;
-		callFunction->callFunction.cachedEntry = nullptr;
-		callFunction->callFunction.isCached = false;
 		c.output.add(callFunction);
 
+		engine->addUnlinkedInstruction(callFunction);
+
 		if(this->parent->requiresSemicolon(this) && this->elements.size() == 2) { // if we do not assign/need the value of the function, just pop it
-			ts::Instruction* pop = new ts::Instruction();
+			ts::Instruction* pop = new ts::Instruction(
+				engine,
+				this->elements[0].token.characterNumber,
+				this->elements[0].token.lineNumber
+			);
 			pop->type = ts::instruction::POP;
 			c.output.add(pop);
 		}
@@ -274,10 +287,14 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 	for(; iterator != this->elements.end(); ++iterator) {
 		AccessElement element = *iterator;
 		if(element.token.type == LOCAL_VARIABLE) {
-			ts::Instruction* instruction = new ts::Instruction();
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.token.characterNumber,
+				element.token.lineNumber
+			);
 			instruction->type = ts::instruction::LOCAL_ACCESS;
-			instruction->localAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->localAccess.source);
+			instruction->localAccess.hash = hash<string>{}(element.token.lexeme);
+			instruction->localAccess.source = cloneString(element.token.lexeme.c_str());
 			instruction->localAccess.stackIndex = -1;
 
 			c.lastAccess = instruction;
@@ -285,20 +302,14 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			lastInstruction = instruction;
 		}
 		else if(element.token.type == GLOBAL_VARIABLE) {
-			ts::Instruction* instruction = new ts::Instruction();
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.token.characterNumber,
+				element.token.lineNumber
+			);
 			instruction->type = ts::instruction::GLOBAL_ACCESS;
-			instruction->globalAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->globalAccess.source);
-
-			c.lastAccess = instruction;
-
-			lastInstruction = instruction;
-		}
-		else if(element.token.type == SYMBOL) {
-			ts::Instruction* instruction = new ts::Instruction();
-			instruction->type = ts::instruction::SYMBOL_ACCESS;
-			instruction->symbolAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->symbolAccess.source);
+			instruction->globalAccess.hash = hash<string>{}(element.token.lexeme);
+			instruction->globalAccess.source = cloneString(element.token.lexeme.c_str());
 
 			c.lastAccess = instruction;
 
@@ -307,7 +318,12 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.isArray) {
 			if(lastInstruction != nullptr) {
 				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
-					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
+					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(
+						string(lastInstruction->localAccess.source),
+						false,
+						engine->getInstructionDebug(lastInstruction).character,
+						engine->getInstructionDebug(lastInstruction).line
+					).stackIndex;
 				}
 				c.output.add(lastInstruction);
 			}
@@ -323,15 +339,24 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 		else if(element.token.type == MEMBER_CHAIN) {
 			if(lastInstruction != nullptr) {
 				if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
-					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
+					lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(
+						string(lastInstruction->localAccess.source),
+						false,
+						engine->getInstructionDebug(lastInstruction).character,
+						engine->getInstructionDebug(lastInstruction).line
+					).stackIndex;
 				}
 				c.output.add(lastInstruction);
 			}
 
-			ts::Instruction* instruction = new ts::Instruction();
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.token.characterNumber,
+				element.token.lineNumber
+			);
 			instruction->type = ts::instruction::OBJECT_ACCESS;
-			instruction->objectAccess.hash = hash<string>{}(toLower(element.token.lexeme));
-			ALLOCATE_STRING(toLower(element.token.lexeme), instruction->objectAccess.source);
+			instruction->objectAccess.hash = hash<string>{}(element.token.lexeme);
+			instruction->objectAccess.source = cloneString(element.token.lexeme.c_str());
 
 			c.lastAccess = instruction;
 
@@ -346,7 +371,11 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			c.output.add(element.component->compile(engine, context));
 
 			// push the amount of arguments we just found
-			ts::Instruction* pushArgumentCount = new ts::Instruction();
+			ts::Instruction* pushArgumentCount = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
 			pushArgumentCount->type = ts::instruction::PUSH;
 			pushArgumentCount->push.entry = ts::Entry();
 			pushArgumentCount->push.entry.type = ts::entry::NUMBER;
@@ -354,16 +383,25 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			c.output.add(pushArgumentCount);
 
 			// compile the call instruction
-			ts::Instruction* instruction = new ts::Instruction();
-			instruction->type = ts::instruction::CALL_OBJECT;
-			ALLOCATE_STRING(lastInstruction->objectAccess.source, instruction->callObject.name);
-			instruction->callObject.cachedEntry = nullptr;
-			instruction->callObject.isCached = false;
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
+			instruction->type = ts::instruction::CALL_OBJECT_UNLINKED;
+			instruction->callObject.name = cloneString(lastInstruction->objectAccess.source);
+			instruction->callObject.cachedIndex = 0;
+
+			engine->addUnlinkedInstruction(instruction);
 
 			c.output.add(instruction);
 
-			if(this->parent->requiresSemicolon(this) && count == this->elements.size() - 1) { // if we do not assign/need the value of the function, just pop it
-				ts::Instruction* pop = new ts::Instruction();
+			if(this->parent->requiresSemicolon(this) && (unsigned int)count == this->elements.size() - 1) { // if we do not assign/need the value of the function, just pop it
+				ts::Instruction* pop = new ts::Instruction(
+					engine,
+					element.component->getCharacterNumber(),
+					element.component->getLineNumber()
+				);
 				pop->type = ts::instruction::POP;
 				c.output.add(pop);
 			}
@@ -376,16 +414,35 @@ AccessStatementCompiled AccessStatement::compileAccess(ts::Engine* engine, ts::C
 			lastInstruction = nullptr;
 		}
 		else if(element.component != nullptr && element.component->getType() == SYMBOL_STATEMENT) {
-			ts::InstructionReturn symbol = element.component->compile(engine, context);
-			c.lastAccess = symbol.first;
-			lastInstruction = symbol.first;
+			ts::Instruction* instruction = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
+			instruction->type = ts::instruction::OBJECT_ASSIGN_EQUAL;
+			instruction->objectAssign.entry = ts::Entry(); // initialize memory to avoid crash
+
+			instruction->objectAssign.hash = hash<string>{}(((Symbol*)element.component)->value);
+			instruction->objectAssign.destination = cloneString(((Symbol*)element.component)->value.c_str());
+			instruction->objectAssign.fromStack = false;
+			instruction->objectAssign.pushResult = false;
+			instruction->objectAssign.popObject = false;
+			instruction->objectAssign.newBodyPatch = 0;
+			
+			c.lastAccess = instruction;
+			lastInstruction = instruction;
 		}
 		count++;
 	}
 
 	if(lastInstruction != nullptr) {
 		if(lastInstruction->type == ts::instruction::LOCAL_ACCESS) {
-			lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(lastInstruction->localAccess.source).stackIndex;
+			lastInstruction->localAccess.stackIndex = context.scope->allocateVariable(
+				string(lastInstruction->localAccess.source),
+				false,
+				engine->getInstructionDebug(lastInstruction).character,
+				engine->getInstructionDebug(lastInstruction).line
+			).stackIndex;
 		}
 		c.output.add(lastInstruction);
 	}

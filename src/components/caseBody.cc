@@ -84,7 +84,11 @@ ts::InstructionReturn CaseBody::compile(ts::Engine* engine, ts::CompilationConte
 	}
 
 	if(output.first == nullptr) {
-		ts::Instruction* instruction = new ts::Instruction();
+		ts::Instruction* instruction = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		instruction->type = ts::instruction::NOOP;
 		output.add(instruction);
 	}

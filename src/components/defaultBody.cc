@@ -9,7 +9,7 @@ DefaultBody* DefaultBody::Parse(Body* body, ts::Engine* engine) {
 	DefaultBody* output = new DefaultBody(engine);
 	output->parent = body;
 	
-	engine->parser->expectToken(DEFAULT);
+	output->token = engine->parser->expectToken(DEFAULT);
 	engine->parser->expectToken(COLON);
 
 	Component::ParseBody(output, engine); // parse the body of the case statement
@@ -34,7 +34,11 @@ ts::InstructionReturn DefaultBody::compile(ts::Engine* engine, ts::CompilationCo
 	}
 
 	if(output.first == nullptr) {
-		ts::Instruction* instruction = new ts::Instruction();
+		ts::Instruction* instruction = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		instruction->type = ts::instruction::NOOP;
 		output.add(instruction);
 	}

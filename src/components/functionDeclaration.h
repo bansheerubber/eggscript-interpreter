@@ -34,6 +34,14 @@ class FunctionDeclaration : public Body, public ts::Scope {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->name1->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->name1->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

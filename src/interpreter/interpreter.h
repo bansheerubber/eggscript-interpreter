@@ -32,13 +32,14 @@ using namespace std;
 namespace ts {
 	struct FunctionFrame {
 		InstructionContainer* container;
-		size_t instructionPointer;
-		size_t stackPointer;
-		size_t stackPopCount;
+		uint64_t instructionPointer;
+		uint64_t stackPointer;
+		uint64_t stackPopCount;
 		PackagedFunctionList* packagedFunctionList;
 		int packagedFunctionListIndex;
 		MethodTreeEntry* methodTreeEntry;
 		int methodTreeEntryIndex;
+		bool earlyQuit;
 		bool isTSSL;
 		string fileName;
 	};
@@ -54,17 +55,15 @@ namespace ts {
 	class Interpreter {
 		friend class Engine;
 		friend void onFunctionFrameRealloc(Interpreter* interpreter);
-		friend string VariableContext::computeVariableString(Instruction &instruction, string &variable);
 		friend VariableContext;
 		friend Object;
 		friend ObjectWrapper;
 		friend void convertToType(Interpreter* interpreter, Entry &source, entry::EntryType type);
 		friend ObjectWrapper* CreateObject(
 			class ts::Interpreter* interpreter,
+			bool inhibitInterpret,
 			string nameSpace,
-			string inheritedName,
 			MethodTree* methodTree,
-			MethodTree* typeMethodTree,
 			void* data
 		);
 		friend Entry* ts::sl::PARENT(Engine* engine, const char* methodName, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes);
@@ -76,28 +75,25 @@ namespace ts {
 			Interpreter(class Engine* engine, ParsedArguments args, bool isParallel);
 
 			void startInterpretation(Instruction* head);
-			void execFile(string filename);
 			
 			void printStack();
-			void warning(const char* format, ...);
+			void warning(Instruction* instruction, const char* format, ...);
 
-			void addSchedule(unsigned long long time, string functionName, Entry* arguments, size_t argumentCount, ObjectReference* object = nullptr);
+			void addSchedule(uint64_t, string functionName, Entry* arguments, uint64_t argumentCount, ObjectReference* object = nullptr);
 
 			bool tick();
-			void setTickRate(long tickRate);
+			void setTickRate(int64_t tickRate);
 			void garbageCollect(unsigned int amount);
+			unsigned int probeGarbage(string className);
 
-			void setObjectName(string &name, ObjectWrapper* object);
-			void deleteObjectName(string &name);
-
-			Entry* callFunction(string functionName, Entry* arguments, size_t argumentCount);
-			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, size_t argumentCount);
+			Entry* callFunction(string functionName, Entry* arguments, uint64_t argumentCount);
+			Entry* callMethod(ObjectReference* objectReference, string methodName, Entry* arguments, uint64_t argumentCount, bool inhibitInterpret = false);
 
 			string& getTopFileNameFromFrame();
 
 			Entry emptyEntry;
 
-			size_t highestObjectId = 1;
+			uint64_t highestObjectId = 1;
 
 			bool testing = false;
 
@@ -110,8 +106,6 @@ namespace ts {
 			
 			void interpret(); // interprets the next instruction
 
-			void actuallyExecFile(string filename);
-
 			void enterParallel();
 
 			bool warnings = true;
@@ -122,31 +116,37 @@ namespace ts {
 			void push(double number, instruction::PushType type) __attribute__((always_inline));
 			void push(char* data, instruction::PushType type) __attribute__((always_inline));
 			void push(Matrix* matrix, instruction::PushType type) __attribute__((always_inline));
-			void push(ObjectReference* data, instruction::PushType) __attribute__((always_inline));
+			void push(ObjectReference* data, instruction::PushType);
 			void pushEmpty(instruction::PushType type)  __attribute__((always_inline));
-			void pop() __attribute__((always_inline));
+			void pop() __attribute__((always_inline)) {
+				// TODO does this fuck everything??
+				// this->stack[this->stack.head - 1].erase();
+				this->stack.popped();
+			};
 
-			size_t ranInstructions = 0;
-			unsigned long long startTime = 0;
+			uint64_t ranInstructions = 0;
+			uint64_t startTime = 0;
 
 			// stacks
 			DynamicArray<Entry, Interpreter> stack = DynamicArray<Entry, Interpreter>(this, 10000, initEntry, nullptr);
 			DynamicArray<FunctionFrame, Interpreter> frames = DynamicArray<FunctionFrame, Interpreter>(this, 100, initFunctionFrame, onFunctionFrameRealloc);
 			InstructionContainer* topContainer; // the current container we're executing code from, taken from frames
-			size_t* instructionPointer; // the current instruction pointer, taken from frames
-			size_t stackFramePointer; // the current frame pointer
+			uint64_t* instructionPointer; // the current instruction pointer, taken from frames
+			uint64_t stackFramePointer; // the current frame pointer
 			Entry returnRegister;
 			VariableContext globalContext;
 
+			void declareObjectProperties(Function* function);
 			void pushFunctionFrame(
 				InstructionContainer* container,
 				PackagedFunctionList* list = nullptr,
 				int packagedFunctionListIndex = -1,
 				MethodTreeEntry* methodTreeEntry = nullptr,
 				int methodTreeEntryIndex = -1,
-				size_t argumentCount = 0,
-				size_t popCount = 0,
-				string fileName = ""
+				uint64_t argumentCount = 0,
+				uint64_t popCount = 0,
+				string fileName = "",
+				bool earlyQuit = false
 			);
 			void popFunctionFrame() __attribute__((always_inline));
 			void pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex);
@@ -154,15 +154,13 @@ namespace ts {
 			Entry* handleTSSLParent(string &name, unsigned int argc, Entry* argv, entry::EntryType* argumentTypes);
 
 			// used to lookup objects
-			robin_map<size_t, ObjectWrapper*> objects;
-			robin_map<string, ObjectWrapper*> stringToObject;
+			robin_map<uint64_t, ObjectWrapper*> objects;
 
 			// keep track of schedules
 			MinHeap<Schedule*, Interpreter> schedules = MinHeap<Schedule*, Interpreter>(this, initSchedule, nullptr);
 
 			// parallel stuff
 			thread tickThread;
-			queue<string> execFilenames;
-			long tickRate = 4;
+			int64_t tickRate = 4;
 	};
 }

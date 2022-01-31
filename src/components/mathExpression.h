@@ -59,6 +59,28 @@ class MathExpression : public Component {
 			return true;
 		}
 
+		unsigned short getCharacterNumber() {
+			if(this->elements.size() == 0) {
+				return 0;
+			}
+
+			if(this->elements[0].component == nullptr) {
+				return this->elements[0].op.characterNumber;
+			}
+			return this->elements[0].component->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			if(this->elements.size() == 0) {
+				return 0;
+			}
+
+			if(this->elements[0].component == nullptr) {
+				return this->elements[0].op.lineNumber;
+			}
+			return this->elements[0].component->getLineNumber();
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

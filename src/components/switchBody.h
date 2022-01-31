@@ -33,6 +33,14 @@ class SwitchBody : public Body {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->switchType.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->switchType.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

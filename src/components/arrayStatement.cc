@@ -28,7 +28,11 @@ ts::InstructionReturn ArrayStatement::compile(ts::Engine* engine, ts::Compilatio
 	ts::InstructionReturn output;
 	output.add(this->component->compile(engine, context));
 
-	ts::Instruction* instruction = new ts::Instruction();
+	ts::Instruction* instruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = ts::instruction::ARRAY_ACCESS;
 	output.add(instruction);
 

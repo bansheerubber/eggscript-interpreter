@@ -25,6 +25,14 @@ class PostfixStatement : public Component {
 			return false;
 		}
 
+		unsigned short getCharacterNumber() {
+			return this->op.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->op.lineNumber;
+		}
+
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
 		string print();

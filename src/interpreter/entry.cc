@@ -105,14 +105,14 @@ void Entry::print(int tabs) const {
 		printf("%s   data: %f,\n", space.c_str(), this->numberData);
 	}
 	else if(this->type == entry::OBJECT) {
-		printf("%s   data: 0x%lX,\n", space.c_str(), (long)this->objectData->objectWrapper);
+		printf("%s   data: %p,\n", space.c_str(), this->objectData->objectWrapper);
 		if(this->objectData->objectWrapper != nullptr) {
 			printf("%s   variables:\n", space.c_str());
 			this->objectData->objectWrapper->object->properties.printWithTab(2 + tabs);
 		}
 	}
 	else if(this->type == entry::MATRIX) {
-		printf("%s   data: 0x%lX,\n", space.c_str(), (long)this->matrixData);
+		printf("%s   data: %p,\n", space.c_str(), this->matrixData);
 		if(this->matrixData != nullptr) {
 			printf("%s   rows: %u,\n", space.c_str(), this->matrixData->rows);
 			printf("%s   columns: %u,\n", space.c_str(), this->matrixData->columns);
@@ -224,26 +224,30 @@ void ts::convertToType(Interpreter* interpreter, Entry &source, entry::EntryType
 	source.type = type;
 }
 
-bool ts::isEntryEqual(const Entry &source, const Entry &destination) {
-	if(source.type != destination.type) {
+bool ts::isEntryEqual(const Entry &left, const Entry &right) {
+	if(left.type != right.type) {
 		return false;
 	}
 
-	switch(source.type) {
+	switch(left.type) {
 		case entry::EMPTY: {
 			return true;
 		}
 
 		case entry::NUMBER: {
-			return source.numberData == destination.numberData;
+			return left.numberData == right.numberData;
 		}
 		
 		case entry::STRING: {
-			return strcmp(source.stringData, destination.stringData) == 0;
+			return strcmp(left.stringData, right.stringData) == 0;
 		}
 
 		case entry::OBJECT: {
-			return source.objectData->objectWrapper == destination.objectData->objectWrapper;
+			return left.objectData->objectWrapper == right.objectData->objectWrapper;
+		}
+
+		case entry::MATRIX: {
+			return left.matrixData->equal(right.matrixData);
 		}
 	}
 
@@ -272,6 +276,8 @@ bool ts::isEntryTruthy(const Entry &source) {
 			return source.objectData->objectWrapper != nullptr;
 		}
 	}
+
+	return false;
 }
 
 void ts::initEntry(class Interpreter* interpreter, Entry* location) {;

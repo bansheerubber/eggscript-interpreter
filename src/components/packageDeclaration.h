@@ -14,7 +14,7 @@
 
 using namespace std;
 
-class PackageDeclaration : public Body, public ts::Package {
+class PackageDeclaration : public Body, public ts::PackageContext {
 	public:
 		using Body::Body;
 		
@@ -28,6 +28,14 @@ class PackageDeclaration : public Body, public ts::Package {
 
 		bool shouldPushToStack(Component* child) {
 			return false;
+		}
+
+		unsigned short getCharacterNumber() {
+			return this->packageName->getCharacterNumber();
+		}
+
+		unsigned int getLineNumber() {
+			return this->packageName->getLineNumber();
 		}
 
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);

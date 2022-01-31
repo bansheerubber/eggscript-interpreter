@@ -8,7 +8,7 @@ bool ContinueStatement::ShouldParse(ts::Engine* engine) {
 ContinueStatement* ContinueStatement::Parse(Component* parent, ts::Engine* engine) {
 	ContinueStatement* output = new ContinueStatement(engine);
 	output->parent = parent;
-	engine->parser->expectToken(CONTINUE);
+	output->token = engine->parser->expectToken(CONTINUE);
 	engine->parser->expectToken(SEMICOLON);
 	return output;
 }
@@ -28,7 +28,11 @@ ts::InstructionReturn ContinueStatement::compile(ts::Engine* engine, ts::Compila
 	}
 	
 	ts::InstructionReturn output;
-	ts::Instruction* instruction = new ts::Instruction();
+	ts::Instruction* instruction = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	instruction->type = ts::instruction::JUMP;
 	output.add(instruction);
 	context.loop->continues.push_back(output);

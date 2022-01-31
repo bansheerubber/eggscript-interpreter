@@ -22,6 +22,14 @@ class ReturnStatement : public Component {
 		bool shouldPushToStack(Component* child) {
 			return true;
 		}
+
+		unsigned short getCharacterNumber() {
+			return this->token.characterNumber;
+		}
+
+		unsigned int getLineNumber() {
+			return this->token.lineNumber;
+		}
 		
 		ts::InstructionReturn compile(ts::Engine* engine, ts::CompilationContext context);
 
@@ -32,4 +40,5 @@ class ReturnStatement : public Component {
 	
 	private:
 		Component* operation = nullptr;
+		Token token;
 };

@@ -71,7 +71,11 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 		}
 	}
 	
-	ts::Instruction* noop = new ts::Instruction();
+	ts::Instruction* noop = new ts::Instruction(
+		engine,
+		this->getCharacterNumber(),
+		this->getLineNumber()
+	);
 	noop->type = ts::instruction::NOOP;
 
 	ts::InstructionReturn lastConditionals;
@@ -90,29 +94,35 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 			// should be a value that was also pushed onto the stack
 			ts::InstructionReturn switchConditional = this->conditional->compile(engine, context);
 
-			ts::Instruction* comparison = new ts::Instruction();
+			ts::Instruction* comparison = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
 			comparison->type = ts::instruction::MATH_EQUAL;
 			comparison->mathematics.lvalueEntry = ts::Entry();
-			comparison->mathematics.lvalueEntry.type = ts::entry::EMPTY;
+			comparison->mathematics.lvalueEntry.type = ts::entry::INVALID;
 			comparison->mathematics.rvalueEntry = ts::Entry();
-			comparison->mathematics.rvalueEntry.type = ts::entry::EMPTY;
+			comparison->mathematics.rvalueEntry.type = ts::entry::INVALID;
 			comparison->mathematics.lvalueStackIndex = -1;
 			comparison->mathematics.rvalueStackIndex = -1;
 
 			if(conditionals.last != nullptr) {
-				conditionals.last->type = ts::instruction::JUMP_IF_TRUE;
-				conditionals.last->jumpIfTrue.pop = true;
-				conditionals.last->jumpIfTrue.instruction = compiledBody.first; // if we're an or statement, jump to the next or
+				conditionals.last->type = ts::instruction::JUMP_IF_TRUE_THEN_POP;
+				conditionals.last->jump.instruction = compiledBody.first; // if we're an or statement, jump to the next or
 			}
 
 			conditionals.add(caseValue);
 			conditionals.add(switchConditional);
 			conditionals.add(comparison);
 
-			ts::Instruction* jumpIfFalse = new ts::Instruction();
-			jumpIfFalse->type = ts::instruction::JUMP_IF_FALSE;
-			jumpIfFalse->jumpIfFalse.pop = true;
-			jumpIfFalse->jumpIfFalse.instruction = nullptr;
+			ts::Instruction* jumpIfFalse = new ts::Instruction(
+				engine,
+				element.component->getCharacterNumber(),
+				element.component->getLineNumber()
+			);
+			jumpIfFalse->type = ts::instruction::JUMP_IF_FALSE_THEN_POP;
+			jumpIfFalse->jump.instruction = nullptr;
 
 			conditionals.add(jumpIfFalse);
 		}
@@ -120,13 +130,17 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 		output.add(conditionals);
 		output.add(compiledBody);
 
-		ts::Instruction* jumpToEnd = new ts::Instruction();
+		ts::Instruction* jumpToEnd = new ts::Instruction(
+			engine,
+			this->getCharacterNumber(),
+			this->getLineNumber()
+		);
 		jumpToEnd->type = ts::instruction::JUMP;
 		jumpToEnd->jump.instruction = noop;
 		output.add(jumpToEnd);
 
 		if(lastConditionals.last != nullptr) {
-			lastConditionals.last->jumpIfFalse.instruction = conditionals.first;
+			lastConditionals.last->jump.instruction = conditionals.first;
 		}
 
 		lastConditionals = conditionals;
@@ -137,11 +151,11 @@ ts::InstructionReturn SwitchBody::compile(ts::Engine* engine, ts::CompilationCon
 		output.add(compiledDefault);
 
 		if(lastConditionals.last != nullptr) {
-			lastConditionals.last->jumpIfFalse.instruction = compiledDefault.first;
+			lastConditionals.last->jump.instruction = compiledDefault.first;
 		}
 	}
 	else if(lastConditionals.last != nullptr) {
-		lastConditionals.last->jumpIfFalse.instruction = noop;
+		lastConditionals.last->jump.instruction = noop;
 	}
 
 	output.add(noop);

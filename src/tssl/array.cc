@@ -14,16 +14,27 @@ namespace ts {
 			wrapper->data = new Array();
 		}
 
-		void Array::push(Entry* entries, long amount) {
-			for(long i = 0; i < amount; i++) {
+		Entry* Array__onAdd(Engine* engine, unsigned int argc, Entry* args) {
+			return nullptr;
+		}
+
+		void Array::push(Entry* entries, int64_t amount) {
+			for(int64_t i = 0; i < amount; i++) {
 				copyEntry(entries[i], this->array[this->array.head]);
 				this->array.pushed();
 			}
 		}
 
+		void Array::pushGreedy(Entry* entries, int64_t amount) {
+			for(int64_t i = 0; i < amount; i++) {
+				greedyCopyEntry(entries[i], this->array[this->array.head]);
+				this->array.pushed();
+			}
+		}
+
 		// TODO: if amount < 0 and |amount| > index(?) then its going to be screwy
-		void Array::shift(long index, long amount, bool fill) {
-			size_t end = this->array.head;
+		void Array::shift(int64_t index, int64_t amount, bool fill) {
+			int64_t end = (int64_t)this->array.head;
 
 			for(int i = 0; i < amount; i++) {
 				this->array.pushed(); // allocate space
@@ -55,7 +66,7 @@ namespace ts {
 		}
 
 		Entry* Array__push(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc < 1 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc < 1 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 
@@ -66,7 +77,7 @@ namespace ts {
 		}
 
 		Entry* Array__size(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 1 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 1 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 			
@@ -74,34 +85,34 @@ namespace ts {
 		}
 
 		Entry* Array__insert(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 3 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 3 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 
 			Array* array = (Array*)args[0].objectData->objectWrapper->data;
-			array->shift((long)args[1].numberData, 1);
-			copyEntry(args[2], array->array[(long)args[1].numberData]);
+			array->shift((int64_t)args[1].numberData, 1);
+			copyEntry(args[2], array->array[(int64_t)args[1].numberData]);
 
 			return nullptr;
 		}
 
 		Entry* Array__remove(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 2 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 2 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return nullptr;
 			}
 
 			Array* array = (Array*)args[0].objectData->objectWrapper->data;
-			array->shift((long)args[1].numberData + 1, -1);
+			array->shift((int64_t)args[1].numberData + 1, -1);
 			return nullptr;
 		}
 
 		Entry* Array__index(Engine* engine, unsigned int argc, Entry* args) {
-			if(argc != 2 || args[0].objectData->objectWrapper->object->typeMethodTree->name != "Array") {
+			if(argc != 2 || args[0].objectData->objectWrapper->object->methodTree->name != "Array") {
 				return new Entry(-1);
 			}
 
 			Array* array = (Array*)args[0].objectData->objectWrapper->data;
-			for(size_t i = 0; i < array->array.head; i++) {
+			for(uint64_t i = 0; i < array->array.head; i++) {
 				if(isEntryEqual(args[1], array->array[i])) {
 					return new Entry(i);
 				}

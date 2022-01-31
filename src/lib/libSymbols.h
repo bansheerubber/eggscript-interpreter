@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdarg.h>
+#include <cstdint>
 
 extern "C" {	
 	typedef void* esEnginePtr;
@@ -8,7 +9,8 @@ extern "C" {
 	#define esVPrintFunction(name)		int (*name)(const char* format, va_list args)
 
 	enum esEntryType {
-		ES_ENTRY_INVALID,
+		ES_ENTRY_INVALID = 0,
+		ES_ENTRY_EMPTY,
 		ES_ENTRY_NUMBER,
 		ES_ENTRY_STRING,
 		ES_ENTRY_OBJECT,
@@ -21,13 +23,13 @@ extern "C" {
 		esObjectPtr object;
 		void* data;
 		int referenceCount;
-		long heapIndex;
+		int64_t heapIndex;
 	} esObjectWrapper;
 	typedef esObjectWrapper* esObjectWrapperPtr;
 
 	typedef struct esObjectReference {
 		esObjectWrapperPtr objectWrapper;
-		unsigned long id = 0;
+		uint64_t id = 0;
 		void* __pad1;
 		void* __pad2;
 	} esObjectReference;
@@ -57,13 +59,16 @@ extern "C" {
 	esEnginePtr esCreateEngine(char isParallel);
 
 	bool esTick(esEnginePtr engine);
-	void esSetTickRate(esEnginePtr engine, long tickRate);
+	void esSetTickRate(esEnginePtr engine, int64_t tickRate);
 	void esExecFile(esEnginePtr engine, const char* filename);
-	void esExecFileFromContents(esEnginePtr, const char* fileName, const char* contents);
+	void esExecVirtualFile(esEnginePtr, const char* fileName, const char* contents);
 	void esEval(esEnginePtr engine, const char* shell);
 	const char* esGetLastExecFileName(esEnginePtr engine);
-	void esSetPrintFunction(esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
-	void esSetVPrintFunction(esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
+	void esSetPrintFunction(esEnginePtr engine, esPrintFunction(print), esPrintFunction(warning), esPrintFunction(error));
+	void esSetVPrintFunction(esEnginePtr engine, esVPrintFunction(print), esVPrintFunction(warning), esVPrintFunction(error));
+	void esSetInstructionDebug(esEnginePtr engine, bool enabled); // whether or not to generate instruction -> debug info maps
+	void esLogCompilationErrors(esEnginePtr engine);
+
 	void esRegisterNamespace(esEnginePtr engine, const char* nameSpace);
 	void esSetNamespaceConstructor(esEnginePtr engine, const char* nameSpace, void (*constructor)(esObjectWrapperPtr wrapper));
 	void esSetNamespaceDeconstructor(esEnginePtr engine, const char* nameSpace, void (*deconstructor)(esObjectWrapperPtr wrapper));
@@ -79,11 +84,14 @@ extern "C" {
 	esEntryPtr esCallFunction(esEnginePtr engine, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
 	esEntryPtr esCallMethod(esEnginePtr engine, esObjectReferencePtr object, const char* functionName, unsigned int argumentCount, esEntryPtr arguments);
 
+	void esDeleteEntry(esEntryPtr entry);
 	esEntryPtr esCreateNumber(double number);
 	esEntryPtr esCreateString(char* string);
 	esEntryPtr esCreateVector(unsigned int size, ...);
 	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObject(esObjectReferencePtr reference);
+	esObjectReferencePtr esCreateArray(esEnginePtr engine);
+	esObjectReferencePtr esCreateMap(esEnginePtr engine);
 
 	esEntryPtr esCreateNumberAt(esEntryPtr entry, double number);
 	esEntryPtr esCreateStringAt(esEntryPtr entry, char* string);
@@ -91,5 +99,14 @@ extern "C" {
 	esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);
 
-	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry);
+	void esSetObjectProperty(esObjectReferencePtr object, const char* variable, esEntryPtr property);
+	esEntryPtr esGetObjectProperty(esObjectReferencePtr object, const char* variable);
+
+	double esGetNumberFromEntry(esEntryPtr entry);
+
+	void esArrayPush(esObjectReferencePtr array, esEntryPtr entry); // greedy copies entry and deletes it
+	void esMapInsert(esObjectReferencePtr map, const char* key, esEntryPtr entry); // greedy copies entry and deletes it
+	const esEntryPtr esMapGet(esObjectReferencePtr map, const char* key);
+
+	unsigned int esProbeGarbage(esEnginePtr engine, const char* className);
 }

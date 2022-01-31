@@ -8,7 +8,8 @@ bool Comment::ShouldParse(ts::Engine* engine) {
 Comment* Comment::Parse(Component* parent, ts::Engine* engine) {
 	Comment* output = new Comment(engine);
 	output->parent = parent;
-	output->comment = engine->tokenizer->getToken().lexeme;
+	output->token = engine->tokenizer->getToken();
+	output->comment = output->token.lexeme;
 	return output;
 }
 

@@ -22,7 +22,7 @@ class Parser {
 		Parser(ts::Engine* engine, ParsedArguments args);
 		~Parser();
 
-		void startParse();
+		bool startParse();
 
 		void error(const char* format, ...);
 		void warning(const char* format, ...);

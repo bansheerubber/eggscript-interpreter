@@ -22,7 +22,7 @@ class GarbageCollectionHeap {
 
 		void insert(T value) {
 			// insert at the end
-			size_t iterator = this->array.head;
+			uint64_t iterator = this->array.head;
 			this->array[iterator] = value;
 			value->heapIndex = iterator; // update value heap index
 			this->array.pushed();
@@ -34,12 +34,12 @@ class GarbageCollectionHeap {
 		}
 
 		// call when the value has been incremented
-		void updateUp(size_t index) {
+		void updateUp(uint64_t index) {
 			this->organize(index);
 		}
 
 		// call when the value has been decremented
-		void updateDown(size_t index) {
+		void updateDown(uint64_t index) {
 			while(index != 0 && this->compare(index, this->parentIndex(index))) {
 				this->swap(index, this->parentIndex(index));
 				index = this->parentIndex(index);
@@ -69,19 +69,19 @@ class GarbageCollectionHeap {
 		void (*init) (S* parent, T* location);
 		void (*onRealloc) (S* parent);
 
-		size_t parentIndex(size_t index) {
+		uint64_t parentIndex(uint64_t index) {
 			return (index - 1) / 2;
 		}
 
-		size_t leftChildIndex(size_t index) {
+		uint64_t leftChildIndex(uint64_t index) {
 			return (2 * index + 1);
 		}
 
-		size_t rightChildIndex(size_t index) {
+		uint64_t rightChildIndex(uint64_t index) {
 			return (2 * index + 2);
 		}
 
-		void swap(size_t index1, size_t index2) {
+		void swap(uint64_t index1, uint64_t index2) {
 			// update value heap index
 			this->array[index1]->heapIndex = index2;
 			this->array[index2]->heapIndex = index1;
@@ -91,10 +91,10 @@ class GarbageCollectionHeap {
 			this->array[index2] = temp;
 		}
 
-		void organize(size_t index) {
-			size_t leftIndex = this->leftChildIndex(index);
-			size_t rightIndex = this->rightChildIndex(index);
-			size_t smallestIndex = index;
+		void organize(uint64_t index) {
+			uint64_t leftIndex = this->leftChildIndex(index);
+			uint64_t rightIndex = this->rightChildIndex(index);
+			uint64_t smallestIndex = index;
 
 			if(leftIndex < this->array.head && this->compare(leftIndex, smallestIndex)) {
 				smallestIndex = leftIndex;
@@ -110,7 +110,7 @@ class GarbageCollectionHeap {
 			}
 		}
 
-		bool compare(size_t leftIndex, size_t rightIndex) {
+		bool compare(uint64_t leftIndex, uint64_t rightIndex) {
 			return *(this->array[leftIndex]) < *(this->array[rightIndex]);
 		}
 };
