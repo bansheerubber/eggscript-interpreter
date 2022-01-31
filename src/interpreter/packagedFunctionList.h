@@ -32,6 +32,8 @@ namespace ts {
 			}
 
 			uint64_t topValidIndex = 0;
+
+			class MethodTree* owner = nullptr; // owner if the packaged function list if an owner exists at all
 		
 		private:
 			DynamicArray<Function*, PackagedFunctionList> functions = DynamicArray<Function*, PackagedFunctionList>(this, 15, initPackagedFunctionListFunction, nullptr);

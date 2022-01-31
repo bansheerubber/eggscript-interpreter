@@ -16,6 +16,7 @@ void ts::initMethodTree(MethodTree* self, MethodTree** tree) {
 MethodTreeEntry::MethodTreeEntry(MethodTree* tree, string name) {
 	this->name = name;
 	this->list[0] = new PackagedFunctionList(name, tree->name);
+	this->list[0]->owner = tree;
 	this->list.pushed();
 	this->hasInitialMethod = false;
 }

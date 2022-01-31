@@ -78,6 +78,7 @@ namespace ts {
 			CALL_NAMESPACE_FUNCTION,
 			CALL_PARENT_UNLINKED,
 			CALL_PARENT,
+			CALL_PARENT_ONADD, // special parent that declares superclass properties
 			RETURN_NO_VALUE,
 			RETURN, // return from a function without returning a value
 			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
