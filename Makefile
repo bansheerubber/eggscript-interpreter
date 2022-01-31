@@ -9,7 +9,7 @@ ifneq ($(OS),Windows_NT)
 endif
 
 CC = g++
-CPPFLAGS = -O2 -Wall -Wno-switch -Wno-class-memaccess -Wno-delete-incomplete -Wno-attributes -Bsymbolic -fno-semantic-interposition -std=c++17
+CPPFLAGS = -O2 -Wall -Wno-switch -Wno-class-memaccess -Wno-delete-incomplete -Wno-attributes -Bsymbolic -fno-semantic-interposition -std=c++17 -Werror=return-type
 soflags =
 ldflags =
 

@@ -13,6 +13,18 @@ void ts::initMethodTree(MethodTree* self, MethodTree** tree) {
 	*tree = nullptr;
 }
 
+MethodTree* MethodTreeInheritanceIterator::operator*() {
+	if(this->index >= this->list.size()) {
+		return nullptr;
+	}
+	return this->list[this->index];
+}
+
+MethodTreeInheritanceIterator& MethodTreeInheritanceIterator::operator++() {
+	this->index++;
+	return *this;
+}
+
 MethodTreeEntry::MethodTreeEntry(MethodTree* tree, string name) {
 	this->name = name;
 	this->list[0] = new PackagedFunctionList(name, tree->name);
@@ -58,8 +70,8 @@ void MethodTree::defineInitialMethod(string name, uint64_t nameIndex, Function* 
 	if(!hadInitialMethod) {
 		this->updateMethodTree(name, nameIndex);
 
-		for(uint64_t i = 0; i < this->children.head; i++) {
-			this->children[i]->updateMethodTree(name, nameIndex);
+		for(uint64_t i = 0; i < this->childrenList.head; i++) {
+			this->childrenList[i]->updateMethodTree(name, nameIndex);
 		}
 	}
 }
@@ -95,13 +107,34 @@ void MethodTree::updateMethodTree(string methodName, uint64_t methodNameIndex) {
 	}
 
 	// recursively update the method tree
-	for(uint64_t i = 0; i < this->children.head; i++) {
-		this->children[i]->updateMethodTree(methodName, methodNameIndex);
+	for(uint64_t i = 0; i < this->childrenList.head; i++) {
+		this->childrenList[i]->updateMethodTree(methodName, methodNameIndex);
 	}
 }
 
 void MethodTree::definePropertyDeclaration(ts::Engine* engine, ts::InstructionReturn properties) {
 	this->propertyDeclaration = new Function(engine, properties.first, 0, 0, "");
+}
+
+MethodTreeInheritanceIterator MethodTree::parents() {
+	MethodTreeInheritanceIterator iterator;
+	MethodTree* current = this;
+	while(current != nullptr && current->parentsList.head > 0) {
+		iterator.list.push_back(current->parentsList[0]);
+		current = current->parentsList[0];
+	}
+	return iterator;
+}
+
+MethodTreeInheritanceIterator MethodTree::parentsReverse() {
+	MethodTreeInheritanceIterator iterator;
+	MethodTree* current = this;
+	while(current != nullptr && current->parentsList.head > 0) {
+		iterator.list.push_back(current->parentsList[0]);
+		current = current->parentsList[0];
+	}
+	reverse(iterator.list.begin(), iterator.list.end());
+	return iterator;
 }
 
 vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string methodName, uint64_t methodNameIndex, bool addInitial) {
@@ -118,26 +151,26 @@ vector<PackagedFunctionList*> MethodTree::buildMethodTreeEntryForParents(string 
 		list.push_back(entry->list[0]);
 	}
 
-	for(uint64_t i = 0; i < this->parents.head; i++) {
-		vector<PackagedFunctionList*> inheritedList = this->parents[i]->buildMethodTreeEntryForParents(methodName, methodNameIndex);
+	for(uint64_t i = 0; i < this->parentsList.head; i++) {
+		vector<PackagedFunctionList*> inheritedList = this->parentsList[i]->buildMethodTreeEntryForParents(methodName, methodNameIndex);
 		list.insert(list.end(), inheritedList.begin(), inheritedList.end());
 	}
 	return list;
 }
 
 void MethodTree::addParent(MethodTree* parent) {
-	this->parents[this->parents.head] = parent;
-	this->parents.pushed();
+	this->parentsList[this->parentsList.head] = parent;
+	this->parentsList.pushed();
 
 	parent->addChild(this);
 }
 
 bool MethodTree::hasParent(string nameSpace) {
-	for(unsigned int i = 0; i < this->parents.head; i++) {
-		if(this->parents[i]->name == nameSpace) {
+	for(unsigned int i = 0; i < this->parentsList.head; i++) {
+		if(this->parentsList[i]->name == nameSpace) {
 			return true;
 		}
-		else if(this->parents[i]->hasParent(nameSpace)) {
+		else if(this->parentsList[i]->hasParent(nameSpace)) {
 			return true;
 		}
 	}
@@ -145,8 +178,8 @@ bool MethodTree::hasParent(string nameSpace) {
 }
 
 void MethodTree::addChild(MethodTree* child) {
-	this->children[this->children.head] = child;
-	this->children.pushed();
+	this->childrenList[this->childrenList.head] = child;
+	this->childrenList.pushed();
 
 	for(auto &[index, entry]: this->methodIndexToEntry) {
 		child->updateMethodTree(entry->name, index);

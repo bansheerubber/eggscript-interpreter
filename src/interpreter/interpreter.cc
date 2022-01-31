@@ -795,8 +795,7 @@ void Interpreter::interpret() {
 			break;
 		}
 
-		case instruction::CALL_PARENT_ONADD: {
-		case instruction::CALL_PARENT:
+		case instruction::CALL_PARENT: {
 			FunctionFrame &frame = this->frames[this->frames.head - 1];
 			MethodTreeEntry* methodTreeEntry = frame.methodTreeEntry;
 			int methodTreeEntryIndex = frame.methodTreeEntryIndex;
@@ -808,22 +807,6 @@ void Interpreter::interpret() {
 				if((uint64_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
 					list = methodTreeEntry->list[methodTreeEntryIndex];
 					packagedFunctionListIndex = list->topValidIndex;
-
-					if(instruction.type == instruction::CALL_PARENT_ONADD && list->owner != nullptr && list->owner->propertyDeclaration != nullptr) {
-						Entry &numberOfArguments = this->stack[this->stack.head - 1];
-						Entry &objectEntry = this->stack[this->stack.head - 1 - numberOfArguments.numberData]; // %this variable should always be first
-						ObjectWrapper* objectWrapper = nullptr;
-
-						if(objectEntry.type == entry::OBJECT) {
-							objectWrapper = objectEntry.objectData->objectWrapper;
-						}
-						
-						if(objectWrapper != nullptr) {
-							ts::ObjectReference* reference = new ObjectReference(objectWrapper);
-							this->push(reference, instruction::STACK);
-							this->declareObjectProperties(list->owner->propertyDeclaration);
-						}
-					}
 
 					Function* foundFunction = (*list)[packagedFunctionListIndex];
 					## call_generator.py
