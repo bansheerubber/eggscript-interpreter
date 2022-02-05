@@ -47,6 +47,8 @@ namespace ts {
 	void initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame);
 	void onFunctionFrameRealloc(Interpreter* interpreter);
 	void initSchedule(Interpreter* interpreter, Schedule** schedule);
+
+	typedef void (*instruction_function)(class Interpreter*, Instruction&);
 	
 	/*
 		the virtual machine manages the stack, variables, and objects. things like functions/classes/etc are handled via the engine
@@ -101,7 +103,11 @@ namespace ts {
 
 			bool isParallel = false;
 		
+		#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+		public:
+		#else
 		private:
+		#endif
 			GarbageCollectionHeap<ObjectWrapper*> garbageHeap;
 			
 			void interpret(); // interprets the next instruction
@@ -126,6 +132,8 @@ namespace ts {
 
 			uint64_t ranInstructions = 0;
 			uint64_t startTime = 0;
+
+			instruction_function instructionToFunction[instruction::MATRIX_SET + 1];
 
 			// stacks
 			DynamicArray<Entry, Interpreter, true> stack = DynamicArray<Entry, Interpreter, true>(this, 100000, initEntry, nullptr);
@@ -158,6 +166,10 @@ namespace ts {
 
 			// keep track of schedules
 			MinHeap<Schedule*, Interpreter> schedules = MinHeap<Schedule*, Interpreter>(this, initSchedule, nullptr);
+
+			#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+			void initInstructionToFunction();
+			#endif
 
 			// parallel stuff
 			thread tickThread;

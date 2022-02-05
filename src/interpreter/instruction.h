@@ -43,7 +43,6 @@ namespace ts {
 			UNARY_BITWISE_NOT,
 			UNARY_LOGICAL_NOT,
 			UNARY_NEGATE,
-			ARGUMENT_ASSIGN, // assign a value from the stack to a local variable, account for argument size
 			LOCAL_ASSIGN_EQUAL,
 			LOCAL_ASSIGN_INCREMENT,
 			LOCAL_ASSIGN_DECREMENT,
@@ -76,7 +75,6 @@ namespace ts {
 			CALL_FUNCTION, // call a globally scoped function
 			CALL_NAMESPACE_FUNCTION_UNLINKED,
 			CALL_NAMESPACE_FUNCTION,
-			CALL_PARENT_UNLINKED,
 			CALL_PARENT,
 			RETURN_NO_VALUE,
 			RETURN, // return from a function without returning a value

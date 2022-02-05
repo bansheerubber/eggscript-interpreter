@@ -56,6 +56,10 @@ Interpreter::Interpreter(Engine* engine, ParsedArguments args, bool isParallel) 
 		this->enterParallel();
 		this->startTime = getMicrosecondsNow();
 	}
+
+	#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+	this->initInstructionToFunction();
+	#endif
 }
 
 Interpreter::~Interpreter() {
@@ -390,8 +394,15 @@ void Interpreter::interpret() {
 
 	// PrintInstruction(instruction);
 	// this->printStack();
-	
+
+	#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+	(*this->instructionToFunction[instruction.type])(this, instruction);
+	#else
 	switch(instruction.type) {
+		default: {
+			printf("DID NOT EXECUTE INSTRUCTION.\n");
+		}
+		
 		case instruction::INVALID_INSTRUCTION: {
 			this->popFunctionFrame();
 
@@ -962,16 +973,120 @@ void Interpreter::interpret() {
 			this->pop();
 			break;
 		}
-
-		default: {
-			printf("DID NOT EXECUTE INSTRUCTION.\n");
-		}
 	}
+	#endif
 
 	// this->printStack();
 
 	goto start;
 }
+
+#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+void Interpreter::initInstructionToFunction() {
+	this->instructionToFunction[instruction::INVALID_INSTRUCTION] = instruction_INVALID_INSTRUCTION;
+	this->instructionToFunction[instruction::NOOP] = instruction_NOOP;
+	this->instructionToFunction[instruction::PUSH] = instruction_PUSH;
+	this->instructionToFunction[instruction::POP] = instruction_POP;
+	this->instructionToFunction[instruction::JUMP] = instruction_JUMP;
+	this->instructionToFunction[instruction::JUMP_IF_TRUE] = instruction_JUMP_IF_TRUE;
+	this->instructionToFunction[instruction::JUMP_IF_TRUE_THEN_POP] = instruction_JUMP_IF_TRUE_THEN_POP;
+	this->instructionToFunction[instruction::JUMP_IF_FALSE] = instruction_JUMP_IF_FALSE;
+	this->instructionToFunction[instruction::JUMP_IF_FALSE_THEN_POP] = instruction_JUMP_IF_FALSE_THEN_POP;
+	this->instructionToFunction[instruction::MATH_ADDITION] = instruction_MATH_ADDITION;
+	this->instructionToFunction[instruction::MATH_SUBTRACT] = instruction_MATH_SUBTRACT;
+	this->instructionToFunction[instruction::MATH_MULTIPLY] = instruction_MATH_MULTIPLY;
+	this->instructionToFunction[instruction::MATH_DIVISION] = instruction_MATH_DIVISION;
+	this->instructionToFunction[instruction::MATH_MODULUS] = instruction_MATH_MODULUS;
+	this->instructionToFunction[instruction::MATH_SHIFT_LEFT] = instruction_MATH_SHIFT_LEFT;
+	this->instructionToFunction[instruction::MATH_SHIFT_RIGHT] = instruction_MATH_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::MATH_EQUAL] = instruction_MATH_EQUAL;
+	this->instructionToFunction[instruction::MATH_NOT_EQUAL] = instruction_MATH_NOT_EQUAL;
+	this->instructionToFunction[instruction::MATH_LESS_THAN_EQUAL] = instruction_MATH_LESS_THAN_EQUAL;
+	this->instructionToFunction[instruction::MATH_GREATER_THAN_EQUAL] = instruction_MATH_GREATER_THAN_EQUAL;
+	this->instructionToFunction[instruction::MATH_LESS_THAN] = instruction_MATH_LESS_THAN;
+	this->instructionToFunction[instruction::MATH_GREATER_THAN] = instruction_MATH_GREATER_THAN;
+	this->instructionToFunction[instruction::MATH_BITWISE_AND] = instruction_MATH_BITWISE_AND;
+	this->instructionToFunction[instruction::MATH_BITWISE_OR] = instruction_MATH_BITWISE_OR;
+	this->instructionToFunction[instruction::MATH_BITWISE_XOR] = instruction_MATH_BITWISE_XOR;
+	this->instructionToFunction[instruction::MATH_APPEND] = instruction_MATH_APPEND;
+	this->instructionToFunction[instruction::MATH_SPC] = instruction_MATH_SPC;
+	this->instructionToFunction[instruction::MATH_TAB] = instruction_MATH_TAB;
+	this->instructionToFunction[instruction::MATH_NL] = instruction_MATH_NL;
+	this->instructionToFunction[instruction::UNARY_BITWISE_NOT] = instruction_UNARY_BITWISE_NOT;
+	this->instructionToFunction[instruction::UNARY_LOGICAL_NOT] = instruction_UNARY_LOGICAL_NOT;
+	this->instructionToFunction[instruction::UNARY_NEGATE] = instruction_UNARY_NEGATE;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_EQUAL] = instruction_LOCAL_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_INCREMENT] = instruction_LOCAL_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_DECREMENT] = instruction_LOCAL_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_PLUS] = instruction_LOCAL_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_MINUS] = instruction_LOCAL_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_ASTERISK] = instruction_LOCAL_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_SLASH] = instruction_LOCAL_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_MODULUS] = instruction_LOCAL_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_SHIFT_LEFT] = instruction_LOCAL_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_SHIFT_RIGHT] = instruction_LOCAL_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_BITWISE_AND] = instruction_LOCAL_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_BITWISE_XOR] = instruction_LOCAL_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_BITWISE_OR] = instruction_LOCAL_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_EQUAL] = instruction_GLOBAL_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_INCREMENT] = instruction_GLOBAL_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_DECREMENT] = instruction_GLOBAL_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_PLUS] = instruction_GLOBAL_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_MINUS] = instruction_GLOBAL_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_ASTERISK] = instruction_GLOBAL_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_SLASH] = instruction_GLOBAL_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_MODULUS] = instruction_GLOBAL_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_SHIFT_LEFT] = instruction_GLOBAL_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_SHIFT_RIGHT] = instruction_GLOBAL_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_BITWISE_AND] = instruction_GLOBAL_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_BITWISE_XOR] = instruction_GLOBAL_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_BITWISE_OR] = instruction_GLOBAL_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::LOCAL_ACCESS] = instruction_LOCAL_ACCESS;
+	this->instructionToFunction[instruction::GLOBAL_ACCESS] = instruction_GLOBAL_ACCESS;
+	this->instructionToFunction[instruction::CALL_FUNCTION_UNLINKED] = instruction_CALL_FUNCTION_UNLINKED;
+	this->instructionToFunction[instruction::CALL_FUNCTION] = instruction_CALL_FUNCTION;
+	this->instructionToFunction[instruction::CALL_NAMESPACE_FUNCTION_UNLINKED] = instruction_CALL_NAMESPACE_FUNCTION_UNLINKED;
+	this->instructionToFunction[instruction::CALL_NAMESPACE_FUNCTION] = instruction_CALL_NAMESPACE_FUNCTION;
+	this->instructionToFunction[instruction::CALL_PARENT] = instruction_CALL_PARENT;
+	this->instructionToFunction[instruction::RETURN_NO_VALUE] = instruction_RETURN_NO_VALUE;
+	this->instructionToFunction[instruction::RETURN] = instruction_RETURN;
+	this->instructionToFunction[instruction::POP_ARGUMENTS] = instruction_POP_ARGUMENTS;
+	this->instructionToFunction[instruction::CREATE_OBJECT_UNLINKED] = instruction_CREATE_OBJECT_UNLINKED;
+	this->instructionToFunction[instruction::CREATE_OBJECT] = instruction_CREATE_OBJECT;
+	this->instructionToFunction[instruction::CALL_OBJECT_UNLINKED] = instruction_CALL_OBJECT_UNLINKED;
+	this->instructionToFunction[instruction::CALL_OBJECT] = instruction_CALL_OBJECT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_EQUAL] = instruction_OBJECT_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_INCREMENT] = instruction_OBJECT_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_DECREMENT] = instruction_OBJECT_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_PLUS] = instruction_OBJECT_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_MINUS] = instruction_OBJECT_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_ASTERISK] = instruction_OBJECT_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_SLASH] = instruction_OBJECT_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_MODULUS] = instruction_OBJECT_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_SHIFT_LEFT] = instruction_OBJECT_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_SHIFT_RIGHT] = instruction_OBJECT_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_BITWISE_AND] = instruction_OBJECT_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_BITWISE_XOR] = instruction_OBJECT_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_BITWISE_OR] = instruction_OBJECT_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::OBJECT_ACCESS] = instruction_OBJECT_ACCESS;
+	this->instructionToFunction[instruction::ARRAY_ACCESS] = instruction_ARRAY_ACCESS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_EQUAL] = instruction_ARRAY_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_INCREMENT] = instruction_ARRAY_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_DECREMENT] = instruction_ARRAY_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_PLUS] = instruction_ARRAY_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_MINUS] = instruction_ARRAY_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_ASTERISK] = instruction_ARRAY_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_SLASH] = instruction_ARRAY_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_MODULUS] = instruction_ARRAY_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_SHIFT_LEFT] = instruction_ARRAY_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_SHIFT_RIGHT] = instruction_ARRAY_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_BITWISE_AND] = instruction_ARRAY_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_BITWISE_XOR] = instruction_ARRAY_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_BITWISE_OR] = instruction_ARRAY_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::MATRIX_CREATE] = instruction_MATRIX_CREATE;
+	this->instructionToFunction[instruction::MATRIX_SET] = instruction_MATRIX_SET;
+}
+#endif
 
 void Interpreter::printStack() {
 	printf("\nSTACK: %ld\n", this->stack.head);
