@@ -41,7 +41,7 @@ namespace ts {
 		int methodTreeEntryIndex;
 		bool earlyQuit;
 		bool isTSSL;
-		string fileName;
+		string* fileName;
 	};
 
 	void initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame);
@@ -153,7 +153,7 @@ namespace ts {
 				int methodTreeEntryIndex = -1,
 				uint64_t argumentCount = 0,
 				uint64_t popCount = 0,
-				string fileName = "",
+				string* fileName = nullptr,
 				bool earlyQuit = false
 			);
 			void popFunctionFrame() __attribute__((always_inline));

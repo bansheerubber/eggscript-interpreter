@@ -83,7 +83,7 @@ void Interpreter::declareObjectProperties(Function* function) {
 	frame.methodTreeEntryIndex = 0;
 	frame.earlyQuit = true;
 	frame.isTSSL = false;
-	ALLOCATE_STRING(string(""), frame.fileName);
+	frame.fileName = nullptr;
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -102,7 +102,7 @@ void Interpreter::pushFunctionFrame(
 	int methodTreeEntryIndex,
 	uint64_t argumentCount,
 	uint64_t popCount,
-	string fileName,
+	string* fileName,
 	bool earlyQuit
 ) {
 	if(this->frames.head == 0) {
@@ -120,7 +120,7 @@ void Interpreter::pushFunctionFrame(
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
 	frame.earlyQuit = earlyQuit;
 	frame.isTSSL = false;
-	ALLOCATE_STRING(fileName, frame.fileName);
+	frame.fileName = fileName;
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -157,15 +157,15 @@ void Interpreter::pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int me
 	frame.stackPopCount = 0;
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
-	ALLOCATE_STRING(string(""), frame.fileName);
+	frame.fileName = nullptr;
 	this->frames.pushed();
 }
 
 string& Interpreter::getTopFileNameFromFrame() {
 	static string empty = "";
 	for(int i = this->frames.head - 1; i >= 0; i--) {
-		if(this->frames[i].fileName != "") {
-			return this->frames[i].fileName;
+		if(this->frames[i].fileName != nullptr) {
+			return *this->frames[i].fileName;
 		}
 	}
 	return empty;
@@ -1156,7 +1156,7 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t
 			methodTreeEntryIndex,
 			argumentCount + 1,
 			foundFunction->variableCount,
-			"",
+			nullptr,
 			true
 		);
 		this->interpret();
@@ -1228,7 +1228,7 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			methodTreeEntryIndex,
 			argumentCount + 1,
 			foundFunction->variableCount,
-			"",
+			nullptr,
 			true
 		);
 		this->interpret();

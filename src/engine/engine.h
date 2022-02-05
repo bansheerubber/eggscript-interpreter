@@ -136,6 +136,8 @@ namespace ts {
 			// data structures for keeping track of instructions that need extra linking
 			robin_set<Instruction*> unlinkedFunctions;
 
+			robin_map<string, string> visitedFiles; // little bit of a hack to keep all filenames persistent
+
 			void swapInstructionDebug(Instruction* source, Instruction* destination);
 			void addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line);
 
