@@ -128,7 +128,7 @@ namespace ts {
 			uint64_t startTime = 0;
 
 			// stacks
-			DynamicArray<Entry, Interpreter> stack = DynamicArray<Entry, Interpreter>(this, 10000, initEntry, nullptr);
+			DynamicArray<Entry, Interpreter, true> stack = DynamicArray<Entry, Interpreter, true>(this, 100000, initEntry, nullptr);
 			DynamicArray<FunctionFrame, Interpreter> frames = DynamicArray<FunctionFrame, Interpreter>(this, 100, initFunctionFrame, onFunctionFrameRealloc);
 			InstructionContainer* topContainer; // the current container we're executing code from, taken from frames
 			uint64_t* instructionPointer; // the current instruction pointer, taken from frames
