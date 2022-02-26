@@ -660,6 +660,28 @@ void Interpreter::interpret() {
 			break;
 		}
 
+		case instruction::MOVE_THEN_RETURN: { // return from a function
+			copyEntry(this->stack[this->stack.head - 1], this->returnRegister);
+			this->pop();
+
+			this->popFunctionFrame();
+
+			// if we just ran out of instruction containers, just die here
+			if(this->topContainer == nullptr) {
+				return;
+			}
+
+			this->push(this->returnRegister, instruction::STACK, true); // push return register
+
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL || this->frames[this->frames.head].earlyQuit) {
+				return;
+			}
+
+			break;
+		}
+
 		case instruction::RETURN: { // return from a function
 			this->popFunctionFrame();
 

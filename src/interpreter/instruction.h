@@ -77,6 +77,7 @@ namespace ts {
 			CALL_NAMESPACE_FUNCTION,
 			CALL_PARENT,
 			RETURN_NO_VALUE,
+			MOVE_THEN_RETURN, // move the last element from the stack onto the return register, then push it back once the frame is cleared
 			RETURN, // return from a function without returning a value
 			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
 			CREATE_OBJECT_UNLINKED,
