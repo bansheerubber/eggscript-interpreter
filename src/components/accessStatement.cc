@@ -32,6 +32,12 @@ AccessStatement* AccessStatement::Parse(
 	AccessStatement* output = new AccessStatement(engine);
 	output->parent = parent;
 
+	enum ChainStateMachine {
+		EXPECTING_ANY,
+		EXPECTING_ARRAY_OR_DOT,
+	};
+	ChainStateMachine state = EXPECTING_ANY;
+
 	Token &token = engine->tokenizer->peekToken();
 	if(firstValue != nullptr) {
 		output->elements.push_back((AccessElement){
@@ -48,41 +54,40 @@ AccessStatement* AccessStatement::Parse(
 		output->elements.push_back((AccessElement){
 			token: engine->tokenizer->getToken(),
 		});
+
+		if(token.type == LOCAL_VARIABLE || token.type == GLOBAL_VARIABLE) {
+			state = EXPECTING_ARRAY_OR_DOT;
+		}
 	}
 	
-	int expectingArrayOrCall = 1; // doesn't quite work for something like %test();
 	while(!engine->tokenizer->eof()) {
 		token = engine->tokenizer->peekToken();
-		if(ArrayStatement::ShouldParse(engine)) {
-			if(expectingArrayOrCall > 0) {
-				output->elements.push_back((AccessElement){
-					isArray: true,
-					component: ArrayStatement::Parse(output, engine),
-				});
-				expectingArrayOrCall = 2;
-			}
-			else {
-				engine->parser->error("was not expecting array access");
-			}
-		}
-		else if(CallStatement::ShouldParse(engine)) {
-			if(expectingArrayOrCall == 1) {
-				output->elements.push_back((AccessElement){
-					isCall: true,
-					component: CallStatement::Parse(output, engine),
-				});
-				expectingArrayOrCall = 0;
-			}
-			else {
-				engine->parser->error("was not expecting call");
-			}
-		}
-		else if(token.type == MEMBER_CHAIN) {
+		
+		if(token.type == MEMBER_CHAIN) {
 			engine->tokenizer->getToken(); // absorb the token we peeked
 			output->elements.push_back((AccessElement){
 				token: token,
 			});
-			expectingArrayOrCall = 1;
+			state = EXPECTING_ANY;
+		}
+		else if(ArrayStatement::ShouldParse(engine)) {
+			output->elements.push_back((AccessElement){
+				isArray: true,
+				component: ArrayStatement::Parse(output, engine),
+			});
+			state = EXPECTING_ARRAY_OR_DOT;
+		}
+		else if(CallStatement::ShouldParse(engine)) {
+			if(state == EXPECTING_ANY) {
+				output->elements.push_back((AccessElement){
+					isCall: true,
+					component: CallStatement::Parse(output, engine),
+				});
+				state = EXPECTING_ARRAY_OR_DOT;
+			}
+			else {
+				engine->parser->error("was not expecting call");
+			}
 		}
 		else {
 			break;
