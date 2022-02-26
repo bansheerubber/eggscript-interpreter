@@ -97,8 +97,8 @@ void Engine::execVirtualFile(string fileName, string contents) {
 	});
 	this->link();
 
-	this->visitedFiles[fileName] = fileName;
-	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, &this->visitedFiles[fileName]);
+	this->visitedFiles[fileName] = new string(fileName);
+	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, this->visitedFiles[fileName]);
 	this->interpreter->interpret();
 }
 
@@ -222,25 +222,25 @@ void Engine::printUnlinkedInstructions() {
 		
 		switch(unlinked->type) {
 			case instruction::CALL_FUNCTION_UNLINKED: {
-				format += "could not link function '%s'";
+				format += "could not link function '%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->callFunction.name);
 				break;
 			}
 
 			case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: {
-				format += "could not link function '%s::%s'";
+				format += "could not link function '%s::%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->callNamespaceFunction.nameSpace, unlinked->callNamespaceFunction.name);
 				break;
 			}
 
 			case instruction::CALL_OBJECT_UNLINKED: {
-				format += "could not link method '%s'";
+				format += "could not link method '%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->callObject.name);
 				break;
 			}
 
 			case instruction::CREATE_OBJECT_UNLINKED: {
-				format += "could not link object creation namespace '%s'";
+				format += "could not link object creation namespace '%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->createObject.typeName);
 				break;
 			}
