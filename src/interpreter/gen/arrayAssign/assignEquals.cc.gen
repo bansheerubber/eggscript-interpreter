@@ -42,7 +42,7 @@ if(failure) {
 	break;
 }
 
-if(instruction.localAssign.fromStack) {
+if(instruction.localAssign.fromStack && !instruction.arrayAssign.pushResult) {
 	greedyCopyEntry(*entry, *foundEntry);
 }
 else {
