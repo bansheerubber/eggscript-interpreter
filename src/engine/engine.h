@@ -96,6 +96,8 @@ namespace ts {
 			void addUnlinkedInstruction(Instruction* instruction);
 
 			void printUnlinkedInstructions();
+
+			void printSubTypeCounts();
 		
 		private:
 			ParsedArguments args;
@@ -137,6 +139,9 @@ namespace ts {
 			robin_set<Instruction*> unlinkedFunctions;
 
 			robin_map<string, string*> visitedFiles; // little bit of a hack to keep all filenames persistent
+
+			// tally up the different subtypes for debugging
+			uint64_t subtypes[instruction::SUBTYPE_END + 1];
 
 			void swapInstructionDebug(Instruction* source, Instruction* destination);
 			void addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line);

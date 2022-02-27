@@ -9,6 +9,20 @@ namespace ts {
 			STACK = -1,
 			RETURN_REGISTER,
 		};
+
+		// if we're a load instruction, store, jump, call, etc
+		enum InstructionSubType {
+			SUBTYPE_NOOP,
+			SUBTYPE_STACK,
+			SUBTYPE_MATH,
+			SUBTYPE_ASSIGN,
+			SUBTYPE_ACCESS,
+			SUBTYPE_BRANCH,
+			SUBTYPE_JUMP,
+			SUBTYPE_CALL,
+			SUBTYPE_RETURN,
+			SUBTYPE_END = SUBTYPE_RETURN,
+		};
 		
 		enum InstructionType : unsigned short {
 			INVALID_INSTRUCTION, // an instruction with an invalid type will cause the interpreter to stop
@@ -69,21 +83,6 @@ namespace ts {
 			GLOBAL_ASSIGN_BITWISE_AND,
 			GLOBAL_ASSIGN_BITWISE_XOR,
 			GLOBAL_ASSIGN_BITWISE_OR,
-			LOCAL_ACCESS, // gets the value of a local variable and puts it on the stack
-			GLOBAL_ACCESS,
-			CALL_FUNCTION_UNLINKED,
-			CALL_FUNCTION, // call a globally scoped function
-			CALL_NAMESPACE_FUNCTION_UNLINKED,
-			CALL_NAMESPACE_FUNCTION,
-			CALL_PARENT,
-			RETURN_NO_VALUE,
-			MOVE_THEN_RETURN, // move the last element from the stack onto the return register, then push it back once the frame is cleared
-			RETURN, // return from a function without returning a value
-			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
-			CREATE_OBJECT_UNLINKED,
-			CREATE_OBJECT, // create an object
-			CALL_OBJECT_UNLINKED,
-			CALL_OBJECT, // call a function on an object
 			OBJECT_ASSIGN_EQUAL,
 			OBJECT_ASSIGN_INCREMENT,
 			OBJECT_ASSIGN_DECREMENT,
@@ -97,8 +96,6 @@ namespace ts {
 			OBJECT_ASSIGN_BITWISE_AND,
 			OBJECT_ASSIGN_BITWISE_XOR,
 			OBJECT_ASSIGN_BITWISE_OR,
-			OBJECT_ACCESS,
-			ARRAY_ACCESS,
 			ARRAY_ASSIGN_EQUAL,
 			ARRAY_ASSIGN_INCREMENT,
 			ARRAY_ASSIGN_DECREMENT,
@@ -112,6 +109,23 @@ namespace ts {
 			ARRAY_ASSIGN_BITWISE_AND,
 			ARRAY_ASSIGN_BITWISE_XOR,
 			ARRAY_ASSIGN_BITWISE_OR,
+			LOCAL_ACCESS, // gets the value of a local variable and puts it on the stack
+			GLOBAL_ACCESS,
+			OBJECT_ACCESS,
+			ARRAY_ACCESS,
+			CALL_FUNCTION_UNLINKED,
+			CALL_FUNCTION, // call a globally scoped function
+			CALL_NAMESPACE_FUNCTION_UNLINKED,
+			CALL_NAMESPACE_FUNCTION,
+			CALL_PARENT,
+			CALL_OBJECT_UNLINKED,
+			CALL_OBJECT, // call a function on an object
+			RETURN_NO_VALUE,
+			MOVE_THEN_RETURN, // move the last element from the stack onto the return register, then push it back once the frame is cleared
+			RETURN, // return from a function without returning a value
+			POP_ARGUMENTS, // pop x arguments from the stack, x being obtained from the top of the stack
+			CREATE_OBJECT_UNLINKED,
+			CREATE_OBJECT, // create an object
 			MATRIX_CREATE,
 			MATRIX_SET,
 		};
@@ -271,6 +285,43 @@ namespace ts {
 	};
 
 	void copyInstruction(class Engine* engine, Instruction &source, Instruction &destination);
+
+	inline instruction::InstructionSubType typeToSubType(instruction::InstructionType type) {
+		if(type == instruction::INVALID_INSTRUCTION || type == instruction::NOOP) {
+			return instruction::SUBTYPE_NOOP;
+		}
+		else if(type >= instruction::PUSH && type <= instruction::POP) {
+			return instruction::SUBTYPE_STACK;
+		}
+		else if(type == instruction::JUMP) {
+			return instruction::SUBTYPE_JUMP;
+		}
+		else if(type >= instruction::JUMP_IF_TRUE && type <= instruction::JUMP_IF_FALSE_THEN_POP) {
+			return instruction::SUBTYPE_BRANCH;
+		}
+		else if(type >= instruction::MATH_ADDITION && type <= instruction::UNARY_NEGATE) {
+			return instruction::SUBTYPE_MATH;
+		}
+		else if(type >= instruction::LOCAL_ASSIGN_EQUAL && type <= instruction::ARRAY_ASSIGN_BITWISE_OR) {
+			return instruction::SUBTYPE_ASSIGN;
+		}
+		else if(type >= instruction::LOCAL_ACCESS && type <= instruction::ARRAY_ACCESS) {
+			return instruction::SUBTYPE_ACCESS;
+		}
+		else if(type >= instruction::CALL_FUNCTION_UNLINKED && type <= instruction::CALL_OBJECT) {
+			return instruction::SUBTYPE_CALL;
+		}
+		else if(type >= instruction::RETURN_NO_VALUE && type <= instruction::RETURN) {
+			return instruction::SUBTYPE_RETURN;
+		}
+		else if(type >= instruction::POP_ARGUMENTS && type <= instruction::MATRIX_CREATE) {
+			return instruction::SUBTYPE_STACK;
+		}
+		else if(type == instruction::MATRIX_SET) {
+			return instruction::SUBTYPE_ASSIGN;
+		}
+		return instruction::SUBTYPE_NOOP;
+	}
 
 	struct InstructionReturn {
 		Instruction* first; // first instruction in mini linked list
