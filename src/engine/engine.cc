@@ -98,7 +98,7 @@ void Engine::execVirtualFile(string fileName, string contents) {
 	this->link();
 
 	this->visitedFiles[fileName] = new string(fileName);
-	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, this->visitedFiles[fileName]);
+	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, this->visitedFiles[fileName], false, instruction::RETURN_REGISTER);
 	this->interpreter->interpret();
 }
 

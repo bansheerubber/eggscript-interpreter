@@ -94,6 +94,10 @@ void Interpreter::declareObjectProperties(Function* function) {
 	this->interpret();
 }
 
+void Interpreter::pushFunctionFrame(InstructionContainer* container) {
+	this->pushFunctionFrame(container, nullptr, -1, nullptr, -1, 0, 0, nullptr, false, instruction::STACK);
+}
+
 void Interpreter::pushFunctionFrame(
 	InstructionContainer* container,
 	PackagedFunctionList* list,
@@ -103,7 +107,8 @@ void Interpreter::pushFunctionFrame(
 	uint64_t argumentCount,
 	uint64_t popCount,
 	string* fileName,
-	bool earlyQuit
+	bool earlyQuit,
+	instruction::PushType type
 ) {
 	if(this->frames.head == 0) {
 		this->startTime = getMicrosecondsNow();
@@ -121,6 +126,7 @@ void Interpreter::pushFunctionFrame(
 	frame.earlyQuit = earlyQuit;
 	frame.isTSSL = false;
 	frame.fileName = fileName;
+	frame.pushType = type;
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -293,7 +299,10 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 				methodTreeEntry,
 				methodTreeEntryIndex,
 				argc + 1,
-				foundFunction->variableCount
+				foundFunction->variableCount,
+				nullptr,
+				false,
+				instruction::RETURN_REGISTER
 			);
 			this->interpret();
 
@@ -649,7 +658,7 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			this->pushEmpty(instruction::STACK);
+			this->pushEmpty(this->frames[this->frames.head].pushType);
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over
@@ -671,7 +680,9 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			this->push(this->returnRegister, instruction::STACK, true); // push return register
+			if(this->frames[this->frames.head].pushType < 0) {
+				this->push(this->returnRegister, instruction::STACK, true); // push return register	
+			}
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over
@@ -690,7 +701,9 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			this->push(this->returnRegister, instruction::STACK, true); // push return register
+			if(this->frames[this->frames.head].pushType < 0) {
+				this->push(this->returnRegister, instruction::STACK, true); // push return register	
+			}
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over
@@ -1179,7 +1192,8 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t
 			argumentCount + 1,
 			foundFunction->variableCount,
 			nullptr,
-			true
+			true,
+			instruction::RETURN_REGISTER
 		);
 		this->interpret();
 	
@@ -1251,13 +1265,14 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			argumentCount + 1,
 			foundFunction->variableCount,
 			nullptr,
-			true
+			true,
+			instruction::RETURN_REGISTER
 		);
 		this->interpret();
 
-		if(this->topContainer != nullptr) {
-			this->pop(); // pop the return value from the stack, otherwise its just going to stay there forever
-		}
+		// if(this->topContainer != nullptr) {
+		// 	this->pop(); // pop the return value from the stack, otherwise its just going to stay there forever
+		// }
 
 		return new Entry(this->returnRegister);
 	}

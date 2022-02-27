@@ -42,6 +42,7 @@ namespace ts {
 		bool earlyQuit;
 		bool isTSSL;
 		string* fileName;
+		instruction::PushType pushType;
 	};
 
 	void initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame);
@@ -145,16 +146,18 @@ namespace ts {
 			VariableContext globalContext;
 
 			void declareObjectProperties(Function* function);
+			void pushFunctionFrame(InstructionContainer* container);
 			void pushFunctionFrame(
 				InstructionContainer* container,
-				PackagedFunctionList* list = nullptr,
-				int packagedFunctionListIndex = -1,
-				MethodTreeEntry* methodTreeEntry = nullptr,
-				int methodTreeEntryIndex = -1,
-				uint64_t argumentCount = 0,
-				uint64_t popCount = 0,
-				string* fileName = nullptr,
-				bool earlyQuit = false
+				PackagedFunctionList* list,
+				int packagedFunctionListIndex,
+				MethodTreeEntry* methodTreeEntry,
+				int methodTreeEntryIndex,
+				uint64_t argumentCount,
+				uint64_t popCount,
+				string* fileName,
+				bool earlyQuit,
+				instruction::PushType type
 			);
 			void popFunctionFrame() __attribute__((always_inline));
 			void pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex);

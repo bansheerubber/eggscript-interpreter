@@ -59,7 +59,9 @@ ts::InstructionReturn ReturnStatement::compile(ts::Engine* engine, ts::Compilati
 		ts::InstructionReturn operation = this->operation->compile(engine, context);
 		
 		if(
-			this->operation->getType() == NUMBER_LITERAL
+			this->operation->getType() == ACCESS_STATEMENT
+			|| this->operation->getType() == PARENT_STATEMENT
+			|| this->operation->getType() == NUMBER_LITERAL
 			|| this->operation->getType() == STRING_LITERAL
 			|| this->operation->getType() == BOOLEAN_LITERAL
 		) { // TODO: remove the need to do this

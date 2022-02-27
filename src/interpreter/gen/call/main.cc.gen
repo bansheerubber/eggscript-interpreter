@@ -44,6 +44,9 @@ else {
 		methodTreeEntry,
 		methodTreeEntryIndex,
 		numberOfArguments + 1,
-		foundFunction->variableCount
+		foundFunction->variableCount,
+		nullptr,
+		false,
+		instruction.pushType
 	);
 }
