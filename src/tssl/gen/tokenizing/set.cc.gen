@@ -1,11 +1,11 @@
-const char* words = %%words%%;
+ts::String* words = %%words%%;
 int count = %%index%%;
-const char* replace = %%replacement%%;
+ts::String* replace = %%replacement%%;
 string output;
 int spaceCount = 0;
 bool replaced = false;
-for(; *words; words++) {
-	char character = *words;
+for(uint16_t i = 0; i < words->size; i++) {
+	char character = words->string[i];
 	if(%%comparison%%) {
 		spaceCount++;
 
@@ -19,7 +19,7 @@ for(; *words; words++) {
 	}
 	else if(replaced == false) {
 		replaced = true;
-		output += replace;
+		output += string(replace->string, replace->size);
 	}
 }
 
@@ -29,5 +29,5 @@ for(int i = 0; i < count - spaceCount; i++) {
 }
 
 if(count > spaceCount) {
-	output += replace;
+	output += string(replace->string, replace->size);
 }

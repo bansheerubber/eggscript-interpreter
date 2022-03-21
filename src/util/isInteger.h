@@ -1,3 +1,7 @@
 #pragma once
 
-bool isInteger(const char* string);
+namespace ts {
+	struct String;
+};
+
+bool isInteger(ts::String* string);

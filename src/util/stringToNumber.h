@@ -1,3 +1,7 @@
 #pragma once
 
-double stringToNumber(char* &value);
+namespace ts {
+	struct String;
+};
+
+double stringToNumber(ts::String* value);

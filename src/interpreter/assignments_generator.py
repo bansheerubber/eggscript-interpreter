@@ -63,6 +63,9 @@ for prefix, folder in get_prefixes().items():
 	END_MACRO = get_generated_code(folder, "end", 3)
 
 	for suffix in get_suffixes():
+		# if f"{prefix}_{suffix}" not in specific_operations:
+		# 	continue
+		
 		if suffix != "EQUAL": # handle all other instructions using the files we pulled from
 			operation = operations[suffix].format("entryNumber", "value->numberData")
 			formatted = GET_VALUE_MACRO.replace(r"%%", "value")

@@ -1,4 +1,4 @@
 %%conditional%%((%%entry%%).type == entry::EMPTY) {
-	%%output%% = new char[5]{'n', 'u', 'l', 'l', '\0'};
+	%%output%% = new ts::String("null", 4);
 	%%delete%%
 }

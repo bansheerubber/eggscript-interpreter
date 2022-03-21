@@ -7,7 +7,7 @@ namespace ts {
 		Entry* SimObject__test(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 2) {
 				printf("attemtping print because argc high\n");
-				printf("sim object says: %s\n", args[1].stringData);
+				printf("sim object says: %.*s\n", args[1].stringData->size, args[1].stringData->string);
 			}
 			return nullptr;
 		}

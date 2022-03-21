@@ -121,7 +121,7 @@ namespace ts {
 			void push(Entry &entry, instruction::PushType type, bool greedy) __attribute__((always_inline));
 			void push(Entry &entry, instruction::PushType type) __attribute__((always_inline));
 			void push(double number, instruction::PushType type) __attribute__((always_inline));
-			void push(char* data, instruction::PushType type) __attribute__((always_inline));
+			void push(ts::String* data, instruction::PushType type) __attribute__((always_inline));
 			void push(Matrix* matrix, instruction::PushType type) __attribute__((always_inline));
 			void push(ObjectReference* data, instruction::PushType);
 			void pushEmpty(instruction::PushType type)  __attribute__((always_inline));

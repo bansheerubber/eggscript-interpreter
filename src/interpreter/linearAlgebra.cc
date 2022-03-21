@@ -129,13 +129,18 @@ string ts::Matrix::print() {
 	string output = "{ ";
 	for(unsigned int r = 0; r < this->rows; r++) {
 		for(unsigned int c = 0; c < this->columns; c++) {
-			const char* number;
+			ts::String* number = nullptr;
 			bool deleteString = false;
 			## type_conversion.py "this->data[r][c]" number ALL STRING deleteString
-			output += number;
+
+			if(number == nullptr) {
+				continue;
+			}
+
+			output += number->string;
 			output += ", ";
 			if(deleteString) {
-				delete[] number;
+				delete number;
 			}
 		}
 

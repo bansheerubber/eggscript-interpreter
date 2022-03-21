@@ -1,4 +1,4 @@
-const char* words = %%words%%;
+ts::String* words = %%words%%;
 int startCount = %%start%%;
 
 if(startCount < 0) {
@@ -12,8 +12,8 @@ if(argc >= 3) {
 
 string output;
 int spaceCount = 0;
-for(; *words; words++) {
-	char character = *words;
+for(uint16_t i = 0; i < words->size; i++) {
+	char character = words->string[i];
 	if(%%comparison%%) {
 		if(spaceCount >= startCount && (spaceCount < endCount || endCount == -1)) {
 			output += character;

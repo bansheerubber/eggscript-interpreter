@@ -1,8 +1,8 @@
-const char* words = %%words%%;
+ts::String* words = %%words%%;
 string rest;
 bool copyDown = false;
-for(; *words; words++) {
-	char character = *words;
+for(uint16_t i = 0; i < words->size; i++) {
+	char character = words->string[i];
 
 	if(copyDown) {
 		rest += character;

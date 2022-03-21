@@ -1,7 +1,7 @@
 #include "getEmptyString.h"
 
-char* getEmptyString() {
-	char* empty = new char[1];
-	empty[0] = '\0';
-	return empty;
+#include "../interpreter/string.h"
+
+ts::String* getEmptyString() {
+	return new ts::String((uint16_t)0);
 }

@@ -3,8 +3,8 @@
 	bool popRValue = false;
 
 	// final strings after converting type
-	char* lvalueString = nullptr;
-	char* rvalueString = nullptr;
+	ts::String* lvalueString = nullptr;
+	ts::String* rvalueString = nullptr;
 
 	// if we need to delete the string if we converted from number to string
 	bool deleteLValueString = false;
@@ -40,8 +40,8 @@
 	}
 #else
 	// final strings after converting type
-	char* lvalueString = nullptr;
-	char* rvalueString = nullptr;
+	ts::String* lvalueString = nullptr;
+	ts::String* rvalueString = nullptr;
 
 	// if we need to delete the string if we converted from number to string
 	bool deleteLValueString = false;

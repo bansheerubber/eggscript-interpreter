@@ -4,6 +4,7 @@
 
 #include "linearAlgebra.h"
 #include "objectReference.h"
+#include "string.h"
 
 using namespace std;
 
@@ -34,7 +35,7 @@ namespace ts {
 				i'm trying to keep number operations as quick as possible, and this was the way i found
 				to preserve performance
 			*/
-			char* stringData;
+			String* stringData;
 			ObjectReference* objectData;
 			Matrix* matrixData;
 		};
@@ -42,19 +43,19 @@ namespace ts {
 		Entry();
 		Entry(const Entry &entry);
 		Entry(double value);
-		Entry(char* value);
+		Entry(String* value);
 		Entry(Matrix* value);
 		Entry(ObjectReference* value);
 		~Entry();
 		void setNumber(double value);
-		void setString(char* value);
+		void setString(String* value);
 		void setString(string value);
 		void setMatrix(Matrix* value);
 		void setObject(ObjectReference* value);
 
 		inline void erase() {
 			if(this->type == entry::STRING && this->stringData != nullptr) {
-				delete[] this->stringData;
+				delete this->stringData;
 				this->stringData = nullptr;
 			}
 

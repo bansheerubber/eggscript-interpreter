@@ -1,4 +1,4 @@
 %%conditional%%((%%entry%%).type == entry::MATRIX) {
-	%%output%% = cloneString((%%entry%%).matrixData->print().c_str());
+	%%output%% = new ts::String((%%entry%%).matrixData->print());
 	%%delete%%
 }

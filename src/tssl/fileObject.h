@@ -21,10 +21,10 @@ namespace ts {
 		
 		class FileObject {
 			public:
-				void open(const char* fileName, FileObjectMode mode);
+				void open(ts::String* fileName, FileObjectMode mode);
 				void close();
-				char* readLine();
-				void writeLine(const char* string);
+				ts::String* readLine();
+				void writeLine(ts::String* string);
 				bool isEOF();
 
 			private:

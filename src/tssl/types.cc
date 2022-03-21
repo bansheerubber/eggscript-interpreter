@@ -39,18 +39,25 @@ Entry* ts::sl::toString(Engine* engine, unsigned int argc, Entry* args) {
 			}
 			
 			case entry::NUMBER: {
-				char* result;
+				ts::String* result = nullptr;
 				## cd ../interpreter && python type_conversion.py args[0] result NUMBER STRING ""
+				if(result == nullptr) {
+					return nullptr;
+				}
 				return new Entry(result);
 			}
 
 			case entry::STRING: {
-				return new Entry(cloneString(args[0].stringData));
+				return new Entry(new ts::String(args[0].stringData));
 			}
 
 			case entry::MATRIX: {
-				char* result;
+				ts::String* result = nullptr;
 				## cd ../interpreter && python type_conversion.py args[0] result MATRIX STRING ""
+				if(result == nullptr) {
+					return nullptr;
+				}
+				
 				return new Entry(result);
 			}
 

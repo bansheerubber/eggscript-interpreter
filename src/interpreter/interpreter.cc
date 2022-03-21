@@ -115,18 +115,21 @@ void Interpreter::pushFunctionFrame(
 	}
 	
 	FunctionFrame &frame = this->frames[this->frames.head];
-	frame.container = container;
-	frame.instructionPointer = 0;
-	frame.stackPointer = this->stack.head - argumentCount;
-	frame.stackPopCount = popCount;
-	frame.packagedFunctionList = list;
-	frame.packagedFunctionListIndex = packagedFunctionListIndex;
-	frame.methodTreeEntry = methodTreeEntry;
-	frame.methodTreeEntryIndex = methodTreeEntryIndex;
-	frame.earlyQuit = earlyQuit;
-	frame.isTSSL = false;
-	frame.fileName = fileName;
-	frame.pushType = type;
+	
+	this->frames[this->frames.head] = {
+		container: container,
+		instructionPointer: 0,
+		stackPointer: this->stack.head - argumentCount,
+		stackPopCount: popCount,
+		packagedFunctionList: list,
+		packagedFunctionListIndex: packagedFunctionListIndex,
+		methodTreeEntry: methodTreeEntry,
+		methodTreeEntryIndex: methodTreeEntryIndex,
+		earlyQuit: earlyQuit,
+		isTSSL: false,
+		fileName: fileName,
+		pushType: type,
+	};
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -215,7 +218,7 @@ void Interpreter::push(double number, instruction::PushType type) {
 }
 
 // push a string onto the stack
-void Interpreter::push(char* value, instruction::PushType type) {
+void Interpreter::push(ts::String* value, instruction::PushType type) {
 	if(type < 0) {
 		this->stack[this->stack.head].setString(value);
 		this->stack.pushed();
@@ -923,12 +926,12 @@ void Interpreter::interpret() {
 					}
 
 					case MAP: {
-						const char* key = nullptr;
+						ts::String* key = nullptr;
 						bool deleteString = false;
 						## type_conversion.py indexEntry key ALL STRING deleteString
 
 						auto map = &(((ts::sl::Map*)objectWrapper->data)->map);
-						auto iter = map->find(string(key));
+						auto iter = map->find(string(key->string, key->size));
 						if(iter == map->end()) {
 							failure = true;
 						}
@@ -939,7 +942,7 @@ void Interpreter::interpret() {
 						}
 
 						if(deleteString && key != nullptr) {
-							delete[] key;
+							delete key;
 						}
 						break;
 					}

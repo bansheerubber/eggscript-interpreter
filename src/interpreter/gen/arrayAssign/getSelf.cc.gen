@@ -20,13 +20,13 @@ switch(object->dataStructure) {
 	}
 
 	case MAP: {
-		const char* key = nullptr;
+		ts::String* key = nullptr;
 		bool deleteString = false;
 		## type_conversion.py indexEntry key ALL STRING deleteString
-		entry = &((ts::sl::Map*)objectWrapper->data)->map[string(key)];
+		entry = &((ts::sl::Map*)objectWrapper->data)->map[string(key->string, key->size)];
 
 		if(deleteString && key != nullptr) {
-			delete[] key;
+			delete key;
 		}
 		break;
 	}

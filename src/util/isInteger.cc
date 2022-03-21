@@ -1,8 +1,10 @@
 #include "isInteger.h"
 
-bool isInteger(const char* string) {
-	for(; *string; string++) {
-		if(!(*string >= '0' && *string <= '9')) {
+#include "../interpreter/string.h"
+
+bool isInteger(ts::String* string) {
+	for(uint16_t i = 0; i < string->size; i++) {
+		if(!(string->string[i] >= '0' && string->string[i] <= '9')) {
 			return false;
 		}
 	}

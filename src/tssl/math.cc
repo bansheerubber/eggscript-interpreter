@@ -10,8 +10,6 @@
 #include <string>
 
 #include "../engine/engine.h"
-#include "../util/getEmptyString.h"
-#include "../util/stringToChars.h"
 
 using namespace std;
 
@@ -141,7 +139,7 @@ namespace ts {
 				formatter += std::to_string(precision);
 				formatter += "f}";
 				string formatted(fmt::format(formatter, args[0].numberData));
-				return new Entry(stringToChars(formatted));
+				return new Entry(new ts::String(formatted));
 			}
 			return nullptr;
 		}

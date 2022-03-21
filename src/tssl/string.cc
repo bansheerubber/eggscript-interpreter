@@ -6,28 +6,32 @@
 #include "../util/collapseEscape.h"
 #include "../engine/engine.h"
 #include "../util/numberToHex.h"
-#include "../util/stringToChars.h"
 
 namespace ts {
 	namespace sl {
 		Entry* strLen(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				return new Entry(string(args[0].stringData).length());
+				return new Entry(args[0].stringData->size);
 			}
 			return nullptr;
 		}
 
 		Entry* getSubStr(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 3) {
-				string substr = string(args[0].stringData).substr(args[1].numberData, args[2].numberData);
-				return new Entry(stringToChars(substr));
+				if(args[2].numberData < 0) {
+					return nullptr;
+				}
+				
+				string substr = string(args[0].stringData->string, args[0].stringData->size).substr(args[1].numberData, args[2].numberData);
+				return new Entry(new ts::String(substr));
 			}
 			return nullptr;
 		}
 
 		Entry* strPos(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 2) {
-				uint64_t position = string(args[0].stringData).find(args[1].stringData);
+				string substring(args[1].stringData->string, args[1].stringData->size);
+				uint64_t position = string(args[0].stringData->string, args[0].stringData->size).find(substring);
 				if (position == std::string::npos) {
 					return new Entry(-1);
 				}
@@ -36,7 +40,8 @@ namespace ts {
 				}
 			}
 			else if(argc == 3) {
-				uint64_t position = string(args[0].stringData).find(args[1].stringData, args[2].numberData);
+				string substring(args[1].stringData->string, args[1].stringData->size);
+				uint64_t position = string(args[0].stringData->string, args[0].stringData->size).find(substring, args[2].numberData);
 				if (position == std::string::npos) {
 					return new Entry(-1);
 				}
@@ -50,12 +55,11 @@ namespace ts {
 
 		Entry* trim(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* words = args[0].stringData;
+				ts::String* words = args[0].stringData;
 				bool foundFirst = false;
 				uint64_t firstIndex = 0, secondIndex = 0, length = 0;
-				for(; *words; words++) {
-					char character = *words;
-
+				for(uint16_t i = 0; i < words->size; i++) {
+					char character = words->string[i];
 					if(
 						character == ' '
 						|| character == '\t'
@@ -80,8 +84,7 @@ namespace ts {
 					secondIndex = 0;
 				}
 
-				string trimmed(&args[0].stringData[firstIndex], length - firstIndex - secondIndex);
-				return new Entry(stringToChars(trimmed));
+				return new Entry(new ts::String(&args[0].stringData->string[firstIndex], length - firstIndex - secondIndex));
 			}
 
 			return nullptr;
@@ -89,11 +92,11 @@ namespace ts {
 
 		Entry* ltrim(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* words = args[0].stringData;
+				ts::String* words = args[0].stringData;
 				bool foundFirst = false;
 				uint64_t firstIndex = 0;
-				char character;
-				for(; (character = *words); words++) {
+				for(uint16_t i = 0; i < words->size; i++) {
+					char character = words->string[i];
 					if(
 						character != ' '
 						&& character != '\t'
@@ -108,8 +111,7 @@ namespace ts {
 					}
 				}
 
-				string trimmed(&args[0].stringData[firstIndex]);
-				return new Entry(stringToChars(trimmed));
+				return new Entry(new ts::String(&args[0].stringData->string[firstIndex], args[0].stringData->size - firstIndex));
 			}
 
 			return nullptr;
@@ -117,11 +119,11 @@ namespace ts {
 
 		Entry* rtrim(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* words = args[0].stringData;
+				ts::String* words = args[0].stringData;
 				bool foundFirst = false;
 				uint64_t secondIndex = 0, length = 0;
-				char character;
-				for(; (character = *words); words++) {
+				for(uint16_t i = 0; i < words->size; i++) {
+					char character = words->string[i];
 					if(
 						character == ' '
 						|| character == '\t'
@@ -142,8 +144,7 @@ namespace ts {
 					secondIndex = 0;
 				}
 
-				string trimmed(args[0].stringData, length - secondIndex);
-				return new Entry(stringToChars(trimmed));
+				return new Entry(new ts::String(args[0].stringData->string, length - secondIndex));
 			}
 			
 			return nullptr;
@@ -151,7 +152,7 @@ namespace ts {
 
 		Entry* strCmp(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 2) {
-				return new Entry(strcmp(args[0].stringData, args[1].stringData));
+				return new Entry(strncmp(args[0].stringData->string, args[1].stringData->string, std::min(args[0].stringData->size, args[1].stringData->size)));
 			}
 
 			return new Entry(0.0);
@@ -159,7 +160,7 @@ namespace ts {
 
 		Entry* strICmp(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 2) {
-				return new Entry(strcasecmp(args[0].stringData, args[1].stringData));
+				return new Entry(strncasecmp(args[0].stringData->string, args[1].stringData->string, std::min(args[0].stringData->size, args[1].stringData->size)));
 			}
 
 			return new Entry(0.0);
@@ -167,12 +168,13 @@ namespace ts {
 
 		Entry* strLwr(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* words = args[0].stringData;
-				string output;
-				for(; *words; words++) {
-					output += tolower(*words);
+				ts::String* words = args[0].stringData;
+				ts::String* output = new ts::String(words->size);
+				for(uint16_t i = 0; i < words->size; i++) {
+					char character = words->string[i];
+					output->string[i] = tolower(character);
 				}
-				return new Entry(stringToChars(output));
+				return new Entry(output);
 			}
 
 			return nullptr;
@@ -180,12 +182,13 @@ namespace ts {
 
 		Entry* strUpr(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* words = args[0].stringData;
-				string output;
-				for(; *words; words++) {
-					output += toupper(*words);
+				ts::String* words = args[0].stringData;
+				ts::String* output = new ts::String(words->size);
+				for(uint16_t i = 0; i < words->size; i++) {
+					char character = words->string[i];
+					output->string[i] = toupper(character);
 				}
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 
 			return nullptr;
@@ -193,14 +196,14 @@ namespace ts {
 
 		Entry* strChr(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 2) {
-				const char search = args[1].stringData[0];
-				if(!search) {
+				if(args[1].stringData->size == 0) {
 					return nullptr;
 				}
-	
-				char* result = strchr(args[0].stringData, search); // this is freed at some point(?)
+
+				const char search = args[1].stringData->string[0];
+				char* result = (char*)memchr(args[0].stringData->string, search, args[0].stringData->size);
 				if(result) {
-					return new Entry(cloneString(result));
+					return new Entry(new ts::String(result, args[0].stringData->size - (result - args[0].stringData->string)));
 				}
 			}
 
@@ -210,25 +213,26 @@ namespace ts {
 		Entry* stripChars(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 2) {
 				string output;
-				const char* source = args[0].stringData;
+				ts::String* source = args[0].stringData;
+				ts::String* replace = args[1].stringData;
+				for(uint16_t i = 0; i < source->size; i++) {
+					char sourceChar = source->string[i];
 
-				char sourceChar, replaceChar;
-				while((sourceChar = *source)) {
-					const char* replaceChars = args[1].stringData;
-					while((replaceChar = *replaceChars)) {
+					bool found = false;
+					for(uint16_t j = 0; j < replace->size; j++) {
+						char replaceChar = replace->string[j];
 						if(sourceChar == replaceChar) {
-							goto increment;
+							found = true;
+							break;
 						}
-						replaceChars++;
 					}
 
-					output += sourceChar;
-					
-					increment:
-					source++;
+					if(found == false) {
+						output += sourceChar;
+					}
 				}
 
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 			
 			return nullptr;
@@ -236,9 +240,9 @@ namespace ts {
 
 		Entry* _collapseEscape(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				string value(args[0].stringData);
+				string value(args[0].stringData->string, args[0].stringData->size);
 				string collapsed = collapseEscape(value);
-				return new Entry(stringToChars(collapsed));
+				return new Entry(new ts::String(collapsed));
 			}
 
 			return nullptr;
@@ -268,9 +272,9 @@ namespace ts {
 				};
 				
 				string output;
-				const char* source = args[0].stringData;
-				char character;
-				for(; (character = *source); source++) {
+				ts::String* source = args[0].stringData;
+				for(uint16_t i = 0; i < source->size; i++) {
+					char character = source->string[i];
 					if(character <= 17) {
 						output += lookup[(int)character];
 					}
@@ -283,7 +287,7 @@ namespace ts {
 					}
 				}
 
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 			
 			return nullptr;
@@ -291,33 +295,37 @@ namespace ts {
 
 		Entry* strReplace(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 3) {
-				const char* words = args[0].stringData;
-				const char* search = args[1].stringData;
-				const char* replacement = args[2].stringData;
-				uint64_t searchLength = strlen(search);
+				ts::String* words = args[0].stringData;
+				ts::String* search = args[1].stringData;
+				ts::String* replacement = args[2].stringData;
+				uint16_t searchLength = search->size;
 				string output;
 
-				char character, replacementCharacter;
+				uint16_t searchIndex = 0;
+
+				char replacementCharacter;
 				uint64_t count = 0;
-				for(; (character = *words); words++) {
-					if((replacementCharacter = *search) == '\0') {
+				for(uint16_t i = 0; i < words->size; i++) {
+					char character = words->string[i];
+
+					if((replacementCharacter = search->string[searchIndex]) == '\0') {
 						output = output.erase(count - searchLength, searchLength);
-						output += replacement;
-						search = args[1].stringData;
+						output += string(replacement->string, replacement->size);
+						searchIndex = 0;
 						count = output.length();
 					}
 					else if(replacementCharacter == character) {
-						search++;
+						searchIndex++;
 					}
 					else {
-						search = args[1].stringData;
+						searchIndex = 0;
 					}
 
 					output += character;
 					count++;
 				}
 
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 
 			return nullptr;

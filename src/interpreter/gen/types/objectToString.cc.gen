@@ -1,4 +1,4 @@
 %%conditional%%((%%entry%%).type == entry::OBJECT) {
-	%%output%% = numberToString((%%entry%%).objectData->id);
+	%%output%% = new ts::String(numberToStdString((%%entry%%).objectData->id));
 	%%delete%%
 }

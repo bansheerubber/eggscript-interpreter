@@ -1,6 +1,5 @@
 #include "entry.h"
 
-#include "../util/cloneString.h"
 #include "../util/getEmptyString.h"
 #include "interpreter.h"
 #include "../util/isInteger.h"
@@ -25,7 +24,7 @@ Entry::Entry(double value) {
 	this->numberData = value;
 }
 
-Entry::Entry(char* value) {
+Entry::Entry(ts::String* value) {
 	this->type = entry::STRING;
 	this->stringData = value;
 }
@@ -59,7 +58,7 @@ void Entry::setNumber(double value) {
 	this->numberData = value;
 }
 
-void Entry::setString(char* value) {
+void Entry::setString(ts::String* value) {
 	this->erase();
 	this->type = entry::STRING;
 	this->stringData = value;
@@ -68,7 +67,7 @@ void Entry::setString(char* value) {
 void Entry::setString(string value) {
 	this->erase();
 	this->type = entry::STRING;
-	this->stringData = stringToChars(value);
+	this->stringData = new ts::String(value);
 }
 
 void Entry::setMatrix(Matrix* matrix) {
@@ -99,7 +98,7 @@ void Entry::print(int tabs) const {
 	printf("%s   type: %s,\n", space.c_str(), this->typeToString());
 
 	if(this->type == entry::STRING) {
-		printf("%s   data: \"%s\",\n", space.c_str(), this->stringData);
+		printf("%s   data: \"%.*s\",\n", space.c_str(), this->stringData->size, this->stringData->string);
 	}
 	else if(this->type == entry::NUMBER) {
 		printf("%s   data: %f,\n", space.c_str(), this->numberData);
@@ -140,7 +139,7 @@ void ts::copyEntry(const Entry &source, Entry &destination) {
 		}
 
 		case entry::STRING: {
-			destination.stringData = cloneString(source.stringData);
+			destination.stringData = new ts::String(source.stringData);
 			break;
 		}
 
@@ -239,7 +238,7 @@ bool ts::isEntryEqual(const Entry &left, const Entry &right) {
 		}
 		
 		case entry::STRING: {
-			return strcmp(left.stringData, right.stringData) == 0;
+			return strncmp(left.stringData->string, right.stringData->string, std::min(left.stringData->size, right.stringData->size)) == 0;
 		}
 
 		case entry::OBJECT: {
@@ -265,7 +264,7 @@ bool ts::isEntryTruthy(const Entry &source) {
 		}
 
 		case entry::STRING: {
-			return strlen(source.stringData) != 0;
+			return source.stringData->size != 0;
 		}
 
 		case entry::MATRIX: {

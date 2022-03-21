@@ -127,7 +127,7 @@ elif sys.argv[1] == "debug.cc":
 		printf("   {variable_name} type: %d,\\n", instruction.{struct}.{variable_name}.type);
 
 		if(instruction.{struct}.{variable_name}.type == entry::STRING) {{
-			printf("   {variable_name} data: \\"%s\\",\\n", instruction.{struct}.{variable_name}.stringData);
+			printf("   {variable_name} data: \\"%.*s\\",\\n", instruction.{struct}.{variable_name}.stringData->size, instruction.{struct}.{variable_name}.stringData->string);
 		}}
 		else if(instruction.{struct}.{variable_name}.type == entry::OBJECT) {{
 			printf("   {variable_name} data: %ld,\\n", instruction.{struct}.{variable_name}.objectData->id);

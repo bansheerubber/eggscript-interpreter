@@ -7,7 +7,7 @@
 
 namespace ts {
 	namespace sl {
-		void FileObject::open(const char* fileName, FileObjectMode mode) {
+		void FileObject::open(ts::String* fileName, FileObjectMode mode) {
 			ios_base::openmode fileMode;
 			if(mode == READ) {
 				fileMode = ios_base::in;
@@ -19,7 +19,7 @@ namespace ts {
 				fileMode = ios_base::app;
 			}
 
-			this->file.open(string(fileName), fileMode);
+			this->file.open(string(fileName->string, fileName->size), fileMode);
 			this->mode = mode;
 		}
 
@@ -27,7 +27,7 @@ namespace ts {
 			this->file.close();
 		}
 
-		char* FileObject::readLine() {
+		ts::String* FileObject::readLine() {
 			if(this->mode != READ || this->isEOF()) {
 				return getEmptyString();
 			}
@@ -39,15 +39,15 @@ namespace ts {
 				output.pop_back();
 			}
 
-			return stringToChars(output);
+			return new ts::String(output.data(), output.size());
 		}
 
-		void FileObject::writeLine(const char* string) {
+		void FileObject::writeLine(ts::String* string) {
 			if(this->mode == READ || this->mode == NOT_OPEN) {
 				return;
 			}
 
-			this->file.write(string, strlen(string));
+			this->file.write(string->string, string->size);
 		}
 
 		bool FileObject::isEOF() {
@@ -116,26 +116,22 @@ namespace ts {
 
 		Entry* fileBase(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* path = args[0].stringData;
-				const char* slashLocation = strrchr(path, '/');
+				ts::String* path = args[0].stringData;
+				const char* slashLocation = (const char*)memrchr(path->string, '/', path->size);
 				if(slashLocation == nullptr) {
-					slashLocation = path;
+					slashLocation = path->string;
 				}
 				else {
 					slashLocation++;
 				}
 
-				const char* dotLocation = strrchr(path, '.');
+				const char* dotLocation = (const char*)memrchr(path->string, '.', path->size);
 				
 				uint64_t length = dotLocation
 					? dotLocation - slashLocation
 					: strlen(slashLocation);
 				
-				char* newString = new char[length + 1];
-				memcpy(newString, slashLocation, length);
-				newString[length] = '\0';
-				
-				return new Entry(newString);
+				return new Entry(new ts::String(slashLocation, length));
 			}
 
 			return nullptr;
@@ -143,13 +139,14 @@ namespace ts {
 
 		Entry* fileExt(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* path = args[0].stringData;
-				const char* dotLocation = strrchr(path, '.');
+				ts::String* path = args[0].stringData;
+				const char* dotLocation = (const char*)memrchr(path->string, '.', path->size);
 				if(dotLocation == nullptr) {
 					return new Entry(getEmptyString());
 				}
 
-				return new Entry(cloneString(dotLocation));
+				// TODO is this even close to being portable?
+				return new Entry(new ts::String(dotLocation, path->size - (dotLocation - path->string)));
 			}
 
 			return nullptr;
@@ -157,16 +154,16 @@ namespace ts {
 
 		Entry* fileName(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* path = args[0].stringData;
-				const char* slashLocation = strrchr(path, '/');
+				ts::String* path = args[0].stringData;
+				const char* slashLocation = (const char*)memrchr(path, '/', path->size);
 				if(slashLocation == nullptr) {
-					slashLocation = path;
+					slashLocation = path->string;
 				}
 				else {
 					slashLocation++;
 				}
 
-				return new Entry(cloneString(slashLocation));
+				return new Entry(new ts::String(slashLocation, path->size - (slashLocation - path->string)));
 			}
 
 			return nullptr;
@@ -174,18 +171,13 @@ namespace ts {
 
 		Entry* filePath(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc == 1) {
-				const char* path = args[0].stringData;
-				const char* slashLocation = strrchr(path, '/');
+				ts::String* path = args[0].stringData;
+				const char* slashLocation = (const char*)memrchr(path, '/', path->size);
 				if(slashLocation == nullptr) {
-					return new Entry(cloneString(path));
+					return new Entry(new ts::String(path));
 				}
 
-				uint64_t length = slashLocation - path;
-				char* newString = new char[length + 1];
-				memcpy(newString, path, length);
-				newString[length] = '\0';
-				
-				return new Entry(newString);
+				return new Entry(new ts::String(path->string, slashLocation - path->string));
 			}
 
 			return nullptr;

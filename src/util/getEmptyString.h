@@ -1,3 +1,7 @@
 #pragma once
 
-char* getEmptyString();
+namespace ts {
+	struct String;
+};
+
+ts::String* getEmptyString();

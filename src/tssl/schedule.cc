@@ -11,7 +11,7 @@ namespace ts {
 				return nullptr;
 			}
 			else if(argc == 2) {
-				string functionName(args[1].stringData);
+				string functionName(args[1].stringData->string, args[1].stringData->size);
 				engine->interpreter->addSchedule((uint64_t)args[0].numberData * 1000, functionName, nullptr, 0);
 				return nullptr;
 			}
@@ -21,7 +21,7 @@ namespace ts {
 				copyEntry(args[i + 2], copiedArguments[i]);
 			}
 			
-			string functionName(args[1].stringData);
+			string functionName(args[1].stringData->string, args[1].stringData->size);
 			engine->interpreter->addSchedule((uint64_t)args[0].numberData * 1000, functionName, copiedArguments, argc - 2);
 			return nullptr;
 		}
@@ -31,7 +31,7 @@ namespace ts {
 				return nullptr;
 			}
 			else if(argc == 3) {
-				string functionName(args[2].stringData);
+				string functionName(args[2].stringData->string, args[2].stringData->size);
 
 				Entry* arguments = new Entry[1];
 				arguments[0].setObject(new ObjectReference(args[0].objectData));
@@ -45,7 +45,7 @@ namespace ts {
 				copyEntry(args[i + 3], copiedArguments[i + 1]);
 			}
 			
-			string functionName(args[2].stringData);
+			string functionName(args[2].stringData->string, args[2].stringData->size);
 			engine->interpreter->addSchedule((uint64_t)args[1].numberData * 1000, functionName, copiedArguments, argc - 2, copiedArguments[0].objectData);
 			return nullptr;
 		}

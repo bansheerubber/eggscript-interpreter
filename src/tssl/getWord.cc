@@ -13,7 +13,7 @@ namespace ts {
 		Entry* firstWord(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 1) {
 				## tokenizing.py first " \t\n" args[0].stringData
-				return new Entry(stringToChars(first));
+				return new Entry(new ts::String(first));
 			}
 
 			return nullptr;
@@ -22,7 +22,7 @@ namespace ts {
 		Entry* restWords(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 1) {
 				## tokenizing.py rest " \t\n" args[0].stringData
-				return new Entry(stringToChars(rest));
+				return new Entry(new ts::String(rest));
 			}
 
 			return nullptr;
@@ -31,7 +31,7 @@ namespace ts {
 		Entry* getWord(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 2) {
 				## tokenizing.py getSingle " \t\n" args[0].stringData args[1].numberData
-				return new Entry(stringToChars(word));
+				return new Entry(new ts::String(word));
 			}
 
 			return nullptr;
@@ -40,7 +40,7 @@ namespace ts {
 		Entry* getWords(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 2) {
 				## tokenizing.py getMultiple " \t\n" args[0].stringData args[1].numberData args[2].numberData
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 
 			return nullptr;
@@ -61,10 +61,10 @@ namespace ts {
 
 				// for some reason torquescript returns the last word if count > final space count
 				if(count > spaceCount) {
-					return new Entry(stringToChars(currentWord));
+					return new Entry(new ts::String(currentWord));
 				}
 
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 
 			return nullptr;
@@ -73,7 +73,7 @@ namespace ts {
 		Entry* setWord(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 3) {
 				## tokenizing.py set " \t\n" args[0].stringData args[1].numberData args[2].stringData
-				return new Entry(stringToChars(output));
+				return new Entry(new ts::String(output));
 			}
 
 			return nullptr;

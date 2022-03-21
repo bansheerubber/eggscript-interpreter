@@ -1,11 +1,11 @@
-const char* words = %%words%%;
+ts::String* words = %%words%%;
 int count = %%index%%;
 string output;
 string currentWord;
 
 int spaceCount = 0;
-for(; *words; words++) {
-	char character = *words;
+for(uint16_t i = 0; i < words->size; i++) {
+	char character = words->string[i];
 	if(%%comparison%%) {
 		spaceCount++;
 		currentWord = "";

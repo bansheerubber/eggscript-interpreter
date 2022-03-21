@@ -165,8 +165,8 @@ esEntryPtr esCreateNumber(double number) {
 	return (esEntryPtr)(new ts::Entry(number));
 }
 
-esEntryPtr esCreateString(char* string) {
-	return (esEntryPtr)(new ts::Entry(string));
+esEntryPtr esCreateString(esStringPtr string) {
+	return (esEntryPtr)(new ts::Entry((ts::String*)string));
 }
 
 esEntryPtr esCreateVector(unsigned int size, ...) {
@@ -211,8 +211,8 @@ esEntryPtr esCreateNumberAt(esEntryPtr entry, double number) {
 	return (esEntryPtr)new((void*)entry) Entry(number);
 }
 
-esEntryPtr esCreateStringAt(esEntryPtr entry, char* string) {
-	return (esEntryPtr)new((void*)entry) Entry(string);
+esEntryPtr esCreateStringAt(esEntryPtr entry, esStringPtr string) {
+	return (esEntryPtr)new((void*)entry) Entry((ts::String*)string);
 }
 
 esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...) {

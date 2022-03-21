@@ -11,7 +11,7 @@ namespace ts {
 				PARENT(engine, "test", argc, args, types);
 				
 				printf("attemtping print because argc high\n");
-				printf("script object says: %s\n", args[1].stringData);
+				printf("script object says: %.*s\n", args[1].stringData->size, args[1].stringData->string);
 			}
 			return nullptr;
 		}

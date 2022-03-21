@@ -10,11 +10,11 @@ namespace ts {
 		Entry* echo(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 1) {
 				if(useMockStdout) {
-					mockStdout += args[0].stringData;
+					mockStdout += string(args[0].stringData->string, args[0].stringData->size);
 					mockStdout += '\n';
 				}
 				else {
-					(*engine->printFunction)("%s\n", args[0].stringData);
+					(*engine->printFunction)("%.*s\n", args[0].stringData->size, args[0].stringData->string);
 				}
 			}
 			return nullptr;
@@ -23,11 +23,11 @@ namespace ts {
 		Entry* error(Engine* engine, unsigned int argc, Entry* args) {
 			if(argc >= 1) {
 				if(useMockStdout) {
-					mockStdout += args[0].stringData;
+					mockStdout += string(args[0].stringData->string, args[0].stringData->size);
 					mockStdout += '\n';
 				}
 				else {
-					(*engine->errorFunction)("%s\n", args[0].stringData);
+					(*engine->errorFunction)("%.*s\n", args[0].stringData->size, args[0].stringData->string);
 				}
 			}
 			return nullptr;

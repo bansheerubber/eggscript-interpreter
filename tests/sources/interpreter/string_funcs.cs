@@ -1,0 +1,13 @@
+echo(strLen("how do you do"));
+echo(getSubStr("there are microbes in your gut biome", 10, 8));
+echo(strPos("bumblebee buckle", "bu") SPC strPos("bumblebee buckle", "bu", 5));
+echo("|" @ trim("                    asdjfkansd f80gyibf asiuf;j asdf ouijk                          ")  @ "|");
+echo("|" @ rtrim("                    asdjfkansd f80gyibf asiuf;j asdf ouijk                          ")  @ "|");
+echo("|" @ ltrim("                    asdjfkansd f80gyibf asiuf;j asdf ouijk                          ")  @ "|");
+echo(strcmp("hey there", "Hey There"));
+echo(stricmp("hey there", "Hey There"));
+echo(strLwr("AAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH"));
+echo(strUpr("aaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhh"));
+echo(strChr("abcdefghijklmnopqrstuvwxyz", "q"));
+echo(stripChars("xexpxixcuasaearana@amae", "xa"));
+echo(strReplace("there are fucking curse words in this fucking sentence", "fucking", "no"));

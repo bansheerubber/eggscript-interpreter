@@ -151,41 +151,37 @@ common_operations = {
 }
 
 string_operations = {
-	"MATH_APPEND": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
-			char* stringResult = new char[firstSize + secondSize + 1];
-			memcpy(stringResult, {0}, firstSize);
-			memcpy(&stringResult[firstSize], {1}, secondSize);
-			stringResult[firstSize + secondSize] = '\\0';
+	"MATH_APPEND": """uint16_t firstSize = ({0})->size, secondSize = ({1})->size;
+			ts::String* stringResult = new ts::String(firstSize + secondSize);
+			memcpy(stringResult->string, ({0})->string, firstSize);
+			memcpy(&(stringResult->string[firstSize]), ({1})->string, secondSize);
 
 			%%popStrings%%
 
 			this->push(stringResult, instruction.pushType);""",
-	"MATH_SPC": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
-			char* stringResult = new char[firstSize + secondSize + 2];
-			memcpy(stringResult, {0}, firstSize);
-			stringResult[firstSize] = ' ';
-			memcpy(&stringResult[firstSize + 1], {1}, secondSize);
-			stringResult[firstSize + secondSize + 1] = '\\0';
+	"MATH_SPC": """uint16_t firstSize = ({0})->size, secondSize = ({1})->size;
+			ts::String* stringResult = new ts::String(firstSize + secondSize + 1);
+			memcpy(stringResult->string, ({0})->string, firstSize);
+			stringResult->string[firstSize] = ' ';
+			memcpy(&(stringResult->string[firstSize + 1]), ({1})->string, secondSize);
 
 			%%popStrings%%
 			
 			this->push(stringResult, instruction.pushType);""",
-	"MATH_TAB": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
-			char* stringResult = new char[firstSize + secondSize + 2];
-			memcpy(stringResult, {0}, firstSize);
-			stringResult[firstSize] = '\\t';
-			memcpy(&stringResult[firstSize + 1], {1}, secondSize);
-			stringResult[firstSize + secondSize + 1] = '\\0';
+	"MATH_TAB": """uint16_t firstSize = ({0})->size, secondSize = ({1})->size;
+			ts::String* stringResult = new ts::String(firstSize + secondSize + 1);
+			memcpy(stringResult->string, ({0})->string, firstSize);
+			stringResult->string[firstSize] = '\\t';
+			memcpy(&(stringResult->string[firstSize + 1]), ({1})->string, secondSize);
 
 			%%popStrings%%
 
 			this->push(stringResult, instruction.pushType);""",
-	"MATH_NL": """uint64_t firstSize = strlen({0}), secondSize = strlen({1});
-			char* stringResult = new char[firstSize + secondSize + 2];
-			memcpy(stringResult, {0}, firstSize);
-			stringResult[firstSize] = '\\n';
-			memcpy(&stringResult[firstSize + 1], {1}, secondSize);
-			stringResult[firstSize + secondSize + 1] = '\\0';
+	"MATH_NL": """uint16_t firstSize = ({0})->size, secondSize = ({1})->size;
+			ts::String* stringResult = new ts::String(firstSize + secondSize + 1);
+			memcpy(stringResult->string, ({0})->string, firstSize);
+			stringResult->string[firstSize] = '\\n';
+			memcpy(&(stringResult->string[firstSize + 1]), ({1})->string, secondSize);
 
 			%%popStrings%%
 

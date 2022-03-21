@@ -8,6 +8,13 @@ extern "C" {
 	#define esPrintFunction(name)		int (*name)(const char* format, ...)
 	#define esVPrintFunction(name)		int (*name)(const char* format, va_list args)
 
+	struct esString {
+		char* string;
+		uint16_t size;
+	};
+
+	typedef esString* esStringPtr;
+
 	enum esEntryType {
 		ES_ENTRY_INVALID = 0,
 		ES_ENTRY_EMPTY,
@@ -47,7 +54,7 @@ extern "C" {
 		esEntryType type;
 		union {
 			double numberData;
-			char* stringData;
+			esStringPtr stringData;
 			esObjectReferencePtr objectData;
 			esMatrixPtr matrixData;
 		};
@@ -86,7 +93,7 @@ extern "C" {
 
 	void esDeleteEntry(esEntryPtr entry);
 	esEntryPtr esCreateNumber(double number);
-	esEntryPtr esCreateString(char* string);
+	esEntryPtr esCreateString(esStringPtr string);
 	esEntryPtr esCreateVector(unsigned int size, ...);
 	esEntryPtr esCreateMatrix(unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObject(esObjectReferencePtr reference);
@@ -94,7 +101,7 @@ extern "C" {
 	esObjectReferencePtr esCreateMap(esEnginePtr engine);
 
 	esEntryPtr esCreateNumberAt(esEntryPtr entry, double number);
-	esEntryPtr esCreateStringAt(esEntryPtr entry, char* string);
+	esEntryPtr esCreateStringAt(esEntryPtr entry, esStringPtr string);
 	esEntryPtr esCreateVectorAt(esEntryPtr entry, unsigned int size, ...);
 	esEntryPtr esCreateMatrixAt(esEntryPtr entry, unsigned int rows, unsigned int columns, ...);
 	esEntryPtr esCreateObjectAt(esEntryPtr entry, esObjectReferencePtr reference);

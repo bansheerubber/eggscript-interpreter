@@ -1,9 +1,9 @@
-const char* words = %%words%%;
+ts::String* words = %%words%%;
 double count = 0;
 
 bool foundLast = false;
-for(; *words; words++) {
-	char character = *words;
+for(uint16_t i = 0; i < words->size; i++) {
+	char character = words->string[i];
 	if(%%comparison%%) {
 		count++;
 		foundLast = false;
