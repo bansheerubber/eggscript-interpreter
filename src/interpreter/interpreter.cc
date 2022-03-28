@@ -636,14 +636,12 @@ void Interpreter::interpret() {
 		}
 
 		case instruction::CALL_NAMESPACE_FUNCTION: {
-			Function* foundFunction;
-			PackagedFunctionList* list;
 			int packagedFunctionListIndex = -1;
 			MethodTreeEntry* methodTreeEntry = nullptr;
 			int methodTreeEntryIndex = -1;
-			list = instruction.callNamespaceFunction.cachedEntry->list[0];
+			PackagedFunctionList* list = instruction.callNamespaceFunction.cachedEntry->list[0];
 			packagedFunctionListIndex = list->topValidIndex;
-			foundFunction = (*list)[packagedFunctionListIndex];
+			Function* foundFunction = list->topValidFunction;
 
 			## call_generator.py
 
@@ -835,7 +833,7 @@ void Interpreter::interpret() {
 			int methodTreeEntryIndex = methodTreeEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
 			uint64_t packagedFunctionListIndex = list->topValidIndex;
-			Function* foundFunction = (*list)[packagedFunctionListIndex];
+			Function* foundFunction = list->topValidFunction;
 			## call_generator.py
 			
 			break;
