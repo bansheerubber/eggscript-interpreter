@@ -35,7 +35,8 @@ bool MathExpression::IsOperator(TokenType type) {
 		|| type == APPEND
 		|| type == SPC
 		|| type == TAB
-		|| type == NL;
+		|| type == NL
+		|| type == DOT_PRODUCT;
 }
 
 bool MathExpression::ShouldParse(Component* lvalue, ts::Engine* engine) {
@@ -296,6 +297,7 @@ map<TokenType, int> MathExpression::CreatePrecedenceMap() {
 	output[MODULUS] = 7;
 	output[ASTERISK] = 7;
 	output[SLASH] = 7;
+	output[DOT_PRODUCT] = 7;
 	return output;
 }
 
@@ -357,6 +359,8 @@ ts::instruction::InstructionType MathExpression::TypeToOperator(TokenType type) 
 			return ts::instruction::MATH_TAB;
 		case NL:
 			return ts::instruction::MATH_NL;
+		case DOT_PRODUCT:
+			return ts::instruction::MATH_DOT_PRODUCT;
 
 		default:
 			return ts::instruction::INVALID_INSTRUCTION;

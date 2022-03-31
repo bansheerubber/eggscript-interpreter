@@ -1045,6 +1045,7 @@ void Interpreter::initInstructionToFunction() {
 	this->instructionToFunction[instruction::MATH_SPC] = instruction_MATH_SPC;
 	this->instructionToFunction[instruction::MATH_TAB] = instruction_MATH_TAB;
 	this->instructionToFunction[instruction::MATH_NL] = instruction_MATH_NL;
+	this->instructionToFunction[instruction::MATH_DOT_PRODUCT] = instruction_MATH_DOT_PRODUCT;
 	this->instructionToFunction[instruction::UNARY_BITWISE_NOT] = instruction_UNARY_BITWISE_NOT;
 	this->instructionToFunction[instruction::UNARY_LOGICAL_NOT] = instruction_UNARY_LOGICAL_NOT;
 	this->instructionToFunction[instruction::UNARY_NEGATE] = instruction_UNARY_NEGATE;

@@ -103,6 +103,18 @@ ts::Matrix* ts::Matrix::multiply(double scalar) {
 	return output;
 }
 
+double ts::Matrix::dot(const ts::Matrix* other) {
+	if(this->rows != other->rows || this->columns != other->columns || this->columns != 1) { // TODO runtime error of some sort
+		return 0;
+	}
+
+	double output = 0;
+	for(unsigned int r = 0; r < this->rows; r++) {
+		output += this->data[r][0].numberData * other->data[r][0].numberData;
+	}
+	return output;
+}
+
 ts::Matrix* ts::Matrix::clone() {
 	Matrix* output = new Matrix(this->rows, this->columns);
 	for(unsigned int r = 0; r < this->rows; r++) {

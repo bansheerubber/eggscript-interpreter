@@ -38,6 +38,17 @@ else {{
 	{0}
 }}"""
 
+dot_product_body = """if(type1 != type2) {{
+	{0}
+}}
+else if(type1 == entry::MATRIX) {{
+	{2}
+}}
+else {{
+	{0}
+}}
+"""
+
 division_body = """if(type1 == entry::MATRIX && type2 == entry::NUMBER) {{
 	{2}
 }}
@@ -142,6 +153,12 @@ math_operations = {
 		"this->push((int){0} ^ (int){1}, instruction.pushType);",
 		None,
 	),
+	"MATH_DOT_PRODUCT": (
+		dot_product_body,
+		"this->pushEmpty(instruction.pushType);",
+		None,
+		"this->push({0}->dot({1}), instruction.pushType);",
+	),
 }
 
 # operations shared between all types
@@ -203,11 +220,15 @@ string_pop = """if(popLValue) {{
 NUMBER_MATH_MACRO = get_generated_code("math", "numbers", 3)
 NUMBER_WITHOUT_MATRIX_MATH_MACRO = get_generated_code("math", "numbersWithoutMatrix", 3)
 NUMBER_DIVISION_MATH_MACRO = get_generated_code("math", "numbersDivision", 3)
+NUMBER_MATRIX_MATH_MACRO = get_generated_code("math", "numbersMatrix", 3)
 
 # handle number instructions
 for instruction, (body, failure, number_operation, matrix_operation) in math_operations.items():
 	if matrix_operation == None:
 		matrix_operation = failure
+	
+	if number_operation == None:
+		number_operation = failure
 	
 	formatted = number_operation.format("lvalueNumber", "rvalueNumber")
 	formatted = body.format(failure, formatted, matrix_operation.format("lvalueMatrix", "rvalueMatrix"))
@@ -217,6 +238,8 @@ for instruction, (body, failure, number_operation, matrix_operation) in math_ope
 		macro = NUMBER_WITHOUT_MATRIX_MATH_MACRO
 	elif body == division_body:
 		macro = NUMBER_DIVISION_MATH_MACRO
+	elif body == dot_product_body:
+		macro = NUMBER_MATRIX_MATH_MACRO
 
 
 	print(f"""		case instruction::{instruction}: {{

@@ -86,6 +86,7 @@ enum TokenType {
 	EMPTY,
 	CLASS,
 	INHERITS,
+	DOT_PRODUCT,
 };
 
 struct Token {
