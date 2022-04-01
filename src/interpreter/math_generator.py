@@ -159,6 +159,12 @@ math_operations = {
 		None,
 		"this->push({0}->dot({1}), instruction.pushType);",
 	),
+	"MATH_CROSS_PRODUCT": (
+		dot_product_body,
+		"this->pushEmpty(instruction.pushType);",
+		None,
+		"this->push({0}->cross({1}), instruction.pushType);",
+	),
 }
 
 # operations shared between all types

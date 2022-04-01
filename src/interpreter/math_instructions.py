@@ -20,6 +20,7 @@ instructions = [
 	"MATH_TAB",
 	"MATH_NL",
 	"MATH_DOT_PRODUCT",
+	"MATH_CROSS_PRODUCT",
 ]
 
 def get_math_instructions():

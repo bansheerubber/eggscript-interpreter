@@ -115,6 +115,18 @@ double ts::Matrix::dot(const ts::Matrix* other) {
 	return output;
 }
 
+ts::Matrix* ts::Matrix::cross(const ts::Matrix* other) {
+	if(this->rows != other->rows || this->columns != other->columns || this->columns != 1 || this->rows != 3) { // TODO runtime error of some sort
+		return nullptr;
+	}
+
+	Matrix* output = new Matrix(this->rows, this->columns);
+	output->data[0][0].setNumber(this->data[1][0].numberData * other->data[2][0].numberData - this->data[2][0].numberData * other->data[1][0].numberData);
+	output->data[1][0].setNumber(this->data[2][0].numberData * other->data[0][0].numberData - this->data[0][0].numberData * other->data[2][0].numberData);
+	output->data[2][0].setNumber(this->data[0][0].numberData * other->data[1][0].numberData - this->data[1][0].numberData * other->data[0][0].numberData);
+	return output;
+}
+
 ts::Matrix* ts::Matrix::clone() {
 	Matrix* output = new Matrix(this->rows, this->columns);
 	for(unsigned int r = 0; r < this->rows; r++) {

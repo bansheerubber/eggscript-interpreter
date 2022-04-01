@@ -35,6 +35,7 @@ keywords = {
 	"*": "ASTERISK",
 	"/": "SLASH",
 	".": "DOT_PRODUCT",
+	"#": "CROSS_PRODUCT",
 	"::": "NAMESPACE",
 	"(": "LEFT_PARENTHESIS",
 	")": "RIGHT_PARENTHESIS",
