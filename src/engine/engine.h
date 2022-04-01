@@ -43,6 +43,10 @@ namespace ts {
 	
 	void initPackagedFunctionList(class Engine* engine, PackagedFunctionList** list);
 	void initMethodTree(class Engine* engine, MethodTree** tree);
+
+	namespace sl {
+		Entry* SimObject__isMethod(Engine* engine, unsigned int argc, Entry* args);
+	};
 	
 	class Engine {
 		friend Interpreter;
@@ -52,6 +56,7 @@ namespace ts {
 		friend Instruction;
 		friend void sl::define(Engine* engine);
 		friend void copyInstruction(Engine* engine, Instruction &source, Instruction &destination);
+		friend Entry* sl::SimObject__isMethod(Engine* engine, unsigned int argc, Entry* args);
 
 		public:
 			Engine(ParsedArguments args, bool isParallel = false);

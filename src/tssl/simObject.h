@@ -11,5 +11,6 @@ namespace ts {
 		Entry* SimObject__onAdd(Engine* engine, unsigned int argc, Entry* args);
 		Entry* SimObject__getId(Engine* engine, unsigned int argc, Entry* args);
 		Entry* SimObject__delete(Engine* engine, unsigned int argc, Entry* args);
+		Entry* SimObject__isMethod(Engine* engine, unsigned int argc, Entry* args);
 	}
 }

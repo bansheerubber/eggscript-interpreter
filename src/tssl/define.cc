@@ -180,6 +180,7 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__onAdd, "SimObject", "onAdd", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__getId, "SimObject", "getId", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__delete, "SimObject", "delete", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__isMethod, "SimObject", "isMethod", 2, os));
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__test, "SimObject", "test", 2, os));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &ScriptObject__test, "ScriptObject", "test", 2, os));

@@ -29,5 +29,26 @@ namespace ts {
 			}
 			return nullptr;
 		}
+
+		Entry* SimObject__isMethod(Engine* engine, unsigned int argc, Entry* args) {
+			if(argc == 2) {
+				ObjectWrapper* objectWrapper = args[0].objectData->objectWrapper;
+				Object* object = nullptr;
+				if(objectWrapper == nullptr) {
+					return nullptr;
+				}
+				object = args[0].objectData->objectWrapper->object;
+
+				auto methodNameIndex = engine->methodNameToIndex.find(string(args[1].stringData));
+				if(methodNameIndex != engine->methodNameToIndex.end()) {
+					auto methodEntry = object->methodTree->methodIndexToEntry.find(methodNameIndex->second);
+					if(methodEntry != object->methodTree->methodIndexToEntry.end()) {
+						return new Entry(1.0);
+					}
+				}
+				return new Entry(0.0);
+			}
+			return nullptr;
+		}
 	}
 }
