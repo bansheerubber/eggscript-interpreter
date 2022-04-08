@@ -31,16 +31,6 @@ extern struct termios originalTerminalAttributes;
 void disableRawMode();
 
 namespace ts {
-	struct InstructionSource {
-		string fileName;
-	};
-
-	struct InstructionDebug {
-		InstructionSource* commonSource = nullptr;
-		unsigned short character;
-		unsigned int line;
-	};
-	
 	void initPackagedFunctionList(class Engine* engine, PackagedFunctionList** list);
 	void initMethodTree(class Engine* engine, MethodTree** tree);
 
@@ -138,7 +128,7 @@ namespace ts {
 			// debug data structures
 			robin_map<string, InstructionSource*> fileNameToSource;
 			robin_map<Instruction*, InstructionDebug> instructionDebug;
-			bool instructionDebugEnabled = false;
+			bool instructionDebugEnabled = true;
 
 			// data structures for keeping track of instructions that need extra linking
 			robin_set<Instruction*> unlinkedFunctions;

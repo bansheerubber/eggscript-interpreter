@@ -62,6 +62,7 @@ InstructionContainer::InstructionContainer(Engine* engine, Instruction* head) {
 
 void InstructionContainer::print() {
 	for(uint64_t i = 0; i < this->size; i++) {
+		printf("%ld: ", i);
 		PrintInstruction(this->array[i]);
 	}
 	printf("-----------------------------------------------------------------\n");

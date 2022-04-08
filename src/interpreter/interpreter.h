@@ -94,6 +94,10 @@ namespace ts {
 
 			string& getTopFileNameFromFrame();
 
+			#ifdef TS_PUSH_SOURCE_DEBUG
+			const InstructionDebug* getSourceFromEntry(Entry* entry);
+			#endif
+
 			Entry emptyEntry;
 
 			uint64_t highestObjectId = 1;
@@ -172,6 +176,10 @@ namespace ts {
 
 			#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
 			void initInstructionToFunction();
+			#endif
+
+			#ifdef TS_PUSH_SOURCE_DEBUG
+			robin_map<Entry*, const InstructionDebug*> entryToSource;
 			#endif
 
 			// parallel stuff

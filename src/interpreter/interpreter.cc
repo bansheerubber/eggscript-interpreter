@@ -177,8 +177,20 @@ string& Interpreter::getTopFileNameFromFrame() {
 	return empty;
 }
 
+#ifdef TS_PUSH_SOURCE_DEBUG
+const InstructionDebug* Interpreter::getSourceFromEntry(Entry* entry) {
+	return this->entryToSource[entry];
+}
+#endif
+
 // push an entry onto the stack
 void Interpreter::push(Entry &entry, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		copyEntry(entry, this->stack[this->stack.head]);
 		this->stack.pushed();
@@ -190,6 +202,12 @@ void Interpreter::push(Entry &entry, instruction::PushType type) {
 
 // push an entry onto the stack, greedily
 void Interpreter::push(Entry &entry, instruction::PushType type, bool greedy) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		greedyCopyEntry(entry, this->stack[this->stack.head]);
 		this->stack.pushed();
@@ -201,6 +219,12 @@ void Interpreter::push(Entry &entry, instruction::PushType type, bool greedy) {
 
 // push a number onto the stack
 void Interpreter::push(double number, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		// manually inline this b/c for some reason it doesn't want to by itself
 		Entry &entry = this->stack[this->stack.head];
@@ -216,6 +240,12 @@ void Interpreter::push(double number, instruction::PushType type) {
 
 // push a string onto the stack
 void Interpreter::push(char* value, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].setString(value);
 		this->stack.pushed();
@@ -227,6 +257,12 @@ void Interpreter::push(char* value, instruction::PushType type) {
 
 // push a matrix onto the stack
 void Interpreter::push(Matrix* value, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].setMatrix(value);
 		this->stack.pushed();
@@ -238,6 +274,12 @@ void Interpreter::push(Matrix* value, instruction::PushType type) {
 
 // push an object onto the stack
 void Interpreter::push(ObjectReference* value, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].setObject(value);
 		this->stack.pushed();
@@ -248,6 +290,12 @@ void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 }
 
 void Interpreter::pushEmpty(instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].erase();
 		this->stack.pushed();
@@ -1128,7 +1176,12 @@ void Interpreter::printStack() {
 	for(uint64_t i = 0; i < this->stack.head; i++) {
 		Entry &entry = this->stack[i];
 
+		#ifdef TS_PUSH_SOURCE_DEBUG
+		const InstructionDebug* debug = this->getSourceFromEntry(&this->stack[i]);
+		printf("#%ld (%s:%d:%d) ", i, debug->commonSource->fileName.c_str(), debug->line, debug->character);
+		#else
 		printf("#%ld ", i);
+		#endif
 		entry.print();
 	}
 	printf("\n");

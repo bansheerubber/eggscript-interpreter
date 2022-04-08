@@ -4,6 +4,16 @@
 #include "stack.h"
 
 namespace ts {
+	struct InstructionSource {
+		string fileName;
+	};
+	
+	struct InstructionDebug {
+		InstructionSource* commonSource = nullptr;
+		unsigned short character;
+		unsigned int line;
+	};
+
 	namespace instruction {
 		enum PushType : short {
 			STACK = -1,
