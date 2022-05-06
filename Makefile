@@ -37,7 +37,7 @@ library:
 
 preprocessor:
 	@echo -e "   PY      tools/preprocessor.py"
-	@python3 tools/preprocessor.py
+	@python3.10 tools/preprocessor.py
 
 $(cpp_objects_tmp) : %.o : %.h
 $(cpp_objects_tmp) : %.o : %.cc
