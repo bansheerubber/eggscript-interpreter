@@ -41,12 +41,15 @@ namespace ts {
 		int methodTreeEntryIndex;
 		bool earlyQuit;
 		bool isTSSL;
-		string fileName;
+		string* fileName;
+		instruction::PushType pushType;
 	};
 
 	void initFunctionFrame(Interpreter* interpreter, FunctionFrame* frame);
 	void onFunctionFrameRealloc(Interpreter* interpreter);
 	void initSchedule(Interpreter* interpreter, Schedule** schedule);
+
+	typedef void (*instruction_function)(class Interpreter*, Instruction&);
 	
 	/*
 		the virtual machine manages the stack, variables, and objects. things like functions/classes/etc are handled via the engine
@@ -91,6 +94,10 @@ namespace ts {
 
 			string& getTopFileNameFromFrame();
 
+			#ifdef TS_PUSH_SOURCE_DEBUG
+			const InstructionDebug* getSourceFromEntry(Entry* entry);
+			#endif
+
 			Entry emptyEntry;
 
 			uint64_t highestObjectId = 1;
@@ -101,7 +108,11 @@ namespace ts {
 
 			bool isParallel = false;
 		
+		#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+		public:
+		#else
 		private:
+		#endif
 			GarbageCollectionHeap<ObjectWrapper*> garbageHeap;
 			
 			void interpret(); // interprets the next instruction
@@ -127,8 +138,10 @@ namespace ts {
 			uint64_t ranInstructions = 0;
 			uint64_t startTime = 0;
 
+			instruction_function instructionToFunction[instruction::MATRIX_SET + 1];
+
 			// stacks
-			DynamicArray<Entry, Interpreter> stack = DynamicArray<Entry, Interpreter>(this, 10000, initEntry, nullptr);
+			DynamicArray<Entry, Interpreter, true> stack = DynamicArray<Entry, Interpreter, true>(this, 100000, initEntry, nullptr);
 			DynamicArray<FunctionFrame, Interpreter> frames = DynamicArray<FunctionFrame, Interpreter>(this, 100, initFunctionFrame, onFunctionFrameRealloc);
 			InstructionContainer* topContainer; // the current container we're executing code from, taken from frames
 			uint64_t* instructionPointer; // the current instruction pointer, taken from frames
@@ -137,16 +150,18 @@ namespace ts {
 			VariableContext globalContext;
 
 			void declareObjectProperties(Function* function);
+			void pushFunctionFrame(InstructionContainer* container);
 			void pushFunctionFrame(
 				InstructionContainer* container,
-				PackagedFunctionList* list = nullptr,
-				int packagedFunctionListIndex = -1,
-				MethodTreeEntry* methodTreeEntry = nullptr,
-				int methodTreeEntryIndex = -1,
-				uint64_t argumentCount = 0,
-				uint64_t popCount = 0,
-				string fileName = "",
-				bool earlyQuit = false
+				PackagedFunctionList* list,
+				int packagedFunctionListIndex,
+				MethodTreeEntry* methodTreeEntry,
+				int methodTreeEntryIndex,
+				uint64_t argumentCount,
+				uint64_t popCount,
+				string* fileName,
+				bool earlyQuit,
+				instruction::PushType type
 			);
 			void popFunctionFrame() __attribute__((always_inline));
 			void pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int methodTreeEntryIndex);
@@ -158,6 +173,14 @@ namespace ts {
 
 			// keep track of schedules
 			MinHeap<Schedule*, Interpreter> schedules = MinHeap<Schedule*, Interpreter>(this, initSchedule, nullptr);
+
+			#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+			void initInstructionToFunction();
+			#endif
+
+			#ifdef TS_PUSH_SOURCE_DEBUG
+			robin_map<Entry*, const InstructionDebug*> entryToSource;
+			#endif
 
 			// parallel stuff
 			thread tickThread;

@@ -32,6 +32,7 @@ namespace ts {
 			}
 
 			uint64_t topValidIndex = 0;
+			Function* topValidFunction = nullptr;
 
 			class MethodTree* owner = nullptr; // owner if the packaged function list if an owner exists at all
 		

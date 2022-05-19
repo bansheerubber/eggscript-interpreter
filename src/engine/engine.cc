@@ -27,6 +27,10 @@ Engine::Engine(ParsedArguments args, bool isParallel) {
 	this->interpreter = new Interpreter(this, args, isParallel);
 
 	this->setRandomSeed(time(0));
+
+	for(uint32_t i = 0; i <= instruction::SUBTYPE_END; i++) {
+		this->subtypes[i] = 0;
+	}
 }
 
 Engine::~Engine() {
@@ -97,7 +101,8 @@ void Engine::execVirtualFile(string fileName, string contents) {
 	});
 	this->link();
 
-	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, fileName);
+	this->visitedFiles[fileName] = new string(fileName);
+	this->interpreter->pushFunctionFrame(new InstructionContainer(this, result.first), nullptr, -1, nullptr, -1, 0, 0, this->visitedFiles[fileName], false, instruction::RETURN_REGISTER);
 	this->interpreter->interpret();
 }
 
@@ -221,30 +226,59 @@ void Engine::printUnlinkedInstructions() {
 		
 		switch(unlinked->type) {
 			case instruction::CALL_FUNCTION_UNLINKED: {
-				format += "could not link function '%s'";
+				format += "could not link function '%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->callFunction.name);
 				break;
 			}
 
 			case instruction::CALL_NAMESPACE_FUNCTION_UNLINKED: {
-				format += "could not link function '%s::%s'";
+				format += "could not link function '%s::%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->callNamespaceFunction.nameSpace, unlinked->callNamespaceFunction.name);
 				break;
 			}
 
 			case instruction::CALL_OBJECT_UNLINKED: {
-				format += "could not link method '%s'";
+				format += "could not link method '%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->callObject.name);
 				break;
 			}
 
 			case instruction::CREATE_OBJECT_UNLINKED: {
-				format += "could not link object creation namespace '%s'";
+				format += "could not link object creation namespace '%s'\n";
 				(*this->warningFunction)(format.c_str(), unlinked->createObject.typeName);
 				break;
 			}
 		}
 	}
+}
+
+void Engine::printSubTypeCounts() {
+	printf("SUBTYPE_NOOP: %lu\n", this->subtypes[instruction::SUBTYPE_NOOP]);
+	printf("SUBTYPE_STACK: %lu\n", this->subtypes[instruction::SUBTYPE_STACK]);
+	printf("SUBTYPE_MATH: %lu\n", this->subtypes[instruction::SUBTYPE_MATH]);
+	printf("SUBTYPE_ASSIGN: %lu\n", this->subtypes[instruction::SUBTYPE_ASSIGN]);
+	printf("SUBTYPE_ACCESS: %lu\n", this->subtypes[instruction::SUBTYPE_ACCESS]);
+	printf("SUBTYPE_BRANCH: %lu\n", this->subtypes[instruction::SUBTYPE_BRANCH]);
+	printf("SUBTYPE_JUMP: %lu\n", this->subtypes[instruction::SUBTYPE_JUMP]);
+	printf("SUBTYPE_CALL: %lu\n", this->subtypes[instruction::SUBTYPE_CALL]);
+	printf("SUBTYPE_RETURN: %lu\n", this->subtypes[instruction::SUBTYPE_RETURN]);
+
+	uint64_t total = 0;
+	for(uint32_t i = 0; i <= instruction::SUBTYPE_END; i++) {
+		total += this->subtypes[i];
+	}
+
+	printf("TOTAL: %lu\n\n", total);
+
+	printf("SUBTYPE_NOOP: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_NOOP] / (double)total)));
+	printf("SUBTYPE_STACK: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_STACK] / (double)total)));
+	printf("SUBTYPE_MATH: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_MATH] / (double)total)));
+	printf("SUBTYPE_ASSIGN: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_ASSIGN] / (double)total)));
+	printf("SUBTYPE_ACCESS: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_ACCESS] / (double)total)));
+	printf("SUBTYPE_BRANCH: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_BRANCH] / (double)total)));
+	printf("SUBTYPE_JUMP: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_JUMP] / (double)total)));
+	printf("SUBTYPE_CALL: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_CALL] / (double)total)));
+	printf("SUBTYPE_RETURN: %d%%\n", (int)(100.0 * ((double)this->subtypes[instruction::SUBTYPE_RETURN] / (double)total)));
 }
 
 void Engine::defineTSSLMethodTree(MethodTree* tree) {
@@ -452,6 +486,8 @@ void ts::Engine::swapInstructionDebug(Instruction* source, Instruction* destinat
 	if(!this->instructionDebugEnabled) {
 		return;
 	}
+
+	this->subtypes[typeToSubType(source->type)]++;
 	
 	this->instructionDebug[destination] = this->instructionDebug[source];
 	this->instructionDebug.erase(source);

@@ -180,6 +180,7 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__onAdd, "SimObject", "onAdd", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__getId, "SimObject", "getId", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__delete, "SimObject", "delete", 1, o));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__isMethod, "SimObject", "isMethod", 2, os));
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &SimObject__test, "SimObject", "test", 2, os));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &ScriptObject__test, "ScriptObject", "test", 2, os));
@@ -206,6 +207,7 @@ void ts::sl::define(Engine* engine) {
 	functions.push_back(FUNC_DEF(entry::EMPTY, &eval, "eval", 1, s));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &exec, "exec", 1, s));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &printCompilationErrors, "printCompilationErrors", 0, nullptr));
+	functions.push_back(FUNC_DEF(entry::EMPTY, &printStack, "printStack", 0, nullptr));
 
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__onAdd, "Array", "onAdd", 1, o));
 	functions.push_back(FUNC_DEF(entry::EMPTY, &Array__push, "Array", "push", 1, o));

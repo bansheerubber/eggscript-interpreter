@@ -14,6 +14,18 @@ namespace ts {
 	void initMethodTreePackagedFunctionList(struct MethodTreeEntry* tree, class PackagedFunctionList** list);
 	void initMethodTree(class MethodTree* self, class MethodTree** tree);
 	
+	struct MethodTreeInheritanceIterator {
+		friend class MethodTree;
+		
+		public:
+			MethodTree* operator*();
+			MethodTreeInheritanceIterator& operator++();
+
+		private:
+			vector<class MethodTree*> list;
+			size_t index = 0;
+	};
+
 	struct MethodTreeEntry {
 		DynamicArray<class PackagedFunctionList*, MethodTreeEntry> list = DynamicArray<PackagedFunctionList*, MethodTreeEntry>(this, 18, initMethodTreePackagedFunctionList, nullptr);
 		bool hasInitialMethod;
@@ -46,6 +58,9 @@ namespace ts {
 
 			void definePropertyDeclaration(ts::Engine* engine, ts::InstructionReturn properties);
 
+			MethodTreeInheritanceIterator parents();
+			MethodTreeInheritanceIterator parentsReverse();
+
 			// each method gets its own index assigned to it by the interpreter. the method's index is based on its name,
 			// so we can have a method with the same name that is defined in several unrelated namespaces but that method
 			// still gets the same index as the rest of the methods with the same name
@@ -65,7 +80,7 @@ namespace ts {
 		
 		private:
 			vector<class PackagedFunctionList*> buildMethodTreeEntryForParents(string methodName, uint64_t methodNameIndex, bool addInitial = true);
-			DynamicArray<MethodTree*, MethodTree> parents = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
-			DynamicArray<MethodTree*, MethodTree> children = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
+			DynamicArray<MethodTree*, MethodTree> parentsList = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
+			DynamicArray<MethodTree*, MethodTree> childrenList = DynamicArray<MethodTree*, MethodTree>(this, 5, initMethodTree, nullptr);
 	};
 }

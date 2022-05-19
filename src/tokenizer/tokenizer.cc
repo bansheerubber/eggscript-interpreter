@@ -161,14 +161,13 @@ void Tokenizer::tokenize() {
 				this->prevChar();
 				this->readComment();
 			}
+			else if(character == '.' && this->isValidVariableFirstChar(nextCharacter)) { // member chain parsing
+				this->tokens.push_back(this->readMemberChain());
+			}
 			else { // handle keyword
 				this->prevChar();
 				this->readKeyword();
 			}
-		}
-		// member chain parsing
-		else if(character == '.') {
-			this->tokens.push_back(this->readMemberChain());
 		}
 		// read a symbol
 		else if(this->isValidVariableFirstChar(character)) {

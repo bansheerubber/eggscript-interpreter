@@ -27,6 +27,14 @@ ObjectWrapper* ts::CreateObject(
 	interpreter->garbageHeap.insert(wrapper);
 
 	if(methodTree->propertyDeclaration != nullptr) {
+		for(auto i = methodTree->parentsReverse(); *i; ++i) { // walk parent inheritance chain in reverse and declare their properties
+			if((*i)->propertyDeclaration) {
+				ts::ObjectReference* reference = new ObjectReference(wrapper);
+				interpreter->push(reference, instruction::STACK);
+				interpreter->declareObjectProperties((*i)->propertyDeclaration);
+			}
+		}
+
 		ts::ObjectReference* reference = new ObjectReference(wrapper);
 		interpreter->push(reference, instruction::STACK);
 		interpreter->declareObjectProperties(methodTree->propertyDeclaration);

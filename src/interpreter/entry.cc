@@ -73,8 +73,11 @@ void Entry::setString(string value) {
 
 void Entry::setMatrix(Matrix* matrix) {
 	this->erase();
-	this->type = entry::MATRIX;
-	this->matrixData = matrix;
+
+	if(matrix != nullptr) {
+		this->type = entry::MATRIX;
+		this->matrixData = matrix;
+	}
 }
 
 void Entry::setObject(ObjectReference* object) {

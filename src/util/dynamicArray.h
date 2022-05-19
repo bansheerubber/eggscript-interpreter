@@ -9,7 +9,7 @@
 
 #define DYNAMIC_ARRAY_MAX_SIZE 5000000
 
-template <typename T, typename S = void>
+template <typename T, typename S = void, bool disableReallocateOnPush = false>
 class DynamicArray {
 	public:
 		uint64_t head;
@@ -62,8 +62,10 @@ class DynamicArray {
 		void pushed() {
 			this->head++;
 
-			if(this->head == this->size) {
-				this->allocate(this->size * 2);
+			if constexpr(!disableReallocateOnPush) {
+				if(this->head == this->size) {
+					this->allocate(this->size * 2);
+				}
 			}
 		}
 

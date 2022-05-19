@@ -132,12 +132,7 @@ ts::InstructionReturn NamespaceStatement::compile(ts::Engine* engine, ts::Compil
 			this->getLineNumber()
 		);
 
-		if(this->operation->print() == "onAdd") {
-			callParent->type = ts::instruction::CALL_PARENT_ONADD;
-		}
-		else {
-			callParent->type = ts::instruction::CALL_PARENT;
-		}
+		callParent->type = ts::instruction::CALL_PARENT;
 		output.add(callParent);
 
 		if(this->parent->requiresSemicolon(this)) { // if we do not assign/need the value of the function, just pop it

@@ -9,5 +9,6 @@ namespace ts {
 	
 	namespace sl {
 		Entry* printCompilationErrors(Engine* engine, unsigned int argc, Entry* args);
+		Entry* printStack(Engine* engine, unsigned int argc, Entry* args);
 	}
 }

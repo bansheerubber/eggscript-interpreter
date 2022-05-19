@@ -57,9 +57,22 @@ ts::InstructionReturn ReturnStatement::compile(ts::Engine* engine, ts::Compilati
 
 	if(this->operation != nullptr) {
 		ts::InstructionReturn operation = this->operation->compile(engine, context);
-		operation.last->pushType = ts::instruction::RETURN_REGISTER;
+		
+		if(
+			this->operation->getType() == ACCESS_STATEMENT
+			|| this->operation->getType() == PARENT_STATEMENT
+			|| this->operation->getType() == NUMBER_LITERAL
+			|| this->operation->getType() == STRING_LITERAL
+			|| this->operation->getType() == BOOLEAN_LITERAL
+		) { // TODO: remove the need to do this
+			operation.last->pushType = ts::instruction::RETURN_REGISTER;
+			returnInstruction->type = ts::instruction::RETURN;
+		}
+		else {
+			returnInstruction->type = ts::instruction::MOVE_THEN_RETURN;
+		}
+
 		output.add(operation);
-		returnInstruction->type = ts::instruction::RETURN;
 	}
 
 	output.add(returnInstruction);

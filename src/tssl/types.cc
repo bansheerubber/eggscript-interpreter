@@ -40,7 +40,7 @@ Entry* ts::sl::toString(Engine* engine, unsigned int argc, Entry* args) {
 			
 			case entry::NUMBER: {
 				char* result;
-				## cd ../interpreter && python type_conversion.py args[0] result NUMBER STRING ""
+				## cd ../interpreter && python3.10 type_conversion.py args[0] result NUMBER STRING ""
 				return new Entry(result);
 			}
 
@@ -50,7 +50,7 @@ Entry* ts::sl::toString(Engine* engine, unsigned int argc, Entry* args) {
 
 			case entry::MATRIX: {
 				char* result;
-				## cd ../interpreter && python type_conversion.py args[0] result MATRIX STRING ""
+				## cd ../interpreter && python3.10 type_conversion.py args[0] result MATRIX STRING ""
 				return new Entry(result);
 			}
 

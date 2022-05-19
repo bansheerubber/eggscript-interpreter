@@ -56,6 +56,10 @@ Interpreter::Interpreter(Engine* engine, ParsedArguments args, bool isParallel) 
 		this->enterParallel();
 		this->startTime = getMicrosecondsNow();
 	}
+
+	#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+	this->initInstructionToFunction();
+	#endif
 }
 
 Interpreter::~Interpreter() {
@@ -79,7 +83,7 @@ void Interpreter::declareObjectProperties(Function* function) {
 	frame.methodTreeEntryIndex = 0;
 	frame.earlyQuit = true;
 	frame.isTSSL = false;
-	ALLOCATE_STRING(string(""), frame.fileName);
+	frame.fileName = nullptr;
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -90,6 +94,10 @@ void Interpreter::declareObjectProperties(Function* function) {
 	this->interpret();
 }
 
+void Interpreter::pushFunctionFrame(InstructionContainer* container) {
+	this->pushFunctionFrame(container, nullptr, -1, nullptr, -1, 0, 0, nullptr, false, instruction::STACK);
+}
+
 void Interpreter::pushFunctionFrame(
 	InstructionContainer* container,
 	PackagedFunctionList* list,
@@ -98,8 +106,9 @@ void Interpreter::pushFunctionFrame(
 	int methodTreeEntryIndex,
 	uint64_t argumentCount,
 	uint64_t popCount,
-	string fileName,
-	bool earlyQuit
+	string* fileName,
+	bool earlyQuit,
+	instruction::PushType type
 ) {
 	if(this->frames.head == 0) {
 		this->startTime = getMicrosecondsNow();
@@ -116,7 +125,8 @@ void Interpreter::pushFunctionFrame(
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
 	frame.earlyQuit = earlyQuit;
 	frame.isTSSL = false;
-	ALLOCATE_STRING(fileName, frame.fileName);
+	frame.fileName = fileName;
+	frame.pushType = type;
 
 	this->topContainer = frame.container;
 	this->instructionPointer = &frame.instructionPointer;
@@ -153,22 +163,34 @@ void Interpreter::pushTSSLFunctionFrame(MethodTreeEntry* methodTreeEntry, int me
 	frame.stackPopCount = 0;
 	frame.methodTreeEntry = methodTreeEntry;
 	frame.methodTreeEntryIndex = methodTreeEntryIndex;
-	ALLOCATE_STRING(string(""), frame.fileName);
+	frame.fileName = nullptr;
 	this->frames.pushed();
 }
 
 string& Interpreter::getTopFileNameFromFrame() {
 	static string empty = "";
 	for(int i = this->frames.head - 1; i >= 0; i--) {
-		if(this->frames[i].fileName != "") {
-			return this->frames[i].fileName;
+		if(this->frames[i].fileName != nullptr) {
+			return *this->frames[i].fileName;
 		}
 	}
 	return empty;
 }
 
+#ifdef TS_PUSH_SOURCE_DEBUG
+const InstructionDebug* Interpreter::getSourceFromEntry(Entry* entry) {
+	return this->entryToSource[entry];
+}
+#endif
+
 // push an entry onto the stack
 void Interpreter::push(Entry &entry, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		copyEntry(entry, this->stack[this->stack.head]);
 		this->stack.pushed();
@@ -180,6 +202,12 @@ void Interpreter::push(Entry &entry, instruction::PushType type) {
 
 // push an entry onto the stack, greedily
 void Interpreter::push(Entry &entry, instruction::PushType type, bool greedy) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		greedyCopyEntry(entry, this->stack[this->stack.head]);
 		this->stack.pushed();
@@ -191,6 +219,12 @@ void Interpreter::push(Entry &entry, instruction::PushType type, bool greedy) {
 
 // push a number onto the stack
 void Interpreter::push(double number, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		// manually inline this b/c for some reason it doesn't want to by itself
 		Entry &entry = this->stack[this->stack.head];
@@ -206,6 +240,12 @@ void Interpreter::push(double number, instruction::PushType type) {
 
 // push a string onto the stack
 void Interpreter::push(char* value, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].setString(value);
 		this->stack.pushed();
@@ -217,6 +257,12 @@ void Interpreter::push(char* value, instruction::PushType type) {
 
 // push a matrix onto the stack
 void Interpreter::push(Matrix* value, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].setMatrix(value);
 		this->stack.pushed();
@@ -228,6 +274,12 @@ void Interpreter::push(Matrix* value, instruction::PushType type) {
 
 // push an object onto the stack
 void Interpreter::push(ObjectReference* value, instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].setObject(value);
 		this->stack.pushed();
@@ -238,6 +290,12 @@ void Interpreter::push(ObjectReference* value, instruction::PushType type) {
 }
 
 void Interpreter::pushEmpty(instruction::PushType type) {
+	#ifdef TS_PUSH_SOURCE_DEBUG
+	if(this->instructionPointer != nullptr && this->topContainer != nullptr) {
+		this->entryToSource[&this->stack[this->stack.head]] = &this->engine->getInstructionDebug(&this->topContainer->array[*this->instructionPointer]);
+	}
+	#endif
+	
 	if(type < 0) {
 		this->stack[this->stack.head].erase();
 		this->stack.pushed();
@@ -289,7 +347,10 @@ Entry* Interpreter::handleTSSLParent(string &name, unsigned int argc, Entry* arg
 				methodTreeEntry,
 				methodTreeEntryIndex,
 				argc + 1,
-				foundFunction->variableCount
+				foundFunction->variableCount,
+				nullptr,
+				false,
+				instruction::RETURN_REGISTER
 			);
 			this->interpret();
 
@@ -390,8 +451,15 @@ void Interpreter::interpret() {
 
 	// PrintInstruction(instruction);
 	// this->printStack();
-	
+
+	#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+	(*this->instructionToFunction[instruction.type])(this, instruction);
+	#else
 	switch(instruction.type) {
+		default: {
+			printf("DID NOT EXECUTE INSTRUCTION.\n");
+		}
+		
 		case instruction::INVALID_INSTRUCTION: {
 			this->popFunctionFrame();
 
@@ -616,14 +684,12 @@ void Interpreter::interpret() {
 		}
 
 		case instruction::CALL_NAMESPACE_FUNCTION: {
-			Function* foundFunction;
-			PackagedFunctionList* list;
 			int packagedFunctionListIndex = -1;
 			MethodTreeEntry* methodTreeEntry = nullptr;
 			int methodTreeEntryIndex = -1;
-			list = instruction.callNamespaceFunction.cachedEntry->list[0];
+			PackagedFunctionList* list = instruction.callNamespaceFunction.cachedEntry->list[0];
 			packagedFunctionListIndex = list->topValidIndex;
-			foundFunction = (*list)[packagedFunctionListIndex];
+			Function* foundFunction = list->topValidFunction;
 
 			## call_generator.py
 
@@ -638,7 +704,31 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			this->pushEmpty(instruction::STACK);
+			this->pushEmpty(this->frames[this->frames.head].pushType);
+
+			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
+			// here so the original TSSL method can take over
+			if(this->frames[this->frames.head - 1].isTSSL || this->frames[this->frames.head].earlyQuit) {
+				return;
+			}
+
+			break;
+		}
+
+		case instruction::MOVE_THEN_RETURN: { // return from a function
+			copyEntry(this->stack[this->stack.head - 1], this->returnRegister);
+			this->pop();
+
+			this->popFunctionFrame();
+
+			// if we just ran out of instruction containers, just die here
+			if(this->topContainer == nullptr) {
+				return;
+			}
+
+			if(this->frames[this->frames.head].pushType < 0) {
+				this->push(this->returnRegister, instruction::STACK, true); // push return register	
+			}
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over
@@ -657,7 +747,9 @@ void Interpreter::interpret() {
 				return;
 			}
 
-			this->push(this->returnRegister, instruction::STACK, true); // push return register
+			if(this->frames[this->frames.head].pushType < 0) {
+				this->push(this->returnRegister, instruction::STACK, true); // push return register	
+			}
 
 			// if the current function frame is TSSL, then we're in a C++ PARENT(...) operation and we need to quit
 			// here so the original TSSL method can take over
@@ -789,14 +881,13 @@ void Interpreter::interpret() {
 			int methodTreeEntryIndex = methodTreeEntry->hasInitialMethod || methodTreeEntry->list[0]->topValidIndex != 0 ? 0 : 1;
 			PackagedFunctionList* list = methodTreeEntry->list[methodTreeEntryIndex];
 			uint64_t packagedFunctionListIndex = list->topValidIndex;
-			Function* foundFunction = (*list)[packagedFunctionListIndex];
+			Function* foundFunction = list->topValidFunction;
 			## call_generator.py
 			
 			break;
 		}
 
-		case instruction::CALL_PARENT_ONADD: {
-		case instruction::CALL_PARENT:
+		case instruction::CALL_PARENT: {
 			FunctionFrame &frame = this->frames[this->frames.head - 1];
 			MethodTreeEntry* methodTreeEntry = frame.methodTreeEntry;
 			int methodTreeEntryIndex = frame.methodTreeEntryIndex;
@@ -808,22 +899,6 @@ void Interpreter::interpret() {
 				if((uint64_t)methodTreeEntryIndex < methodTreeEntry->list.head) {
 					list = methodTreeEntry->list[methodTreeEntryIndex];
 					packagedFunctionListIndex = list->topValidIndex;
-
-					if(instruction.type == instruction::CALL_PARENT_ONADD && list->owner != nullptr && list->owner->propertyDeclaration != nullptr) {
-						Entry &numberOfArguments = this->stack[this->stack.head - 1];
-						Entry &objectEntry = this->stack[this->stack.head - 1 - numberOfArguments.numberData]; // %this variable should always be first
-						ObjectWrapper* objectWrapper = nullptr;
-
-						if(objectEntry.type == entry::OBJECT) {
-							objectWrapper = objectEntry.objectData->objectWrapper;
-						}
-						
-						if(objectWrapper != nullptr) {
-							ts::ObjectReference* reference = new ObjectReference(objectWrapper);
-							this->push(reference, instruction::STACK);
-							this->declareObjectProperties(list->owner->propertyDeclaration);
-						}
-					}
 
 					Function* foundFunction = (*list)[packagedFunctionListIndex];
 					## call_generator.py
@@ -979,23 +1054,134 @@ void Interpreter::interpret() {
 			this->pop();
 			break;
 		}
-
-		default: {
-			printf("DID NOT EXECUTE INSTRUCTION.\n");
-		}
 	}
+	#endif
 
 	// this->printStack();
 
 	goto start;
 }
 
+#ifdef TS_INSTRUCTIONS_AS_FUNCTIONS
+void Interpreter::initInstructionToFunction() {
+	this->instructionToFunction[instruction::INVALID_INSTRUCTION] = instruction_INVALID_INSTRUCTION;
+	this->instructionToFunction[instruction::NOOP] = instruction_NOOP;
+	this->instructionToFunction[instruction::PUSH] = instruction_PUSH;
+	this->instructionToFunction[instruction::POP] = instruction_POP;
+	this->instructionToFunction[instruction::JUMP] = instruction_JUMP;
+	this->instructionToFunction[instruction::JUMP_IF_TRUE] = instruction_JUMP_IF_TRUE;
+	this->instructionToFunction[instruction::JUMP_IF_TRUE_THEN_POP] = instruction_JUMP_IF_TRUE_THEN_POP;
+	this->instructionToFunction[instruction::JUMP_IF_FALSE] = instruction_JUMP_IF_FALSE;
+	this->instructionToFunction[instruction::JUMP_IF_FALSE_THEN_POP] = instruction_JUMP_IF_FALSE_THEN_POP;
+	this->instructionToFunction[instruction::MATH_ADDITION] = instruction_MATH_ADDITION;
+	this->instructionToFunction[instruction::MATH_SUBTRACT] = instruction_MATH_SUBTRACT;
+	this->instructionToFunction[instruction::MATH_MULTIPLY] = instruction_MATH_MULTIPLY;
+	this->instructionToFunction[instruction::MATH_DIVISION] = instruction_MATH_DIVISION;
+	this->instructionToFunction[instruction::MATH_MODULUS] = instruction_MATH_MODULUS;
+	this->instructionToFunction[instruction::MATH_SHIFT_LEFT] = instruction_MATH_SHIFT_LEFT;
+	this->instructionToFunction[instruction::MATH_SHIFT_RIGHT] = instruction_MATH_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::MATH_EQUAL] = instruction_MATH_EQUAL;
+	this->instructionToFunction[instruction::MATH_NOT_EQUAL] = instruction_MATH_NOT_EQUAL;
+	this->instructionToFunction[instruction::MATH_LESS_THAN_EQUAL] = instruction_MATH_LESS_THAN_EQUAL;
+	this->instructionToFunction[instruction::MATH_GREATER_THAN_EQUAL] = instruction_MATH_GREATER_THAN_EQUAL;
+	this->instructionToFunction[instruction::MATH_LESS_THAN] = instruction_MATH_LESS_THAN;
+	this->instructionToFunction[instruction::MATH_GREATER_THAN] = instruction_MATH_GREATER_THAN;
+	this->instructionToFunction[instruction::MATH_BITWISE_AND] = instruction_MATH_BITWISE_AND;
+	this->instructionToFunction[instruction::MATH_BITWISE_OR] = instruction_MATH_BITWISE_OR;
+	this->instructionToFunction[instruction::MATH_BITWISE_XOR] = instruction_MATH_BITWISE_XOR;
+	this->instructionToFunction[instruction::MATH_APPEND] = instruction_MATH_APPEND;
+	this->instructionToFunction[instruction::MATH_SPC] = instruction_MATH_SPC;
+	this->instructionToFunction[instruction::MATH_TAB] = instruction_MATH_TAB;
+	this->instructionToFunction[instruction::MATH_NL] = instruction_MATH_NL;
+	this->instructionToFunction[instruction::MATH_DOT_PRODUCT] = instruction_MATH_DOT_PRODUCT;
+	this->instructionToFunction[instruction::MATH_CROSS_PRODUCT] = instruction_MATH_CROSS_PRODUCT;
+	this->instructionToFunction[instruction::UNARY_BITWISE_NOT] = instruction_UNARY_BITWISE_NOT;
+	this->instructionToFunction[instruction::UNARY_LOGICAL_NOT] = instruction_UNARY_LOGICAL_NOT;
+	this->instructionToFunction[instruction::UNARY_NEGATE] = instruction_UNARY_NEGATE;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_EQUAL] = instruction_LOCAL_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_INCREMENT] = instruction_LOCAL_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_DECREMENT] = instruction_LOCAL_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_PLUS] = instruction_LOCAL_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_MINUS] = instruction_LOCAL_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_ASTERISK] = instruction_LOCAL_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_SLASH] = instruction_LOCAL_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_MODULUS] = instruction_LOCAL_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_SHIFT_LEFT] = instruction_LOCAL_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_SHIFT_RIGHT] = instruction_LOCAL_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_BITWISE_AND] = instruction_LOCAL_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_BITWISE_XOR] = instruction_LOCAL_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::LOCAL_ASSIGN_BITWISE_OR] = instruction_LOCAL_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_EQUAL] = instruction_GLOBAL_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_INCREMENT] = instruction_GLOBAL_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_DECREMENT] = instruction_GLOBAL_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_PLUS] = instruction_GLOBAL_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_MINUS] = instruction_GLOBAL_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_ASTERISK] = instruction_GLOBAL_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_SLASH] = instruction_GLOBAL_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_MODULUS] = instruction_GLOBAL_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_SHIFT_LEFT] = instruction_GLOBAL_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_SHIFT_RIGHT] = instruction_GLOBAL_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_BITWISE_AND] = instruction_GLOBAL_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_BITWISE_XOR] = instruction_GLOBAL_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::GLOBAL_ASSIGN_BITWISE_OR] = instruction_GLOBAL_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::LOCAL_ACCESS] = instruction_LOCAL_ACCESS;
+	this->instructionToFunction[instruction::GLOBAL_ACCESS] = instruction_GLOBAL_ACCESS;
+	this->instructionToFunction[instruction::CALL_FUNCTION_UNLINKED] = instruction_CALL_FUNCTION_UNLINKED;
+	this->instructionToFunction[instruction::CALL_FUNCTION] = instruction_CALL_FUNCTION;
+	this->instructionToFunction[instruction::CALL_NAMESPACE_FUNCTION_UNLINKED] = instruction_CALL_NAMESPACE_FUNCTION_UNLINKED;
+	this->instructionToFunction[instruction::CALL_NAMESPACE_FUNCTION] = instruction_CALL_NAMESPACE_FUNCTION;
+	this->instructionToFunction[instruction::CALL_PARENT] = instruction_CALL_PARENT;
+	this->instructionToFunction[instruction::RETURN_NO_VALUE] = instruction_RETURN_NO_VALUE;
+	this->instructionToFunction[instruction::RETURN] = instruction_RETURN;
+	this->instructionToFunction[instruction::POP_ARGUMENTS] = instruction_POP_ARGUMENTS;
+	this->instructionToFunction[instruction::CREATE_OBJECT_UNLINKED] = instruction_CREATE_OBJECT_UNLINKED;
+	this->instructionToFunction[instruction::CREATE_OBJECT] = instruction_CREATE_OBJECT;
+	this->instructionToFunction[instruction::CALL_OBJECT_UNLINKED] = instruction_CALL_OBJECT_UNLINKED;
+	this->instructionToFunction[instruction::CALL_OBJECT] = instruction_CALL_OBJECT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_EQUAL] = instruction_OBJECT_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_INCREMENT] = instruction_OBJECT_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_DECREMENT] = instruction_OBJECT_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_PLUS] = instruction_OBJECT_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_MINUS] = instruction_OBJECT_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_ASTERISK] = instruction_OBJECT_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_SLASH] = instruction_OBJECT_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_MODULUS] = instruction_OBJECT_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_SHIFT_LEFT] = instruction_OBJECT_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_SHIFT_RIGHT] = instruction_OBJECT_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_BITWISE_AND] = instruction_OBJECT_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_BITWISE_XOR] = instruction_OBJECT_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::OBJECT_ASSIGN_BITWISE_OR] = instruction_OBJECT_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::OBJECT_ACCESS] = instruction_OBJECT_ACCESS;
+	this->instructionToFunction[instruction::ARRAY_ACCESS] = instruction_ARRAY_ACCESS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_EQUAL] = instruction_ARRAY_ASSIGN_EQUAL;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_INCREMENT] = instruction_ARRAY_ASSIGN_INCREMENT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_DECREMENT] = instruction_ARRAY_ASSIGN_DECREMENT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_PLUS] = instruction_ARRAY_ASSIGN_PLUS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_MINUS] = instruction_ARRAY_ASSIGN_MINUS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_ASTERISK] = instruction_ARRAY_ASSIGN_ASTERISK;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_SLASH] = instruction_ARRAY_ASSIGN_SLASH;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_MODULUS] = instruction_ARRAY_ASSIGN_MODULUS;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_SHIFT_LEFT] = instruction_ARRAY_ASSIGN_SHIFT_LEFT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_SHIFT_RIGHT] = instruction_ARRAY_ASSIGN_SHIFT_RIGHT;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_BITWISE_AND] = instruction_ARRAY_ASSIGN_BITWISE_AND;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_BITWISE_XOR] = instruction_ARRAY_ASSIGN_BITWISE_XOR;
+	this->instructionToFunction[instruction::ARRAY_ASSIGN_BITWISE_OR] = instruction_ARRAY_ASSIGN_BITWISE_OR;
+	this->instructionToFunction[instruction::MATRIX_CREATE] = instruction_MATRIX_CREATE;
+	this->instructionToFunction[instruction::MATRIX_SET] = instruction_MATRIX_SET;
+}
+#endif
+
 void Interpreter::printStack() {
 	printf("\nSTACK: %ld\n", this->stack.head);
 	for(uint64_t i = 0; i < this->stack.head; i++) {
 		Entry &entry = this->stack[i];
 
+		#ifdef TS_PUSH_SOURCE_DEBUG
+		const InstructionDebug* debug = this->getSourceFromEntry(&this->stack[i]);
+		printf("#%ld (%s:%d:%d) ", i, debug->commonSource->fileName.c_str(), debug->line, debug->character);
+		#else
 		printf("#%ld ", i);
+		#endif
 		entry.print();
 	}
 	printf("\n");
@@ -1058,8 +1244,9 @@ Entry* Interpreter::callFunction(string functionName, Entry* arguments, uint64_t
 			methodTreeEntryIndex,
 			argumentCount + 1,
 			foundFunction->variableCount,
-			"",
-			true
+			nullptr,
+			true,
+			instruction::RETURN_REGISTER
 		);
 		this->interpret();
 	
@@ -1130,14 +1317,15 @@ Entry* Interpreter::callMethod(ObjectReference* objectReference, string methodNa
 			methodTreeEntryIndex,
 			argumentCount + 1,
 			foundFunction->variableCount,
-			"",
-			true
+			nullptr,
+			true,
+			instruction::RETURN_REGISTER
 		);
 		this->interpret();
 
-		if(this->topContainer != nullptr) {
-			this->pop(); // pop the return value from the stack, otherwise its just going to stay there forever
-		}
+		// if(this->topContainer != nullptr) {
+		// 	this->pop(); // pop the return value from the stack, otherwise its just going to stay there forever
+		// }
 
 		return new Entry(this->returnRegister);
 	}

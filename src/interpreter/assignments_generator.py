@@ -22,7 +22,7 @@ operations = {
 }
 
 specific_operations = {
-	"LOCAL_ASSIGN_EQUAL": """if(instruction.localAssign.fromStack) {{
+	"LOCAL_ASSIGN_EQUAL": """if(instruction.localAssign.fromStack && !instruction.localAssign.pushResult) {{
 				greedyCopyEntry(*entry, this->stack[instruction.localAssign.stackIndex + this->stackFramePointer]);
 			}}
 			else {{
@@ -33,14 +33,14 @@ specific_operations = {
 				instruction.objectAssign.destination,
 				instruction.objectAssign.hash,
 				*entry,
-				instruction.objectAssign.fromStack
+				instruction.objectAssign.fromStack && !instruction.localAssign.pushResult
 			);""",
 	"GLOBAL_ASSIGN_EQUAL": """this->globalContext.setVariableEntry(
 				instruction,
 				instruction.globalAssign.destination,
 				instruction.globalAssign.hash,
 				*entry,
-				instruction.globalAssign.fromStack
+				instruction.globalAssign.fromStack && !instruction.localAssign.pushResult
 			);""",
 }
 

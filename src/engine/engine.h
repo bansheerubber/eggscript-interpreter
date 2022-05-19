@@ -31,18 +31,12 @@ extern struct termios originalTerminalAttributes;
 void disableRawMode();
 
 namespace ts {
-	struct InstructionSource {
-		string fileName;
-	};
-
-	struct InstructionDebug {
-		InstructionSource* commonSource = nullptr;
-		unsigned short character;
-		unsigned int line;
-	};
-	
 	void initPackagedFunctionList(class Engine* engine, PackagedFunctionList** list);
 	void initMethodTree(class Engine* engine, MethodTree** tree);
+
+	namespace sl {
+		Entry* SimObject__isMethod(Engine* engine, unsigned int argc, Entry* args);
+	};
 	
 	class Engine {
 		friend Interpreter;
@@ -52,6 +46,7 @@ namespace ts {
 		friend Instruction;
 		friend void sl::define(Engine* engine);
 		friend void copyInstruction(Engine* engine, Instruction &source, Instruction &destination);
+		friend Entry* sl::SimObject__isMethod(Engine* engine, unsigned int argc, Entry* args);
 
 		public:
 			Engine(ParsedArguments args, bool isParallel = false);
@@ -96,6 +91,8 @@ namespace ts {
 			void addUnlinkedInstruction(Instruction* instruction);
 
 			void printUnlinkedInstructions();
+
+			void printSubTypeCounts();
 		
 		private:
 			ParsedArguments args;
@@ -131,10 +128,15 @@ namespace ts {
 			// debug data structures
 			robin_map<string, InstructionSource*> fileNameToSource;
 			robin_map<Instruction*, InstructionDebug> instructionDebug;
-			bool instructionDebugEnabled = false;
+			bool instructionDebugEnabled = true;
 
 			// data structures for keeping track of instructions that need extra linking
 			robin_set<Instruction*> unlinkedFunctions;
+
+			robin_map<string, string*> visitedFiles; // little bit of a hack to keep all filenames persistent
+
+			// tally up the different subtypes for debugging
+			uint64_t subtypes[instruction::SUBTYPE_END + 1];
 
 			void swapInstructionDebug(Instruction* source, Instruction* destination);
 			void addInstructionDebug(Instruction* source, string symbolicFileName, unsigned short character, unsigned int line);

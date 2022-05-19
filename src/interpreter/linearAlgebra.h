@@ -21,6 +21,8 @@ namespace ts {
 			Matrix* add(const Matrix* other);
 			Matrix* subtract(const Matrix* other);
 			Matrix* multiply(double scalar);
+			double dot(const Matrix* other);
+			Matrix* cross(const Matrix* other);
 			Matrix* clone();
 			Matrix* cloneRowToVector(unsigned int index);
 			string print();

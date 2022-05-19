@@ -21,7 +21,7 @@ def reject_outliers(data, m=2):
 if args.runs != None and args.file != None:
 	output = open(f"./benchmarks/{args.file}.results", "w")
 	for i in range(0, int(args.runs)):
-		time = int(os.popen(f'{executable} ./benchmarks/{args.file} --time | grep -Eo "[0-9]+"').read())
+		time = int(os.popen(f'taskset 0x1 {executable} ./benchmarks/{args.file} --time | grep -Eo "[0-9]+"').read())
 		output.write(str(time) + "\n")
 	output.close()
 else:
